@@ -1,0 +1,153 @@
+{
+  "info": {
+    "_postman_id": "c1f7b1e4-3d9a-4c91-9df6-2e84c98d781b",
+    "name": "My Chapters — Phase 1 Backend API",
+    "description": "Postman Collection for My Chapters Phase 1: Backend Foundation, Authentication & Security.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "accessCode",
+      "value": "MY_CHAPTERS_EARLY_ACCESS_2026",
+      "type": "string"
+    },
+    {
+      "key": "username",
+      "value": "ayush_admin",
+      "type": "string"
+    },
+    {
+      "key": "email",
+      "value": "ayush@example.com",
+      "type": "string"
+    },
+    {
+      "key": "password",
+      "value": "StrongPassword123!",
+      "type": "string"
+    },
+    {
+      "key": "spaceName",
+      "value": "My Space",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Health Check",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "health"]
+        },
+        "description": "Verifies that the server is up and running. Does not reveal database credentials."
+      },
+      "response": []
+    },
+    {
+      "name": "2. Auth - Signup (Admin & Space Creation)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Origin",
+            "value": "http://localhost:5173"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{username}}\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"spaceName\": \"{{spaceName}}\",\n  \"accessCode\": \"{{accessCode}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/signup",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "signup"]
+        },
+        "description": "Provisions a new Space and its Admin user atomically inside a MongoDB transaction."
+      },
+      "response": []
+    },
+    {
+      "name": "3. Auth - Signin",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Origin",
+            "value": "http://localhost:5173"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"identifier\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/signin",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "signin"]
+        },
+        "description": "Authenticates the user, creates an AuthSession in MongoDB, and sets the mc_auth_token HttpOnly cookie."
+      },
+      "response": []
+    },
+    {
+      "name": "4. Auth - Get Me (Current User & Space)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/me",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "me"]
+        },
+        "description": "Returns current authenticated user details and their associated Space. Requires the mc_auth_token cookie."
+      },
+      "response": []
+    },
+    {
+      "name": "5. Auth - Logout",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Origin",
+            "value": "http://localhost:5173"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/logout",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "logout"]
+        },
+        "description": "Revokes the active MongoDB AuthSession and clears the authentication cookie."
+      },
+      "response": []
+    }
+  ]
+}
