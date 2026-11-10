@@ -5,6 +5,7 @@ import { ProtectedRoute } from '../components/common/ProtectedRoute.jsx';
 import { Signup } from '../features/auth/pages/Signup.jsx';
 import { Signin } from '../features/auth/pages/Signin.jsx';
 import { Dashboard } from '../features/dashboard/pages/Dashboard.jsx';
+import { Someday } from '../features/someday/pages/Someday.jsx';
 import { Profile } from '../features/profile/pages/Profile.jsx';
 
 function NotFound() {
@@ -44,6 +45,7 @@ export function AppRoutes() {
         }
       >
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/someday" element={<Someday />} />
         <Route path="/profile" element={<Profile />} />
       </Route>
 

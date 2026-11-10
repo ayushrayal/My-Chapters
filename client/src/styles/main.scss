@@ -17,7 +17,9 @@
 @use './components/loader';
 @use './components/alert';
 @use './components/navigation';
+@use './components/modal';
 
 // 4. Pages
 @use './pages/auth';
 @use './pages/dashboard';
+@use './pages/someday';

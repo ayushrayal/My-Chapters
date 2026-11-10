@@ -42,11 +42,10 @@ const somedayCategorySchema = new mongoose.Schema(
 );
 
 // Keep nameNormalized in sync with name
-somedayCategorySchema.pre('validate', function (next) {
+somedayCategorySchema.pre('validate', function () {
   if (this.name) {
     this.nameNormalized = this.name.trim().toLowerCase();
   }
-  next();
 });
 
 // Compound unique index ensuring category names are unique per Space

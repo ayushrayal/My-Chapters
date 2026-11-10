@@ -45,7 +45,7 @@ export function DashboardLayout() {
               )}
             </Link>
 
-            {/* Desktop Navigation Links (Home, Profile) */}
+            {/* Desktop Navigation Links (Home, Someday, Profile) */}
             <nav className="desktop-nav-links" aria-label="Desktop Navigation">
               <NavLink
                 to="/dashboard"
@@ -54,6 +54,14 @@ export function DashboardLayout() {
                 }
               >
                 Home
+              </NavLink>
+              <NavLink
+                to="/someday"
+                className={({ isActive }) =>
+                  `desktop-nav-links__link ${isActive ? 'desktop-nav-links__link--active' : ''}`
+                }
+              >
+                Someday
               </NavLink>
               <NavLink
                 to="/profile"

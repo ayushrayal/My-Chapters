@@ -40,6 +40,23 @@ describe('AppRoutes & Route Protection', () => {
     expect(screen.getByRole('heading', { level: 2, name: /welcome back/i })).toBeDefined();
   });
 
+  it('redirects unauthenticated users trying to access /someday to /signin', () => {
+    vi.spyOn(authHook, 'useAuth').mockReturnValue({
+      user: null,
+      space: null,
+      isAuthenticated: false,
+      isLoading: false
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/someday']}>
+        <AppRoutes />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByRole('heading', { level: 2, name: /welcome back/i })).toBeDefined();
+  });
+
   it('redirects authenticated users visiting /signin to /dashboard', () => {
     vi.spyOn(authHook, 'useAuth').mockReturnValue({
       user: { id: 'u1', username: 'ayush', email: 'ayush@example.com', role: 'ADMIN' },

@@ -48,11 +48,35 @@ client/
     │   │   │   └── Signup.jsx      # /signup page
     │   │   └── services/
     │   │       └── auth.api.js     # Axios API service endpoints
-    │   └── dashboard/
+    │   ├── dashboard/
+    │   │   ├── __tests__/
+    │   │   │   └── Dashboard.test.jsx
+    │   │   └── pages/
+    │   │       └── Dashboard.jsx   # /dashboard page showing real user & Space data
+    │   ├── someday/
+    │   │   ├── __tests__/
+    │   │   │   ├── CategoryManagementModal.test.jsx
+    │   │   │   ├── ItemFormModal.test.jsx
+    │   │   │   └── Someday.test.jsx
+    │   │   ├── components/
+    │   │   │   ├── CategoryManagementModal.jsx # Manage categories (Add, Edit, Delete with items moved notice)
+    │   │   │   ├── DeleteConfirmModal.jsx      # Generic deletion confirmation modal
+    │   │   │   ├── ItemCard.jsx                # Item card with badges, links, and actions
+    │   │   │   ├── ItemDetailsModal.jsx        # Detailed view with external safe links
+    │   │   │   ├── ItemFormModal.jsx           # Add/Edit form with 0-3 dynamic links
+    │   │   │   ├── SomedayStats.jsx            # Dynamic stats (Total, Planned, Purchased)
+    │   │   │   └── StatusChangeModal.jsx       # Status toggle to Purchased with date picker
+    │   │   ├── hooks/
+    │   │   │   └── useSomeday.js               # Reactive hook for categories, items, and filters
+    │   │   ├── pages/
+    │   │   │   └── Someday.jsx                 # /someday main collection page
+    │   │   └── services/
+    │   │       └── someday.api.js              # Categories & Items Axios client endpoints
+    │   └── profile/
     │       ├── __tests__/
-    │       │   └── Dashboard.test.jsx
+    │       │   └── Profile.test.jsx
     │       └── pages/
-    │           └── Dashboard.jsx   # /dashboard page showing real user & Space data
+    │           └── Profile.jsx     # /profile account overview page
     ├── layouts/
     │   ├── AuthLayout.jsx          # Minimal, centered auth card wrapper
     │   └── DashboardLayout.jsx     # Sticky header, brand badge, and sign-out action
