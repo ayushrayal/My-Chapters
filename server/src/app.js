@@ -5,6 +5,8 @@ import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import { env } from './config/env.js';
 import authRoutes from './routes/auth.routes.js';
+import somedayCategoryRoutes from './routes/someday-category.routes.js';
+import somedayItemRoutes from './routes/someday-item.routes.js';
 import { notFoundHandler } from './middleware/not-found.middleware.js';
 import { errorHandler } from './middleware/error.middleware.js';
 import { ApiResponse } from './utils/api-response.js';
@@ -51,10 +53,14 @@ app.get('/api/health', (_req, res) => {
 // 7. Core Authentication Routes
 app.use('/api/auth', authRoutes);
 
-// 8. 404 Not Found Catch-All
+// 8. Someday Feature Routes
+app.use('/api/someday/categories', somedayCategoryRoutes);
+app.use('/api/someday/items', somedayItemRoutes);
+
+// 9. 404 Not Found Catch-All
 app.use(notFoundHandler);
 
-// 9. Centralized Error Handler
+// 10. Centralized Error Handler
 app.use(errorHandler);
 
 export default app;

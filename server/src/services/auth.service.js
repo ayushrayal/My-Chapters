@@ -5,6 +5,8 @@ import { env } from '../config/env.js';
 import { User } from '../models/user.model.js';
 import { Space } from '../models/space.model.js';
 import { AuthSession } from '../models/auth-session.model.js';
+import { SomedayCategory } from '../models/someday-category.model.js';
+import { SOMEDAY_SYSTEM_CATEGORY } from '../constants/someday.js';
 import { ROLES } from '../constants/roles.js';
 import { AppError } from '../utils/app-error.js';
 import { generateUniqueSlug } from '../utils/generate-slug.js';
@@ -128,10 +130,19 @@ export class AuthService {
         role: ROLES.ADMIN
       });
 
+      // Provision the predefined system 'Other' category for the new Space
+      const otherCategoryDoc = new SomedayCategory({
+        spaceId,
+        name: SOMEDAY_SYSTEM_CATEGORY.NAME,
+        nameNormalized: SOMEDAY_SYSTEM_CATEGORY.NAME_NORMALIZED,
+        isSystem: true
+      });
+
       try {
         await session.withTransaction(async () => {
           await spaceDoc.save({ session });
           await userDoc.save({ session });
+          await otherCategoryDoc.save({ session });
         });
       } catch (txErr) {
         // If standalone MongoDB does not support transactions, save cleanly for local dev
@@ -141,6 +152,7 @@ export class AuthService {
         ) {
           await spaceDoc.save();
           await userDoc.save();
+          await otherCategoryDoc.save();
         } else {
           throw txErr;
         }

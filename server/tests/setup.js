@@ -29,11 +29,15 @@ export async function setupTestDatabase() {
   const { User } = await import('../src/models/user.model.js');
   const { Space } = await import('../src/models/space.model.js');
   const { AuthSession } = await import('../src/models/auth-session.model.js');
+  const { SomedayCategory } = await import('../src/models/someday-category.model.js');
+  const { SomedayItem } = await import('../src/models/someday-item.model.js');
 
   await Promise.all([
     User.init(),
     Space.init(),
-    AuthSession.init()
+    AuthSession.init(),
+    SomedayCategory.init(),
+    SomedayItem.init()
   ]);
 }
 

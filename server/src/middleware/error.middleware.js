@@ -11,6 +11,9 @@ function handleMongoDuplicateKeyError(err) {
   const keyValue = err.keyValue || {};
   const fields = Object.keys(keyValue);
 
+  if (fields.includes('spaceId') && fields.includes('nameNormalized')) {
+    return AppError.conflict('A category with this name already exists in your Space');
+  }
   if (fields.includes('usernameNormalized')) {
     return AppError.conflict('Username is already taken');
   }

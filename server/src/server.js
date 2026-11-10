@@ -17,7 +17,15 @@ async function startServer() {
     // 1. Establish MongoDB connection before starting HTTP listener
     await connectDatabase();
 
-    // 2. Start HTTP server
+    // 2. Ensure Someday system 'Other' category is provisioned across all Spaces
+    try {
+      const { SomedayCategoryService } = await import('./services/someday-category.service.js');
+      await SomedayCategoryService.ensureOtherCategoriesForAllSpaces();
+    } catch (migErr) {
+      console.warn('[Server] Notice: Someday category auto-provisioning deferred:', migErr.message);
+    }
+
+    // 3. Start HTTP server
     server = app.listen(env.PORT, () => {
       console.log(`[Server] My Chapters API backend running on port ${env.PORT} [${env.NODE_ENV}]`);
       console.log(`[Server] Health check available at http://localhost:${env.PORT}/api/health`);
