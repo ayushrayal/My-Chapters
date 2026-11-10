@@ -1,0 +1,90 @@
+@use '../abstracts/variables' as *;
+@use '../abstracts/mixins' as *;
+
+.auth-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-md;
+  background-color: $color-background;
+
+  @include respond-to('tablet') {
+    padding: $spacing-xl;
+  }
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: $spacing-lg;
+  width: 100%;
+  max-width: 440px;
+
+  &__brand {
+    font-size: $font-size-2xl;
+    font-weight: $font-weight-bold;
+    letter-spacing: -0.03em;
+    color: $color-text;
+    margin-bottom: $spacing-2xs;
+  }
+
+  &__tagline {
+    font-size: $font-size-sm;
+    color: $color-muted-text;
+  }
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  background-color: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-sm;
+
+  @include respond-to('mobile') {
+    padding: $spacing-xl;
+  }
+
+  &__title {
+    font-size: $font-size-xl;
+    margin-bottom: $spacing-2xs;
+  }
+
+  &__subtitle {
+    font-size: $font-size-sm;
+    color: $color-muted-text;
+    margin-bottom: $spacing-lg;
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+  }
+
+  &__footer {
+    margin-top: $spacing-lg;
+    padding-top: $spacing-md;
+    border-top: 1px solid $color-border;
+    text-align: center;
+    font-size: $font-size-sm;
+    color: $color-muted-text;
+
+    a {
+      color: $color-text;
+      font-weight: $font-weight-semibold;
+      margin-left: $spacing-2xs;
+
+      &:hover {
+        text-decoration: underline;
+      }
+
+      &:focus-visible {
+        @include focus-ring;
+      }
+    }
+  }
+}

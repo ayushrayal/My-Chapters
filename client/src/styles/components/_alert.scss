@@ -1,0 +1,45 @@
+@use '../abstracts/variables' as *;
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-sm;
+  padding: $spacing-md;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  line-height: $line-height-normal;
+  width: 100%;
+
+  &--error {
+    background-color: $color-error-bg;
+    border: 1px solid $color-error-border;
+    color: $color-error;
+  }
+
+  &--success {
+    background-color: $color-success-bg;
+    border: 1px solid $color-success-border;
+    color: $color-success;
+  }
+
+  &--warning {
+    background-color: $color-warning-bg;
+    border: 1px solid $color-warning-border;
+    color: $color-warning;
+  }
+
+  &__content {
+    flex: 1;
+  }
+
+  &__title {
+    font-weight: $font-weight-semibold;
+    margin-bottom: 2px;
+  }
+
+  &__list {
+    margin-top: $spacing-2xs;
+    padding-left: $spacing-md;
+    list-style: disc;
+  }
+}

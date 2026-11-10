@@ -1,0 +1,169 @@
+@use '../abstracts/variables' as *;
+@use '../abstracts/mixins' as *;
+
+.dashboard-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: $color-background;
+}
+
+.dashboard-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: $color-surface;
+  border-bottom: 1px solid $color-border;
+  padding: 0 $spacing-md;
+
+  @include respond-to('tablet') {
+    padding: 0 $spacing-xl;
+  }
+
+  &__inner {
+    max-width: 1000px;
+    margin: 0 auto;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__brand {
+    display: flex;
+    align-items: baseline;
+    gap: $spacing-xs;
+
+    &-title {
+      font-size: $font-size-lg;
+      font-weight: $font-weight-bold;
+      letter-spacing: -0.02em;
+      color: $color-text;
+    }
+
+    &-badge {
+      font-size: $font-size-xs;
+      font-weight: $font-weight-medium;
+      color: $color-muted-text;
+      background-color: $color-secondary;
+      padding: 2px $spacing-xs;
+      border-radius: $radius-full;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+  }
+}
+
+.dashboard-main {
+  flex: 1;
+  max-width: 1000px;
+  width: 100%;
+  margin: 0 auto;
+  padding: $spacing-lg $spacing-md;
+
+  @include respond-to('tablet') {
+    padding: $spacing-2xl $spacing-xl;
+  }
+}
+
+.welcome-section {
+  background-color: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-xl;
+  box-shadow: $shadow-sm;
+
+  @include respond-to('tablet') {
+    padding: $spacing-xl;
+  }
+
+  &__greeting {
+    font-size: $font-size-2xl;
+    font-weight: $font-weight-bold;
+    color: $color-text;
+    margin-bottom: $spacing-xs;
+
+    @include respond-to('tablet') {
+      font-size: $font-size-3xl;
+    }
+  }
+
+  &__tagline {
+    font-size: $font-size-base;
+    color: $color-muted-text;
+  }
+}
+
+.account-card {
+  background-color: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-sm;
+
+  @include respond-to('tablet') {
+    padding: $spacing-xl;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: $spacing-md;
+    border-bottom: 1px solid $color-border;
+    margin-bottom: $spacing-lg;
+  }
+
+  &__title {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semibold;
+  }
+
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px $spacing-sm;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+    background-color: $color-secondary;
+    color: $color-secondary-text;
+    border-radius: $radius-full;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: $spacing-md;
+
+    @include respond-to('tablet') {
+      grid-template-columns: repeat(2, 1fr);
+      gap: $spacing-lg;
+    }
+  }
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-2xs;
+  }
+
+  &__label {
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: $color-muted-text;
+  }
+
+  &__value {
+    font-size: $font-size-base;
+    font-weight: $font-weight-medium;
+    color: $color-text;
+    word-break: break-word;
+  }
+}
