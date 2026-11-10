@@ -11,3 +11,4 @@ export function Loader({ size = 'md', fullScreen = false, text = '' }) {
     </div>
   );
 }
+

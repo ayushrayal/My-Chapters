@@ -34,3 +34,4 @@ describe('Dashboard Page Component', () => {
     expect(screen.getByText('ADMIN')).toBeDefined();
   });
 });
+

@@ -78,3 +78,4 @@ describe('AppRoutes & Route Protection', () => {
     expect(screen.getByRole('link', { name: /go to dashboard/i })).toBeDefined();
   });
 });
+
