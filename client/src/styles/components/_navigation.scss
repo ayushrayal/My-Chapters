@@ -1,0 +1,131 @@
+@use '../abstracts/variables' as *;
+@use '../abstracts/mixins' as *;
+
+// ==============================================================================
+// MOBILE BOTTOM NAVIGATION (iPhone-style fixed tab bar)
+// ==============================================================================
+
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 900;
+  background-color: $color-deep-navy;
+  border-top: 1.5px solid rgba(222, 224, 237, 0.16);
+  box-shadow: $shadow-nav;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+
+  // Hidden on desktop / tablet
+  @include desktop-only {
+    display: none !important;
+  }
+
+  &__container {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    height: 62px;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 $spacing-sm;
+  }
+
+  &__item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-height: 48px; // Touch-friendly >= 44px
+    padding: 6px $spacing-sm;
+    color: rgba(222, 224, 237, 0.65);
+    text-decoration: none;
+    transition: all $transition-fast;
+    border-radius: $radius-md;
+
+    &:hover {
+      color: $color-soft-lavender;
+    }
+
+    &:focus-visible {
+      @include focus-ring-dark;
+    }
+
+    // Active Tab State (Lime Accent on Deep Navy)
+    &--active {
+      color: $color-lime-accent;
+      font-weight: $font-weight-semibold;
+
+      .mobile-bottom-nav__icon-wrapper {
+        background-color: rgba(58, 78, 251, 0.28);
+        color: $color-lime-accent;
+      }
+
+      .mobile-bottom-nav__label {
+        color: $color-lime-accent;
+      }
+    }
+  }
+
+  &__icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 28px;
+    border-radius: $radius-pill;
+    transition: all $transition-fast;
+  }
+
+  &__label {
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+    letter-spacing: -0.01em;
+    line-height: 1;
+  }
+}
+
+// ==============================================================================
+// DESKTOP NAVIGATION LINKS (Integrated in Top Header)
+// ==============================================================================
+
+.desktop-nav-links {
+  display: none;
+
+  @include desktop-only {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    margin-left: $spacing-lg;
+  }
+
+  &__link {
+    display: inline-flex;
+    align-items: center;
+    padding: $spacing-xs $spacing-md;
+    border-radius: $radius-sm;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: rgba(222, 224, 237, 0.72);
+    text-decoration: none;
+    transition: all $transition-fast;
+
+    &:hover {
+      color: $color-soft-lavender;
+      background-color: rgba(222, 224, 237, 0.08);
+    }
+
+    &:focus-visible {
+      @include focus-ring-dark;
+    }
+
+    &--active {
+      color: $color-lime-accent;
+      background-color: rgba(58, 78, 251, 0.3);
+      font-weight: $font-weight-semibold;
+    }
+  }
+}
+

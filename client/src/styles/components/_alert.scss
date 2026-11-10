@@ -6,26 +6,45 @@
   gap: $spacing-sm;
   padding: $spacing-md;
   border-radius: $radius-md;
+  font-family: $font-family-base;
   font-size: $font-size-sm;
   line-height: $line-height-normal;
   width: 100%;
+  background-color: $color-deep-navy;
+  color: $color-soft-lavender;
+  border: 1.5px solid transparent;
 
+  // Error Alert (Deep Navy with Primary Blue & Secondary Blue accent)
   &--error {
-    background-color: $color-error-bg;
-    border: 1px solid $color-error-border;
-    color: $color-error;
+    background-color: $color-deep-navy;
+    border-color: $color-primary-blue;
+    color: $color-soft-lavender;
+
+    .alert__title {
+      color: $color-secondary-blue;
+    }
   }
 
+  // Success Alert (Deep Navy with Lime Accent)
   &--success {
-    background-color: $color-success-bg;
-    border: 1px solid $color-success-border;
-    color: $color-success;
+    background-color: $color-deep-navy;
+    border-color: $color-lime-accent;
+    color: $color-soft-lavender;
+
+    .alert__title {
+      color: $color-lime-accent;
+    }
   }
 
+  // Warning / Notice Alert
   &--warning {
-    background-color: $color-warning-bg;
-    border: 1px solid $color-warning-border;
-    color: $color-warning;
+    background-color: $color-deep-navy;
+    border-color: $color-secondary-blue;
+    color: $color-soft-lavender;
+
+    .alert__title {
+      color: $color-lime-accent;
+    }
   }
 
   &__content {
@@ -35,6 +54,7 @@
   &__title {
     font-weight: $font-weight-semibold;
     margin-bottom: 2px;
+    letter-spacing: -0.01em;
   }
 
   &__list {
@@ -43,4 +63,3 @@
     list-style: disc;
   }
 }
-

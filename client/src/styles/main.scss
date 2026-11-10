@@ -1,5 +1,6 @@
 // ==============================================================================
-// MY CHAPTERS - MAIN STYLESHEET
+// MY CHAPTERS — MAIN STYLESHEET
+// Outfit Typography & Official 5-Color System
 // ==============================================================================
 
 // 1. Abstracts
@@ -15,8 +16,8 @@
 @use './components/input';
 @use './components/loader';
 @use './components/alert';
+@use './components/navigation';
 
 // 4. Pages
 @use './pages/auth';
 @use './pages/dashboard';
-

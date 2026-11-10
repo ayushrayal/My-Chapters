@@ -1,34 +1,117 @@
 @use '../abstracts/variables' as *;
 
+// ==============================================================================
+// OUTFIT FONT FAMILY (SIL Open Font License 1.1)
+// Bundled locally - Zero external font requests at runtime
+// ==============================================================================
+
+@font-face {
+  font-family: 'Outfit';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/src/assets/fonts/outfit/outfit-latin-400-normal.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Outfit';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/src/assets/fonts/outfit/outfit-latin-500-normal.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Outfit';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/src/assets/fonts/outfit/outfit-latin-600-normal.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Outfit';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/src/assets/fonts/outfit/outfit-latin-700-normal.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Outfit';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url('/src/assets/fonts/outfit/outfit-latin-800-normal.woff2') format('woff2');
+}
+
+// Global Typography Elements
+body, input, button, textarea, select {
+  font-family: $font-family-base;
+}
+
 h1, h2, h3, h4, h5, h6 {
-  font-weight: $font-weight-semibold;
+  font-family: $font-family-base;
+  font-weight: $font-weight-bold;
   line-height: $line-height-tight;
-  color: $color-text;
-  letter-spacing: -0.02em;
+  color: $color-text-primary;
+  letter-spacing: -0.025em;
 }
 
 h1 {
   font-size: $font-size-2xl;
+  font-weight: $font-weight-extrabold;
+
+  @media (min-width: #{$bp-tablet}) {
+    font-size: $font-size-3xl;
+  }
 }
 
 h2 {
   font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+
+  @media (min-width: #{$bp-tablet}) {
+    font-size: $font-size-2xl;
+  }
 }
 
 h3 {
   font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
 }
 
 p {
   line-height: $line-height-normal;
+  color: $color-text-primary;
+}
+
+.text-primary {
+  color: $color-text-primary;
 }
 
 .text-muted {
-  color: $color-muted-text;
+  color: $color-text-muted;
 }
 
 .text-subtle {
-  color: $color-subtle-text;
+  color: $color-text-subtle;
+}
+
+.text-on-dark {
+  color: $color-text-on-dark;
+}
+
+.text-on-dark-muted {
+  color: $color-text-on-dark-muted;
+}
+
+.text-lime {
+  color: $color-text-lime;
+}
+
+.text-blue {
+  color: $color-primary-blue;
 }
 
 .text-sm {
@@ -47,3 +130,6 @@ p {
   font-weight: $font-weight-semibold;
 }
 
+.font-bold {
+  font-weight: $font-weight-bold;
+}

@@ -12,13 +12,16 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  font-family: $font-family-base;
   font-size: $font-size-sm;
   font-weight: $font-weight-medium;
-  color: $color-text;
+  color: $color-deep-navy;
+  letter-spacing: -0.01em;
 
   &__required {
-    color: $color-error;
+    color: $color-primary-blue;
     margin-left: 2px;
+    font-weight: $font-weight-bold;
   }
 }
 
@@ -31,44 +34,47 @@
 
 .form-input {
   width: 100%;
-  min-height: 44px; // Mobile touch target
+  min-height: 48px; // Mobile touch target >= 44px
   padding: 0 $spacing-md;
+  font-family: $font-family-base;
   font-size: $font-size-base;
-  color: $color-text;
-  background-color: $color-surface;
-  border: 1px solid $color-border;
+  color: $color-deep-navy;
+  background-color: rgba(222, 224, 237, 0.35);
+  border: 1.5px solid rgba(37, 41, 67, 0.2);
   border-radius: $radius-md;
   transition: all $transition-fast;
 
   &::placeholder {
-    color: $color-subtle-text;
+    color: rgba(37, 41, 67, 0.45);
   }
 
   &:hover:not(:disabled):not(:focus) {
-    border-color: $color-border-hover;
+    border-color: rgba(37, 41, 67, 0.4);
+    background-color: rgba(222, 224, 237, 0.5);
   }
 
   &:focus {
     @include focus-ring;
+    background-color: #DEE0ED;
   }
 
   &--with-toggle {
-    padding-right: 48px;
+    padding-right: 52px;
   }
 
   &--error {
-    border-color: $color-error;
+    border-color: $color-primary-blue;
 
     &:focus {
-      border-color: $color-error;
-      box-shadow: 0 0 0 2px rgba($color-error, 0.15);
+      border-color: $color-primary-blue;
+      box-shadow: 0 0 0 3px rgba(58, 78, 251, 0.25);
     }
   }
 
   &:disabled {
-    background-color: $color-secondary;
+    background-color: rgba(37, 41, 67, 0.08);
     cursor: not-allowed;
-    color: $color-muted-text;
+    color: rgba(37, 41, 67, 0.5);
   }
 }
 
@@ -80,16 +86,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  min-width: 44px;
+  min-height: 40px;
   border-radius: $radius-sm;
-  color: $color-muted-text;
+  color: $color-primary-blue;
+  font-family: $font-family-base;
   font-size: $font-size-xs;
-  font-weight: $font-weight-medium;
-  transition: color $transition-fast;
+  font-weight: $font-weight-semibold;
+  transition: all $transition-fast;
 
   &:hover {
-    color: $color-text;
+    color: $color-deep-navy;
+    background-color: rgba(37, 41, 67, 0.06);
   }
 
   &:focus-visible {
@@ -99,13 +107,23 @@
 
 .form-error {
   font-size: $font-size-xs;
-  color: $color-error;
+  font-weight: $font-weight-medium;
+  color: $color-primary-blue;
   min-height: 1.125rem;
   line-height: 1.25;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  &::before {
+    content: "•";
+    color: $color-primary-blue;
+    font-size: 1.2em;
+  }
 }
 
 .form-hint {
   font-size: $font-size-xs;
-  color: $color-muted-text;
+  color: rgba(37, 41, 67, 0.65);
+  line-height: 1.35;
 }
-

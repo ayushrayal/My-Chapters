@@ -3,17 +3,22 @@
 
 .dashboard-layout {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  background-color: $color-background;
+  background-color: $color-bg-app;
 }
+
+// ==============================================================================
+// TOP NAVIGATION BAR (Deep Navy Background)
+// ==============================================================================
 
 .dashboard-nav {
   position: sticky;
   top: 0;
-  z-index: 100;
-  background-color: $color-surface;
-  border-bottom: 1px solid $color-border;
+  z-index: 500;
+  background-color: $color-deep-navy;
+  border-bottom: 1.5px solid rgba(222, 224, 237, 0.16);
   padding: 0 $spacing-md;
 
   @include respond-to('tablet') {
@@ -21,33 +26,55 @@
   }
 
   &__inner {
-    max-width: 1000px;
+    max-width: 1040px;
     margin: 0 auto;
     height: 64px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: $spacing-sm;
+  }
+
+  &__left {
+    display: flex;
+    align-items: center;
+    min-width: 0;
   }
 
   &__brand {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: $spacing-xs;
+    text-decoration: none;
+    min-width: 0;
 
     &-title {
-      font-size: $font-size-lg;
-      font-weight: $font-weight-bold;
-      letter-spacing: -0.02em;
-      color: $color-text;
+      font-size: $font-size-base;
+      font-weight: $font-weight-extrabold;
+      letter-spacing: -0.025em;
+      color: $color-soft-lavender;
+      text-transform: uppercase;
+      white-space: nowrap;
+
+      @include respond-to('tablet') {
+        font-size: $font-size-lg;
+      }
     }
 
     &-badge {
       font-size: $font-size-xs;
-      font-weight: $font-weight-medium;
-      color: $color-muted-text;
-      background-color: $color-secondary;
-      padding: 2px $spacing-xs;
-      border-radius: $radius-full;
+      font-weight: $font-weight-semibold;
+      color: $color-lime-accent;
+      background-color: rgba(58, 78, 251, 0.28);
+      border: 1px solid rgba(227, 255, 59, 0.25);
+      padding: 2px $spacing-sm;
+      border-radius: $radius-pill;
+      @include truncate;
+      max-width: 140px;
+
+      @include respond-to('tablet') {
+        max-width: 220px;
+      }
     }
   }
 
@@ -55,38 +82,82 @@
     display: flex;
     align-items: center;
     gap: $spacing-sm;
+    flex-shrink: 0;
+  }
+
+  &__username {
+    display: none;
+    font-size: $font-size-sm;
+    color: rgba(222, 224, 237, 0.72);
+    font-weight: $font-weight-medium;
+    @include truncate;
+    max-width: 140px;
+
+    @include desktop-only {
+      display: inline;
+    }
   }
 }
 
+// ==============================================================================
+// MAIN CONTENT CONTAINER
+// Respects mobile bottom navigation with sufficient bottom clearance
+// ==============================================================================
+
 .dashboard-main {
   flex: 1;
-  max-width: 1000px;
+  max-width: 1040px;
   width: 100%;
   margin: 0 auto;
   padding: $spacing-lg $spacing-md;
+
+  // Mobile bottom navigation padding clearance so navigation NEVER overlaps content
+  @include mobile-only {
+    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  }
 
   @include respond-to('tablet') {
     padding: $spacing-2xl $spacing-xl;
   }
 }
 
+// ==============================================================================
+// WELCOME SECTION (Deep Navy Accent Surface)
+// ==============================================================================
+
 .welcome-section {
-  background-color: $color-surface;
-  border: 1px solid $color-border;
+  background-color: $color-deep-navy;
+  border: 1.5px solid rgba(58, 78, 251, 0.35);
   border-radius: $radius-lg;
   padding: $spacing-lg;
   margin-bottom: $spacing-xl;
-  box-shadow: $shadow-sm;
+  box-shadow: $shadow-md;
 
   @include respond-to('tablet') {
     padding: $spacing-xl;
   }
 
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-bold;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: $color-lime-accent;
+    background-color: rgba(227, 255, 59, 0.12);
+    border: 1px solid rgba(227, 255, 59, 0.3);
+    padding: 3px $spacing-sm;
+    border-radius: $radius-pill;
+    margin-bottom: $spacing-xs;
+  }
+
   &__greeting {
     font-size: $font-size-2xl;
-    font-weight: $font-weight-bold;
-    color: $color-text;
-    margin-bottom: $spacing-xs;
+    font-weight: $font-weight-extrabold;
+    color: $color-soft-lavender;
+    margin-bottom: $spacing-2xs;
+    letter-spacing: -0.025em;
 
     @include respond-to('tablet') {
       font-size: $font-size-3xl;
@@ -95,13 +166,18 @@
 
   &__tagline {
     font-size: $font-size-base;
-    color: $color-muted-text;
+    color: rgba(222, 224, 237, 0.78);
+    line-height: $line-height-normal;
   }
 }
 
+// ==============================================================================
+// ACCOUNT & SPACE OVERVIEW CARD
+// ==============================================================================
+
 .account-card {
-  background-color: $color-surface;
-  border: 1px solid $color-border;
+  background-color: #DEE0ED;
+  border: 1.5px solid rgba(37, 41, 67, 0.16);
   border-radius: $radius-lg;
   padding: $spacing-lg;
   box-shadow: $shadow-sm;
@@ -115,24 +191,28 @@
     align-items: center;
     justify-content: space-between;
     padding-bottom: $spacing-md;
-    border-bottom: 1px solid $color-border;
+    border-bottom: 1.5px solid rgba(37, 41, 67, 0.12);
     margin-bottom: $spacing-lg;
+    gap: $spacing-sm;
   }
 
   &__title {
     font-size: $font-size-lg;
-    font-weight: $font-weight-semibold;
+    font-weight: $font-weight-bold;
+    color: $color-deep-navy;
+    letter-spacing: -0.02em;
   }
 
   &__badge {
     display: inline-flex;
     align-items: center;
-    padding: 3px $spacing-sm;
+    padding: 3px $spacing-md;
     font-size: $font-size-xs;
-    font-weight: $font-weight-medium;
-    background-color: $color-secondary;
-    color: $color-secondary-text;
-    border-radius: $radius-full;
+    font-weight: $font-weight-semibold;
+    background-color: $color-deep-navy;
+    color: $color-lime-accent;
+    border-radius: $radius-pill;
+    letter-spacing: 0.03em;
   }
 
   &__grid {
@@ -150,21 +230,105 @@
     display: flex;
     flex-direction: column;
     gap: $spacing-2xs;
+    background-color: rgba(37, 41, 67, 0.04);
+    border: 1px solid rgba(37, 41, 67, 0.08);
+    border-radius: $radius-md;
+    padding: $spacing-md;
   }
 
   &__label {
     font-size: $font-size-xs;
-    font-weight: $font-weight-medium;
+    font-weight: $font-weight-semibold;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: $color-muted-text;
+    color: rgba(37, 41, 67, 0.68);
   }
 
   &__value {
     font-size: $font-size-base;
-    font-weight: $font-weight-medium;
-    color: $color-text;
+    font-weight: $font-weight-semibold;
+    color: $color-deep-navy;
     word-break: break-word;
+    overflow-wrap: break-word;
   }
 }
 
+// ==============================================================================
+// PROFILE PAGE SPECIFIC STYLES
+// ==============================================================================
+
+.profile-page {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.profile-header-card {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  background-color: $color-deep-navy;
+  border: 1.5px solid rgba(58, 78, 251, 0.35);
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-md;
+
+  @include respond-to('tablet') {
+    padding: $spacing-xl;
+    gap: $spacing-lg;
+  }
+
+  &__avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: $radius-pill;
+    background-color: $color-primary-blue;
+    color: $color-lime-accent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: $font-size-xl;
+    font-weight: $font-weight-extrabold;
+    flex-shrink: 0;
+
+    @include respond-to('tablet') {
+      width: 64px;
+      height: 64px;
+      font-size: $font-size-2xl;
+    }
+  }
+
+  &__info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__name {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+    color: $color-soft-lavender;
+    letter-spacing: -0.02em;
+    @include truncate;
+
+    @include respond-to('tablet') {
+      font-size: $font-size-2xl;
+    }
+  }
+
+  &__email {
+    font-size: $font-size-sm;
+    color: rgba(222, 224, 237, 0.72);
+    @include truncate;
+  }
+
+  &__badge {
+    padding: 3px $spacing-md;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-semibold;
+    background-color: rgba(227, 255, 59, 0.15);
+    color: $color-lime-accent;
+    border: 1px solid rgba(227, 255, 59, 0.3);
+    border-radius: $radius-pill;
+    letter-spacing: 0.03em;
+  }
+}

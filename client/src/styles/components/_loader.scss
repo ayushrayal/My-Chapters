@@ -8,45 +8,49 @@
   justify-content: center;
   gap: $spacing-md;
   padding: $spacing-xl;
+  background-color: transparent;
 
   &--fullscreen {
     position: fixed;
     inset: 0;
     width: 100vw;
     height: 100vh;
-    background-color: $color-background;
+    height: 100dvh;
+    background-color: $color-bg-app;
     z-index: 9999;
   }
 }
 
 .spinner {
-  border-radius: $radius-full;
-  border: 2px solid $color-border;
-  border-top-color: $color-primary;
+  border-radius: $radius-pill;
+  border: 3px solid rgba(37, 41, 67, 0.16);
+  border-top-color: $color-primary-blue;
   animation: spin 0.7s linear infinite;
 
   &--sm {
-    width: 20px;
-    height: 20px;
-    border-width: 2px;
+    width: 22px;
+    height: 22px;
+    border-width: 2.5px;
   }
 
   &--md {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     border-width: 3px;
   }
 
   &--lg {
-    width: 48px;
-    height: 48px;
+    width: 52px;
+    height: 52px;
     border-width: 4px;
+    border-top-color: $color-primary-blue;
   }
 }
 
 .loader-text {
+  font-family: $font-family-base;
   font-size: $font-size-sm;
-  color: $color-muted-text;
+  color: $color-deep-navy;
   font-weight: $font-weight-medium;
+  letter-spacing: -0.01em;
 }
-

@@ -5,6 +5,7 @@ import { ProtectedRoute } from '../components/common/ProtectedRoute.jsx';
 import { Signup } from '../features/auth/pages/Signup.jsx';
 import { Signin } from '../features/auth/pages/Signin.jsx';
 import { Dashboard } from '../features/dashboard/pages/Dashboard.jsx';
+import { Profile } from '../features/profile/pages/Profile.jsx';
 
 function NotFound() {
   return (
@@ -12,10 +13,10 @@ function NotFound() {
       <div className="auth-card" style={{ textAlign: 'center' }}>
         <h2 className="auth-card__title">404 — Page Not Found</h2>
         <p className="auth-card__subtitle">
-          The page you are looking for does not exist.
+          The page you are looking for does not exist in My Chapters.
         </p>
         <Link to="/dashboard" className="btn btn--primary btn--full" style={{ marginTop: '16px' }}>
-          Go to Dashboard
+          Return to Dashboard
         </Link>
       </div>
     </div>
@@ -34,7 +35,7 @@ export function AppRoutes() {
         <Route path="/signin" element={<Signin />} />
       </Route>
 
-      {/* Protected Dashboard Route wrapped in ProtectedRoute & DashboardLayout */}
+      {/* Protected Routes wrapped in ProtectedRoute & DashboardLayout */}
       <Route
         element={
           <ProtectedRoute>
@@ -43,6 +44,7 @@ export function AppRoutes() {
         }
       >
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/profile" element={<Profile />} />
       </Route>
 
       {/* Catch-all 404 Not Found */}
@@ -50,4 +52,3 @@ export function AppRoutes() {
     </Routes>
   );
 }
-
