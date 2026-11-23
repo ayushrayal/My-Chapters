@@ -11,6 +11,8 @@ export { Card, CardHeader, CardBody, CardFooter } from './Card.jsx';
 export { Modal } from './Modal.jsx';
 export { BottomSheet } from './BottomSheet.jsx';
 export { StatusBadge } from './StatusBadge.jsx';
+export { Badge, Chip } from './Badge.jsx';
+export { SegmentedToggle } from './SegmentedToggle.jsx';
 export { Avatar } from './Avatar.jsx';
 export { EmptyState } from './EmptyState.jsx';
 export { SkeletonLoader } from './SkeletonLoader.jsx';
@@ -18,4 +20,3 @@ export { Toast } from './Toast.jsx';
 export { ConfirmDialog } from './ConfirmDialog.jsx';
 export { Loader } from './Loader.jsx';
 export { ProtectedRoute } from './ProtectedRoute.jsx';
-

@@ -11,9 +11,8 @@
   left: 16px;
   right: 16px;
   z-index: 900;
-  pointer-events: none; // Allow clicks around the floating card
+  pointer-events: none;
 
-  // Hidden on desktop / tablet
   @include desktop-only {
     display: none !important;
   }
@@ -28,7 +27,7 @@
     margin: 0 auto;
     padding: 0 $spacing-xs;
     background-color: $color-white;
-    border-radius: 20px;
+    border-radius: $radius-24;
     border: 1px solid $color-subtle-border;
     box-shadow: $shadow-float;
   }
@@ -39,13 +38,13 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
+    gap: 3px;
     min-height: 48px; // Touch-friendly >= 44px
     padding: 4px $spacing-xs;
     color: $color-text-subtle;
     text-decoration: none;
     transition: all $transition-fast;
-    border-radius: $radius-md;
+    border-radius: $radius-12;
 
     &:hover {
       color: $color-primary-blue;
@@ -55,7 +54,7 @@
       @include focus-ring;
     }
 
-    // Active Tab State (Primary Blue on White Surface)
+    // Active Tab State (Primary Blue on White Surface with active indicator)
     &--active {
       color: $color-primary-blue;
       font-weight: $font-weight-semibold;
@@ -83,7 +82,7 @@
   }
 
   &__label {
-    font-size: 11px;
+    font-size: $font-size-12;
     font-weight: $font-weight-medium;
     letter-spacing: -0.01em;
     line-height: 1;
@@ -91,7 +90,7 @@
 }
 
 // ==============================================================================
-// DESKTOP NAVIGATION LINKS (Integrated in Floating Header)
+// DESKTOP NAVIGATION LINKS (Floating Pill Container)
 // ==============================================================================
 
 .desktop-nav-links {
@@ -101,7 +100,7 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    background-color: $color-surface-secondary;
+    background-color: rgba(222, 224, 237, 0.45);
     padding: 4px;
     border-radius: $radius-pill;
     border: 1px solid $color-subtle-border;
@@ -112,15 +111,15 @@
     align-items: center;
     padding: 6px 16px;
     border-radius: $radius-pill;
-    font-size: $font-size-sm;
+    font-size: $font-size-14;
     font-weight: $font-weight-medium;
     color: $color-text-muted;
     text-decoration: none;
     transition: all $transition-fast;
 
     &:hover {
-      color: $color-primary-blue;
-      background-color: rgba(255, 255, 255, 0.8);
+      color: $color-deep-navy;
+      background-color: rgba(255, 255, 255, 0.85);
     }
 
     &:focus-visible {
@@ -131,7 +130,7 @@
       color: $color-primary-blue;
       background-color: $color-white;
       font-weight: $font-weight-bold;
-      box-shadow: 0 1px 3px rgba(37, 41, 67, 0.08);
+      box-shadow: $shadow-sm;
     }
   }
 }

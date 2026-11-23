@@ -4,7 +4,7 @@
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: $spacing-2xs;
+  gap: $spacing-xs;
   width: 100%;
 }
 
@@ -12,8 +12,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-family: $font-family-base;
-  font-size: $font-size-sm;
+  font-family: $font-family-body;
+  font-size: $font-size-14;
   font-weight: $font-weight-medium;
   color: $color-deep-navy;
   letter-spacing: -0.01em;
@@ -24,10 +24,16 @@
     font-weight: $font-weight-bold;
   }
 
-  &__counter {
-    font-size: 11px;
+  &__optional {
+    font-size: $font-size-12;
     color: $color-text-subtle;
-    font-weight: 400;
+    font-weight: $font-weight-regular;
+  }
+
+  &__counter {
+    font-size: $font-size-12;
+    color: $color-text-subtle;
+    font-weight: $font-weight-regular;
   }
 }
 
@@ -40,14 +46,14 @@
 
 .form-input {
   width: 100%;
-  min-height: 46px; // Mobile touch target >= 44px
+  min-height: 46px; // Touch target >= 44px
   padding: 0 $spacing-md;
-  font-family: $font-family-base;
-  font-size: $font-size-base;
+  font-family: $font-family-body;
+  font-size: $font-size-14;
   color: $color-deep-navy;
   background-color: $color-white;
   border: 1.5px solid $color-subtle-border;
-  border-radius: $radius-md;
+  border-radius: $radius-12;
   transition: border-color $transition-fast, box-shadow $transition-fast, background-color $transition-fast;
 
   &::placeholder {
@@ -59,9 +65,8 @@
   }
 
   &:focus {
-    outline: none;
-    border-color: $color-border-focus;
-    box-shadow: 0 0 0 3px rgba(58, 78, 251, 0.18);
+    @include focus-ring;
+    border-color: $color-primary-blue;
     background-color: $color-white;
   }
 
@@ -73,13 +78,14 @@
     border-color: $color-error-red;
 
     &:focus {
-      border-color: $color-error-red;
-      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+      outline: 2px solid $color-error-red;
+      outline-offset: 2px;
+      box-shadow: 0 0 0 2px $color-bg-page, 0 0 0 4px rgba(220, 38, 38, 0.25);
     }
   }
 
   &:disabled {
-    background-color: $color-surface-secondary;
+    background-color: $color-soft-surface;
     cursor: not-allowed;
     color: $color-text-disabled;
     border-color: $color-subtle-border;
@@ -96,10 +102,10 @@
   justify-content: center;
   min-width: 44px;
   min-height: 38px;
-  border-radius: $radius-sm;
+  border-radius: $radius-8;
   color: $color-primary-blue;
-  font-family: $font-family-base;
-  font-size: $font-size-xs;
+  font-family: $font-family-body;
+  font-size: $font-size-12;
   font-weight: $font-weight-semibold;
   transition: all $transition-fast;
 
@@ -114,7 +120,7 @@
 }
 
 .form-error {
-  font-size: $font-size-xs;
+  font-size: $font-size-12;
   font-weight: $font-weight-medium;
   color: $color-error-red;
   min-height: 1.125rem;
@@ -131,20 +137,20 @@
 }
 
 .form-hint {
-  font-size: $font-size-xs;
+  font-size: $font-size-12;
   color: $color-text-muted;
   line-height: 1.35;
 }
 
-// Textarea
+// Textarea Component
 .form-textarea {
-  min-height: 96px;
+  min-height: 100px;
   padding: $spacing-sm $spacing-md;
   line-height: $line-height-normal;
   resize: vertical;
 }
 
-// Select
+// Select Component
 .select-wrapper {
   position: relative;
   width: 100%;
@@ -152,7 +158,7 @@
   &::after {
     content: '';
     position: absolute;
-    right: 14px;
+    right: 16px;
     top: 50%;
     transform: translateY(-50%);
     width: 0;
@@ -161,13 +167,14 @@
     border-right: 5px solid transparent;
     border-top: 5px solid $color-deep-navy;
     pointer-events: none;
-    opacity: 0.6;
+    opacity: 0.65;
   }
 }
 
 .form-select {
   appearance: none;
   -webkit-appearance: none;
-  padding-right: 36px;
+  padding-right: 40px;
   cursor: pointer;
+  background-color: $color-white;
 }

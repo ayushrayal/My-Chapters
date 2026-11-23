@@ -7,7 +7,12 @@
     <meta name="description" content="My Chapters — Your life. Your choices. Your space. A personal life documentation platform." />
     <title>My Chapters — Your life. Your choices. Your space.</title>
 
-    <!-- Preload critical Outfit font weights for instant rendering without layout shifts -->
+    <!-- Preconnect & Load Plus Jakarta Sans (Headings) & Inter (Body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Preload critical Outfit font weights for instant local fallback -->
     <link rel="preload" href="/src/assets/fonts/outfit/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/src/assets/fonts/outfit/outfit-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin />
   </head>

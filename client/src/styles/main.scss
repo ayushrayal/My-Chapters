@@ -1,7 +1,10 @@
 // ==============================================================================
 // MY CHAPTERS — MAIN STYLESHEET
-// Outfit Typography & Official 5-Color System
+// Master Design Tokens & Comprehensive Design System
 // ==============================================================================
+
+// 0. Master Design Tokens CSS Variables
+@use './tokens.css';
 
 // 1. Abstracts
 @use './abstracts/variables';

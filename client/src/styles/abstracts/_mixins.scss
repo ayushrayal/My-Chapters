@@ -40,18 +40,18 @@
   justify-content: center;
 }
 
-// Accessible Focus Ring (Palette-based: #3A4EFB)
+// Accessible Focus Ring (2px #3A4EFB with offset)
 @mixin focus-ring {
-  outline: none;
-  border-color: $color-border-focus;
-  box-shadow: 0 0 0 3px rgba(58, 78, 251, 0.28);
+  outline: 2px solid $color-primary-blue;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px $color-bg-page, 0 0 0 4px rgba(58, 78, 251, 0.35);
 }
 
-// Focus Ring for Dark Surfaces (Lime accent)
+// Focus Ring for Dark Surfaces (Lime accent highlight)
 @mixin focus-ring-dark {
-  outline: none;
-  border-color: $color-lime-accent;
-  box-shadow: 0 0 0 3px rgba(227, 255, 59, 0.35);
+  outline: 2px solid $color-lime-accent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px $color-deep-navy, 0 0 0 4px rgba(227, 255, 59, 0.45);
 }
 
 // Text Ellipsis

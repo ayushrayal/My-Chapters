@@ -77,8 +77,7 @@ export function validateOrigin(req, _res, next) {
   // If Origin header is present (standard in browsers for POST requests)
   if (origin) {
     const clientOrigin = new URL(env.CLIENT_URL).origin;
-    const isDevPort = env.NODE_ENV === 'development' && /^http:\/\/localhost:(5173|5174|5175)$/.test(origin);
-    if (origin !== clientOrigin && !isDevPort) {
+    if (origin !== clientOrigin) {
       return next(AppError.forbidden(`Cross-site request blocked: untrusted origin ${origin}`));
     }
   }
