@@ -157,3 +157,4 @@ export function ItemDetailsModal({ item, isOpen, onClose, onEdit }) {
     </div>
   );
 }
+

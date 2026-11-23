@@ -1,8 +1,14 @@
 import dotenv from 'dotenv';
+import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 
-// Load environment variables from .env file
+// Load environment variables from .env file (supports root or server directory invocation)
 dotenv.config();
+try {
+  dotenv.config({ path: fileURLToPath(new URL('../../.env', import.meta.url)) });
+} catch {
+  // Ignore fallback failure
+}
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),

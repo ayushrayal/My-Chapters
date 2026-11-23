@@ -1,0 +1,394 @@
+@use '../abstracts/variables' as *;
+@use '../abstracts/mixins' as *;
+
+// ==============================================================================
+// CARD COMPONENT
+// ==============================================================================
+
+.card {
+  background-color: $color-white;
+  color: $color-deep-navy;
+  border: 1px solid $color-subtle-border;
+  border-radius: $radius-card;
+  padding: $spacing-lg;
+  box-shadow: $shadow-sm;
+  transition: transform $transition-fast, box-shadow $transition-fast, border-color $transition-fast;
+
+  &--subtle {
+    background-color: $color-surface-secondary;
+  }
+
+  &--elevated {
+    box-shadow: $shadow-md;
+  }
+
+  &--hoverable {
+    &:hover {
+      box-shadow: $shadow-md;
+      transform: translateY(-2px);
+      border-color: $color-border-light-hover;
+    }
+  }
+
+  &--interactive {
+    cursor: pointer;
+    user-select: none;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: $spacing-md;
+    border-bottom: 1px solid $color-subtle-border;
+    margin-bottom: $spacing-md;
+  }
+
+  &__body {
+    flex: 1;
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: $spacing-sm;
+    padding-top: $spacing-md;
+    border-top: 1px solid $color-subtle-border;
+    margin-top: $spacing-md;
+  }
+}
+
+// ==============================================================================
+// PAGE & SECTION HEADERS
+// ==============================================================================
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+  flex-wrap: wrap;
+
+  &__content {
+    flex: 1;
+    min-width: 240px;
+  }
+
+  &__badge-wrapper {
+    margin-bottom: $spacing-2xs;
+  }
+
+  &__title {
+    font-family: $font-family-base;
+    font-size: clamp(1.8rem, 4vw, 2.4rem);
+    font-weight: $font-weight-extrabold;
+    color: $color-deep-navy;
+    margin: 0;
+    line-height: $line-height-tight;
+    letter-spacing: -0.025em;
+  }
+
+  &__subtitle {
+    font-size: $font-size-base;
+    color: $color-text-muted;
+    margin: 4px 0 0 0;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+  }
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+
+  &__title-row {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+  }
+
+  &__title {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+    color: $color-deep-navy;
+    letter-spacing: -0.015em;
+    margin: 0;
+  }
+
+  &__subtitle {
+    font-size: $font-size-sm;
+    color: $color-text-muted;
+    margin: 2px 0 0 0;
+  }
+}
+
+// ==============================================================================
+// AVATAR
+// ==============================================================================
+
+.avatar {
+  border-radius: $radius-full;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, $color-primary-blue, $color-secondary-blue);
+  color: $color-white;
+  font-weight: $font-weight-bold;
+  flex-shrink: 0;
+  user-select: none;
+  overflow: hidden;
+
+  &--sm {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+
+  &--md {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+
+  &--lg {
+    width: 64px;
+    height: 64px;
+    font-size: 26px;
+    box-shadow: 0 4px 14px rgba(58, 78, 251, 0.28);
+  }
+
+  &__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+// ==============================================================================
+// STATUS BADGE
+// ==============================================================================
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: $radius-pill;
+  font-size: 11px;
+  font-weight: $font-weight-bold;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1;
+
+  &__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: $radius-full;
+  }
+
+  &--planned {
+    background-color: rgba(51, 164, 250, 0.1);
+    color: $color-secondary-blue;
+    border: 1px solid rgba(51, 164, 250, 0.28);
+
+    .status-badge__dot {
+      background-color: $color-secondary-blue;
+    }
+  }
+
+  &--purchased {
+    background-color: rgba(22, 139, 104, 0.1);
+    color: $color-fresh-green;
+    border: 1px solid rgba(22, 139, 104, 0.28);
+
+    .status-badge__dot {
+      background-color: $color-fresh-green;
+    }
+  }
+
+  &--sm {
+    padding: 2px 8px;
+    font-size: 10px;
+
+    .status-badge__dot {
+      width: 5px;
+      height: 5px;
+    }
+  }
+}
+
+// ==============================================================================
+// EMPTY STATE
+// ==============================================================================
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: $spacing-2xl $spacing-md;
+  background-color: $color-white;
+  color: $color-deep-navy;
+  border-radius: $radius-card;
+  border: 1.5px dashed $color-subtle-border;
+  box-shadow: $shadow-sm;
+  width: 100%;
+
+  &__icon {
+    width: 56px;
+    height: 56px;
+    border-radius: $radius-full;
+    background-color: rgba(58, 78, 251, 0.08);
+    color: $color-primary-blue;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: $spacing-md;
+  }
+
+  &__title {
+    font-family: $font-family-base;
+    font-size: $font-size-xl;
+    font-weight: $font-weight-extrabold;
+    color: $color-deep-navy;
+    margin: 0 0 $spacing-xs 0;
+    letter-spacing: -0.015em;
+  }
+
+  &__subtitle {
+    font-size: $font-size-base;
+    color: $color-text-muted;
+    max-width: 420px;
+    margin: 0 0 $spacing-lg 0;
+    line-height: $line-height-relaxed;
+  }
+
+  &__action {
+    min-width: 160px;
+  }
+}
+
+// ==============================================================================
+// SKELETON LOADER
+// ==============================================================================
+
+.skeleton-group {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  width: 100%;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #F0F2F7 25%, #E6E9F0 37%, #F0F2F7 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: $radius-sm;
+  display: block;
+
+  &--text {
+    height: 16px;
+    width: 100%;
+  }
+
+  &--title {
+    height: 28px;
+    width: 60%;
+  }
+
+  &--card {
+    height: 120px;
+    width: 100%;
+    border-radius: $radius-card;
+  }
+
+  &--circle {
+    border-radius: $radius-full;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+// ==============================================================================
+// TOAST NOTIFICATION
+// ==============================================================================
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $spacing-sm;
+  padding: $spacing-md;
+  background-color: $color-white;
+  border: 1px solid $color-subtle-border;
+  border-radius: $radius-md;
+  box-shadow: $shadow-lg;
+  color: $color-deep-navy;
+  min-width: 280px;
+  max-width: 420px;
+
+  &--success {
+    border-left: 4px solid $color-fresh-green;
+  }
+
+  &--error {
+    border-left: 4px solid $color-error-red;
+  }
+
+  &--info {
+    border-left: 4px solid $color-primary-blue;
+  }
+
+  &__title {
+    display: block;
+    font-weight: $font-weight-semibold;
+    font-size: $font-size-sm;
+    margin-bottom: 2px;
+  }
+
+  &__message {
+    font-size: $font-size-xs;
+    color: $color-text-muted;
+    margin: 0;
+  }
+
+  &__close-btn {
+    color: $color-text-subtle;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+
+    &:hover {
+      color: $color-deep-navy;
+    }
+  }
+}
+
+// ==============================================================================
+// CONFIRM DIALOG
+// ==============================================================================
+
+.confirm-dialog__message {
+  font-size: $font-size-base;
+  color: $color-deep-navy;
+  line-height: $line-height-relaxed;
+  margin: 0;
+}
+

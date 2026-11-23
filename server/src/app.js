@@ -24,7 +24,15 @@ app.use(
 // 2. Strict Cross-Origin Resource Sharing (CORS)
 app.use(
   cors({
-    origin: env.CLIENT_URL,
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      const isClient = origin === env.CLIENT_URL;
+      const isDevPort = env.NODE_ENV === 'development' && /^http:\/\/localhost:(5173|5174|5175)$/.test(origin);
+      if (isClient || isDevPort) {
+        return callback(null, true);
+      }
+      return callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']

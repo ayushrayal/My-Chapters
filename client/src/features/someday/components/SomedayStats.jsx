@@ -22,3 +22,4 @@ export function SomedayStats({ stats }) {
     </div>
   );
 }
+

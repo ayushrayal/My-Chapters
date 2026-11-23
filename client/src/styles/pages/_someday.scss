@@ -2,9 +2,9 @@
 @use '../abstracts/mixins' as *;
 
 // ==============================================================================
-// SOMEDAY FEATURE STYLING
-// Strictly adheres to the 5-color palette: Deep Navy, Soft Lavender,
-// Primary Blue, Secondary Blue, Lime Accent.
+// SOMEDAY FEATURE STYLING — FINTECH/SAAS PRODUCT DESIGN
+// Pure White Dominant Surface (#FFFFFF), Secondary Canvas (#F5F7FB),
+// Primary Blue (#3A4EFB), Secondary Blue (#33A4FA), Fresh Green (#168B68).
 // ==============================================================================
 
 .someday-page {
@@ -41,7 +41,7 @@
     color: $color-deep-navy;
     margin: 0;
     line-height: $line-height-tight;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.025em;
   }
 
   &__subtitle {
@@ -61,38 +61,44 @@
 .someday-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: $spacing-sm;
+  gap: $spacing-md;
   margin-bottom: $spacing-lg;
 
   @include mobile-only {
     grid-template-columns: 1fr;
-    gap: $spacing-xs;
+    gap: $spacing-sm;
   }
 
   &__card {
-    background-color: $color-deep-navy;
-    color: $color-soft-lavender;
-    border: 1px solid rgba(222, 224, 237, 0.16);
-    border-radius: $radius-md;
-    padding: $spacing-md;
+    background-color: $color-white;
+    color: $color-deep-navy;
+    border: 1px solid $color-subtle-border;
+    border-radius: $radius-card;
+    padding: $spacing-lg;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
     box-shadow: $shadow-sm;
+    transition: transform $transition-fast, box-shadow $transition-fast;
+
+    &:hover {
+      box-shadow: $shadow-md;
+      transform: translateY(-1px);
+    }
   }
 
   &__label {
-    font-size: $font-size-xs;
-    font-weight: $font-weight-medium;
-    color: rgba(222, 224, 237, 0.72);
+    font-size: 11px;
+    font-weight: $font-weight-semibold;
+    color: $color-text-subtle;
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
 
   &__value {
-    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-size: clamp(1.75rem, 3.5vw, 2.25rem);
     font-weight: $font-weight-extrabold;
-    color: $color-soft-lavender;
+    color: $color-deep-navy;
     line-height: 1.1;
 
     &--planned {
@@ -100,7 +106,7 @@
     }
 
     &--purchased {
-      color: $color-lime-accent;
+      color: $color-fresh-green;
     }
   }
 }
@@ -119,13 +125,14 @@
     right: 12px;
     background: transparent;
     border: none;
-    color: rgba(222, 224, 237, 0.7);
+    color: currentColor;
     font-size: 20px;
     cursor: pointer;
     line-height: 1;
+    opacity: 0.7;
 
     &:hover {
-      color: $color-soft-lavender;
+      opacity: 1;
     }
   }
 }
@@ -138,16 +145,17 @@
   gap: $spacing-md;
   margin-bottom: $spacing-lg;
   flex-wrap: wrap;
-  background-color: rgba(37, 41, 67, 0.06);
-  padding: $spacing-md;
-  border-radius: $radius-lg;
-  border: 1px solid rgba(37, 41, 67, 0.12);
+  background-color: $color-white;
+  padding: $spacing-md $spacing-lg;
+  border-radius: $radius-card;
+  border: 1px solid $color-subtle-border;
+  box-shadow: $shadow-sm;
 
   &__label {
     display: block;
-    font-size: $font-size-xs;
+    font-size: 11px;
     font-weight: $font-weight-semibold;
-    color: $color-deep-navy;
+    color: $color-text-subtle;
     text-transform: uppercase;
     letter-spacing: 0.04em;
     margin-bottom: 6px;
@@ -167,13 +175,14 @@
   &__select {
     flex: 1;
     min-height: 44px;
-    background-color: rgba(222, 224, 237, 0.7);
-    border: 1.5px solid rgba(37, 41, 67, 0.35);
+    background-color: $color-surface-secondary;
+    border: 1.5px solid $color-subtle-border;
     color: $color-deep-navy;
     font-weight: $font-weight-medium;
+    border-radius: $radius-md;
 
     &:focus {
-      background-color: $color-soft-lavender;
+      background-color: $color-white;
       border-color: $color-primary-blue;
     }
   }
@@ -182,9 +191,9 @@
     min-height: 44px;
     padding: 0 $spacing-md;
     border-radius: $radius-md;
-    background-color: $color-deep-navy;
-    color: $color-soft-lavender;
-    border: 1.5px solid transparent;
+    background-color: $color-surface-secondary;
+    color: $color-deep-navy;
+    border: 1.5px solid $color-subtle-border;
     font-size: $font-size-sm;
     font-weight: $font-weight-semibold;
     cursor: pointer;
@@ -192,8 +201,9 @@
     transition: all $transition-fast;
 
     &:hover {
-      background-color: rgba(37, 41, 67, 0.88);
-      color: $color-lime-accent;
+      background-color: $color-white;
+      border-color: $color-primary-blue;
+      color: $color-primary-blue;
     }
 
     &:focus-visible {
@@ -210,9 +220,10 @@
 // Status Filter Pills (All, Planned, Purchased)
 .status-filter-pills {
   display: flex;
-  background-color: rgba(37, 41, 67, 0.14);
+  background-color: $color-surface-secondary;
   padding: 4px;
-  border-radius: $radius-md;
+  border-radius: $radius-pill;
+  border: 1px solid $color-subtle-border;
   gap: 4px;
   min-height: 44px;
   align-items: center;
@@ -221,29 +232,29 @@
 .status-filter-pill {
   border: none;
   background: transparent;
-  color: $color-deep-navy;
+  color: $color-text-muted;
   font-family: $font-family-base;
   font-size: $font-size-sm;
   font-weight: $font-weight-medium;
   padding: 8px $spacing-md;
-  border-radius: $radius-sm;
+  border-radius: $radius-pill;
   cursor: pointer;
   transition: all $transition-fast;
   white-space: nowrap;
 
   &:hover {
     color: $color-primary-blue;
-    background-color: rgba(222, 224, 237, 0.6);
   }
 
   &--active {
-    background-color: $color-deep-navy;
-    color: $color-lime-accent;
-    font-weight: $font-weight-semibold;
+    background-color: $color-primary-blue;
+    color: $color-white;
+    font-weight: $font-weight-bold;
+    box-shadow: 0 2px 8px rgba(58, 78, 251, 0.28);
 
     &:hover {
-      background-color: $color-deep-navy;
-      color: $color-lime-accent;
+      background-color: $color-action-primary-hover;
+      color: $color-white;
     }
   }
 
@@ -285,24 +296,24 @@
 
 // --- Item Card ---
 .someday-card {
-  background-color: $color-deep-navy;
-  color: $color-soft-lavender;
-  border: 1.5px solid rgba(222, 224, 237, 0.16);
-  border-radius: $radius-lg;
-  padding: $spacing-md;
+  background-color: $color-white;
+  color: $color-deep-navy;
+  border: 1px solid $color-subtle-border;
+  border-radius: $radius-card;
+  padding: $spacing-lg;
   display: flex;
   flex-direction: column;
-  box-shadow: $shadow-md;
+  box-shadow: $shadow-sm;
   transition: transform $transition-fast, box-shadow $transition-fast, border-color $transition-fast;
 
   &:hover {
-    border-color: rgba(222, 224, 237, 0.35);
-    box-shadow: $shadow-lg;
+    border-color: rgba(58, 78, 251, 0.3);
+    box-shadow: $shadow-md;
     transform: translateY(-2px);
   }
 
   &--purchased {
-    border-color: rgba(227, 255, 59, 0.28);
+    border-left: 4px solid $color-fresh-green;
   }
 
   &__header {
@@ -323,10 +334,11 @@
   &__category {
     font-size: 11px;
     font-weight: $font-weight-semibold;
-    padding: 3px 8px;
-    border-radius: $radius-full;
-    background-color: rgba(222, 224, 237, 0.14);
-    color: $color-soft-lavender;
+    padding: 3px 10px;
+    border-radius: $radius-pill;
+    background-color: $color-surface-secondary;
+    border: 1px solid $color-subtle-border;
+    color: $color-text-muted;
     letter-spacing: 0.02em;
     max-width: 130px;
     overflow: hidden;
@@ -336,22 +348,22 @@
 
   &__status {
     font-size: 11px;
-    font-weight: $font-weight-semibold;
-    padding: 3px 8px;
-    border-radius: $radius-full;
-    letter-spacing: 0.03em;
+    font-weight: $font-weight-bold;
+    padding: 3px 10px;
+    border-radius: $radius-pill;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
 
     &--planned {
-      background-color: rgba(51, 164, 250, 0.16);
+      background-color: rgba(51, 164, 250, 0.1);
       color: $color-secondary-blue;
-      border: 1px solid rgba(51, 164, 250, 0.35);
+      border: 1px solid rgba(51, 164, 250, 0.28);
     }
 
     &--purchased {
-      background-color: rgba(227, 255, 59, 0.16);
-      color: $color-lime-accent;
-      border: 1px solid rgba(227, 255, 59, 0.35);
+      background-color: rgba(22, 139, 104, 0.1);
+      color: $color-fresh-green;
+      border: 1px solid rgba(22, 139, 104, 0.28);
     }
   }
 
@@ -361,10 +373,11 @@
     gap: 4px;
     font-size: 11px;
     font-weight: $font-weight-semibold;
-    color: rgba(222, 224, 237, 0.85);
-    background-color: rgba(222, 224, 237, 0.1);
-    padding: 3px 8px;
-    border-radius: $radius-full;
+    color: $color-primary-blue;
+    background-color: rgba(58, 78, 251, 0.08);
+    border: 1px solid rgba(58, 78, 251, 0.18);
+    padding: 2px 8px;
+    border-radius: $radius-pill;
   }
 
   &__body {
@@ -376,15 +389,16 @@
     font-family: $font-family-base;
     font-size: $font-size-lg;
     font-weight: $font-weight-bold;
-    color: $color-soft-lavender;
+    color: $color-deep-navy;
     margin: 0 0 6px 0;
     line-height: $line-height-tight;
+    letter-spacing: -0.015em;
     word-break: break-word;
   }
 
   &__note-preview {
     font-size: $font-size-sm;
-    color: rgba(222, 224, 237, 0.72);
+    color: $color-text-muted;
     margin: 0 0 8px 0;
     line-height: $line-height-normal;
     word-break: break-word;
@@ -392,66 +406,74 @@
 
   &__purchase-meta {
     font-size: $font-size-xs;
-    color: $color-lime-accent;
-    font-weight: $font-weight-medium;
+    color: $color-fresh-green;
+    font-weight: $font-weight-semibold;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    &::before {
+      content: '✓';
+      font-weight: bold;
+    }
   }
 
   &__actions {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 4px;
-    border-top: 1px solid rgba(222, 224, 237, 0.12);
+    border-top: 1px solid $color-subtle-border;
     padding-top: $spacing-sm;
   }
 
   &__action-btn {
-    min-height: 44px;
+    min-height: 40px;
     padding: 6px 4px;
     background: transparent;
     border: 1px solid transparent;
     border-radius: $radius-sm;
     font-family: $font-family-base;
     font-size: 12px;
-    font-weight: $font-weight-medium;
-    color: rgba(222, 224, 237, 0.75);
+    font-weight: $font-weight-semibold;
+    color: $color-text-muted;
     cursor: pointer;
     text-align: center;
     transition: all $transition-fast;
 
     &:hover {
-      background-color: rgba(222, 224, 237, 0.1);
-      color: $color-soft-lavender;
+      background-color: $color-surface-secondary;
+      color: $color-deep-navy;
     }
 
     &:focus-visible {
-      @include focus-ring-dark;
+      @include focus-ring;
     }
 
     &--status {
-      font-weight: $font-weight-semibold;
+      font-weight: $font-weight-bold;
     }
 
     &--to-purchased {
-      color: $color-lime-accent;
+      color: $color-fresh-green;
       &:hover {
-        background-color: rgba(227, 255, 59, 0.12);
-        color: $color-lime-accent;
+        background-color: rgba(22, 139, 104, 0.1);
+        color: $color-fresh-green;
       }
     }
 
     &--to-planned {
       color: $color-secondary-blue;
       &:hover {
-        background-color: rgba(51, 164, 250, 0.12);
+        background-color: rgba(51, 164, 250, 0.1);
         color: $color-secondary-blue;
       }
     }
 
     &--delete {
-      color: rgba(222, 224, 237, 0.6);
+      color: $color-text-subtle;
       &:hover {
-        background-color: rgba(58, 78, 251, 0.2);
-        color: $color-soft-lavender;
+        background-color: rgba(220, 38, 38, 0.1);
+        color: $color-error-red;
       }
     }
   }
@@ -465,18 +487,19 @@
   justify-content: center;
   text-align: center;
   padding: $spacing-2xl $spacing-md;
-  background-color: $color-deep-navy;
-  color: $color-soft-lavender;
-  border-radius: $radius-lg;
-  border: 1.5px dashed rgba(222, 224, 237, 0.22);
+  background-color: $color-white;
+  color: $color-deep-navy;
+  border-radius: $radius-card;
+  border: 1.5px dashed $color-subtle-border;
+  box-shadow: $shadow-sm;
   margin-top: $spacing-md;
 
   &__icon {
     width: 64px;
     height: 64px;
     border-radius: $radius-full;
-    background-color: rgba(222, 224, 237, 0.1);
-    color: $color-lime-accent;
+    background-color: rgba(58, 78, 251, 0.08);
+    color: $color-primary-blue;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -486,14 +509,15 @@
   &__title {
     font-family: $font-family-base;
     font-size: $font-size-xl;
-    font-weight: $font-weight-bold;
-    color: $color-soft-lavender;
+    font-weight: $font-weight-extrabold;
+    color: $color-deep-navy;
     margin: 0 0 $spacing-xs 0;
+    letter-spacing: -0.015em;
   }
 
   &__subtitle {
     font-size: $font-size-base;
-    color: rgba(222, 224, 237, 0.74);
+    color: $color-text-muted;
     max-width: 420px;
     margin: 0 0 $spacing-lg 0;
     line-height: $line-height-relaxed;
@@ -508,14 +532,15 @@
 .badge {
   display: inline-flex;
   align-items: center;
-  padding: 4px 10px;
-  border-radius: $radius-full;
+  padding: 4px 12px;
+  border-radius: $radius-pill;
   font-size: 12px;
   font-weight: $font-weight-semibold;
 
   &--category {
-    background-color: rgba(222, 224, 237, 0.14);
-    color: $color-soft-lavender;
+    background-color: $color-surface-secondary;
+    border: 1px solid $color-subtle-border;
+    color: $color-text-muted;
   }
 
   &--status {
@@ -523,15 +548,15 @@
   }
 
   &--planned {
-    background-color: rgba(51, 164, 250, 0.16);
+    background-color: rgba(51, 164, 250, 0.1);
     color: $color-secondary-blue;
-    border: 1px solid rgba(51, 164, 250, 0.4);
+    border: 1px solid rgba(51, 164, 250, 0.3);
   }
 
   &--purchased {
-    background-color: rgba(227, 255, 59, 0.16);
-    color: $color-lime-accent;
-    border: 1px solid rgba(227, 255, 59, 0.4);
+    background-color: rgba(22, 139, 104, 0.1);
+    color: $color-fresh-green;
+    border: 1px solid rgba(22, 139, 104, 0.3);
   }
 }
 
@@ -539,104 +564,76 @@
   &__title {
     font-family: $font-family-base;
     font-size: clamp(1.4rem, 3vw, 1.8rem);
-    font-weight: $font-weight-bold;
-    color: $color-soft-lavender;
+    font-weight: $font-weight-extrabold;
+    color: $color-deep-navy;
     margin: 0 0 $spacing-sm 0;
     line-height: $line-height-tight;
+    letter-spacing: -0.015em;
     word-break: break-word;
   }
 
   &__section {
     padding-bottom: $spacing-sm;
-    border-bottom: 1px solid rgba(222, 224, 237, 0.1);
-  }
 
-  &__section-title {
-    font-size: $font-size-xs;
-    font-weight: $font-weight-semibold;
-    text-transform: uppercase;
-    color: rgba(222, 224, 237, 0.65);
-    letter-spacing: 0.05em;
-    margin: 0 0 6px 0;
-  }
+    &-title {
+      font-size: 11px;
+      font-weight: $font-weight-semibold;
+      color: $color-text-subtle;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin: 0 0 6px 0;
+    }
 
-  &__note {
-    font-size: $font-size-base;
-    color: $color-soft-lavender;
-    line-height: $line-height-relaxed;
-    white-space: pre-wrap;
-    margin: 0;
-    word-break: break-word;
-  }
-
-  &__empty-note {
-    font-size: $font-size-sm;
-    color: rgba(222, 224, 237, 0.5);
-    font-style: italic;
-    margin: 0;
-  }
-
-  &__links-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: $spacing-xs;
-  }
-
-  &__external-link {
-    display: flex;
-    align-items: center;
-    gap: $spacing-sm;
-    background-color: rgba(222, 224, 237, 0.08);
-    border: 1px solid rgba(222, 224, 237, 0.15);
-    border-radius: $radius-md;
-    padding: 10px $spacing-md;
-    text-decoration: none;
-    color: $color-soft-lavender;
-    transition: all $transition-fast;
-
-    &:hover {
-      background-color: rgba(222, 224, 237, 0.16);
-      border-color: $color-secondary-blue;
+    &-text {
+      font-size: $font-size-base;
+      color: $color-deep-navy;
+      margin: 0;
+      line-height: $line-height-relaxed;
+      white-space: pre-wrap;
+      word-break: break-word;
     }
   }
 
-  &__link-label {
-    font-weight: $font-weight-semibold;
-    font-size: $font-size-sm;
-    color: $color-secondary-blue;
-    white-space: nowrap;
+  &__links-list {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xs;
+    margin: 0;
+    padding: 0;
   }
 
-  &__link-url {
-    flex: 1;
-    font-size: $font-size-xs;
-    color: rgba(222, 224, 237, 0.6);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    direction: ltr;
-  }
+  &__link-item {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
 
-  &__link-icon {
-    color: rgba(222, 224, 237, 0.7);
-    flex-shrink: 0;
+    a {
+      color: $color-primary-blue;
+      font-size: $font-size-sm;
+      font-weight: $font-weight-medium;
+      word-break: break-all;
+      transition: color $transition-fast;
+
+      &:hover {
+        color: $color-action-primary-hover;
+        text-decoration: underline;
+      }
+    }
   }
 
   &__meta-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: $spacing-sm;
-    padding-top: $spacing-xs;
+    padding-top: $spacing-sm;
+    border-top: 1px solid $color-subtle-border;
 
     @include mobile-only {
       grid-template-columns: 1fr;
     }
   }
 
-  &__meta-cell {
+  &__meta-item {
     display: flex;
     flex-direction: column;
     gap: 2px;
@@ -644,154 +641,203 @@
 
   &__meta-label {
     font-size: 11px;
-    font-weight: $font-weight-medium;
-    color: rgba(222, 224, 237, 0.6);
+    font-weight: $font-weight-semibold;
+    color: $color-text-subtle;
     text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
 
-  &__meta-val {
+  &__meta-value {
     font-size: $font-size-sm;
     font-weight: $font-weight-semibold;
-    color: $color-soft-lavender;
+    color: $color-deep-navy;
   }
 }
 
-// --- Form Modal Helpers ---
-.form-label-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 6px;
-}
-
-.form-link-action {
-  background: transparent;
-  border: none;
-  color: $color-secondary-blue;
-  font-family: $font-family-base;
-  font-size: $font-size-xs;
-  font-weight: $font-weight-semibold;
-  cursor: pointer;
-  padding: 4px 6px;
-  border-radius: $radius-sm;
-
-  &:hover {
-    color: $color-lime-accent;
-  }
-}
-
-.form-select {
-  cursor: pointer;
-}
-
-.status-toggle-group {
-  display: flex;
-  background-color: rgba(222, 224, 237, 0.1);
-  padding: 4px;
-  border-radius: $radius-md;
-  gap: 4px;
-}
-
-.status-toggle-btn {
-  flex: 1;
-  min-height: 42px;
-  border: none;
-  background: transparent;
-  color: rgba(222, 224, 237, 0.7);
-  font-family: $font-family-base;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
-  border-radius: $radius-sm;
-  cursor: pointer;
-  transition: all $transition-fast;
-
-  &:hover {
-    color: $color-soft-lavender;
-  }
-
-  &--active {
-    background-color: $color-primary-blue;
-    color: $color-lime-accent;
-    font-weight: $font-weight-bold;
-  }
-}
-
+// --- Item Form Modal Content ---
 .links-builder {
   display: flex;
   flex-direction: column;
   gap: $spacing-xs;
-}
 
-.link-row {
-  display: flex;
-  align-items: flex-start;
-  gap: $spacing-xs;
-  position: relative;
-  flex-wrap: wrap;
-
-  &__inputs {
-    flex: 1;
+  &__header {
     display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__count {
+    font-size: $font-size-xs;
+    color: $color-text-subtle;
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
     gap: $spacing-xs;
-
-    @include mobile-only {
-      flex-direction: column;
-    }
-  }
-
-  &__label-input {
-    flex: 1;
-    min-width: 140px;
-  }
-
-  &__url-input {
-    flex: 2;
-    min-width: 180px;
   }
 
   &__remove-btn {
-    width: 44px;
-    height: 48px;
-    background: transparent;
-    border: none;
-    color: rgba(222, 224, 237, 0.6);
-    font-size: 24px;
-    cursor: pointer;
+    min-height: 44px;
+    min-width: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: $radius-md;
+    border: 1px solid $color-subtle-border;
+    background-color: $color-surface-secondary;
+    color: $color-error-red;
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+    transition: all $transition-fast;
 
     &:hover {
-      color: $color-lime-accent;
-      background-color: rgba(222, 224, 237, 0.1);
+      background-color: rgba(220, 38, 38, 0.1);
+      border-color: $color-error-red;
+    }
+
+    &:focus-visible {
+      @include focus-ring;
     }
   }
 
-  &__error {
-    width: 100%;
-    margin-top: 2px;
+  &__add-btn {
+    align-self: flex-start;
   }
 }
 
-.form-textarea {
-  min-height: 80px;
-  resize: vertical;
+// --- Category Management Modal Content ---
+.category-manager {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+
+  &__create-form {
+    display: flex;
+    gap: $spacing-xs;
+    align-items: flex-start;
+
+    @include mobile-only {
+      flex-direction: column;
+
+      button {
+        width: 100%;
+      }
+    }
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xs;
+    max-height: 280px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $spacing-sm;
+    padding: $spacing-sm $spacing-md;
+    background-color: $color-surface-secondary;
+    border: 1px solid $color-subtle-border;
+    border-radius: $radius-md;
+    transition: border-color $transition-fast;
+
+    &:hover {
+      border-color: $color-border-light-hover;
+    }
+  }
+
+  &__item-info {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__item-name {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    color: $color-deep-navy;
+    @include truncate;
+  }
+
+  &__item-badge {
+    font-size: 10px;
+    font-weight: $font-weight-semibold;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 2px 6px;
+    border-radius: $radius-pill;
+    background-color: rgba(58, 78, 251, 0.08);
+    color: $color-primary-blue;
+    border: 1px solid rgba(58, 78, 251, 0.2);
+    flex-shrink: 0;
+  }
+
+  &__item-count {
+    font-size: $font-size-xs;
+    color: $color-text-subtle;
+    flex-shrink: 0;
+  }
+
+  &__item-actions {
+    display: flex;
+    align-items: center;
+    gap: $spacing-2xs;
+  }
+
+  &__item-btn {
+    min-height: 36px;
+    padding: 0 $spacing-sm;
+    border-radius: $radius-sm;
+    font-size: 12px;
+    font-weight: $font-weight-semibold;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all $transition-fast;
+
+    &--edit {
+      color: $color-primary-blue;
+      background-color: transparent;
+
+      &:hover {
+        background-color: rgba(58, 78, 251, 0.08);
+      }
+    }
+
+    &--delete {
+      color: $color-error-red;
+      background-color: transparent;
+
+      &:hover {
+        background-color: rgba(220, 38, 38, 0.1);
+      }
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
 }
 
-// --- Category Management Modal ---
+// --- Category Management Modal Detailed Styles ---
 .category-add-form {
-  padding-bottom: $spacing-md;
-  border-bottom: 1px solid rgba(222, 224, 237, 0.12);
+  margin-bottom: $spacing-lg;
 }
 
 .category-section-subtitle {
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  color: $color-soft-lavender;
-  margin: 0 0 $spacing-xs 0;
+  font-size: 11px;
+  font-weight: $font-weight-semibold;
+  color: $color-text-subtle;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
+  margin: 0 0 $spacing-xs 0;
 }
 
 .category-add-row {
@@ -799,86 +845,127 @@
   gap: $spacing-xs;
   align-items: flex-start;
 
-  .category-add-input {
-    flex: 1;
-    margin-bottom: 0;
+  @include mobile-only {
+    flex-direction: column;
+
+    button {
+      width: 100%;
+    }
   }
 }
 
-.category-items-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.category-add-input {
+  flex: 1;
+  width: 100%;
+}
+
+.category-delete-warning {
+  margin-bottom: $spacing-md;
+}
+
+.category-delete-actions {
+  display: flex;
+  gap: $spacing-xs;
+  justify-content: flex-end;
+  margin-top: $spacing-sm;
+}
+
+.category-list-section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  max-height: 260px;
+  gap: $spacing-xs;
+}
+
+.category-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  max-height: 280px;
   overflow-y: auto;
+  padding-right: 4px;
 }
 
 .category-list-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px $spacing-md;
-  background-color: rgba(222, 224, 237, 0.06);
-  border: 1px solid rgba(222, 224, 237, 0.12);
-  border-radius: $radius-md;
   gap: $spacing-sm;
+  padding: $spacing-sm $spacing-md;
+  background-color: $color-surface-secondary;
+  border: 1px solid $color-subtle-border;
+  border-radius: $radius-md;
+  transition: border-color $transition-fast;
+
+  &:hover {
+    border-color: $color-border-light-hover;
+  }
 
   &__info {
     display: flex;
     align-items: center;
     gap: $spacing-xs;
-    flex-wrap: wrap;
+    flex: 1;
+    min-width: 0;
   }
 
   &__name {
-    font-weight: $font-weight-semibold;
-    color: $color-soft-lavender;
     font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    color: $color-deep-navy;
+    @include truncate;
   }
 
   &__system-badge {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: $font-weight-semibold;
-    color: $color-lime-accent;
-    background-color: rgba(227, 255, 59, 0.14);
-    padding: 2px 6px;
-    border-radius: $radius-full;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 2px 8px;
+    border-radius: $radius-pill;
+    background-color: rgba(58, 78, 251, 0.08);
+    color: $color-primary-blue;
+    border: 1px solid rgba(58, 78, 251, 0.2);
+    flex-shrink: 0;
   }
 
   &__count {
-    font-size: 12px;
-    color: rgba(222, 224, 237, 0.65);
+    font-size: $font-size-xs;
+    color: $color-text-subtle;
+    flex-shrink: 0;
   }
 
   &__actions {
     display: flex;
     align-items: center;
-    gap: $spacing-xs;
+    gap: $spacing-2xs;
   }
 }
 
 .category-action-link {
+  font-size: 12px;
+  font-weight: $font-weight-semibold;
+  color: $color-primary-blue;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: $radius-sm;
   background: transparent;
   border: none;
-  color: $color-secondary-blue;
-  font-size: 12px;
-  font-weight: $font-weight-medium;
-  cursor: pointer;
-  padding: 4px 6px;
-  border-radius: $radius-sm;
+  transition: all $transition-fast;
 
   &:hover {
-    color: $color-lime-accent;
+    background-color: rgba(58, 78, 251, 0.08);
   }
 
   &--delete {
-    color: rgba(222, 224, 237, 0.65);
+    color: $color-error-red;
+
     &:hover {
-      color: $color-soft-lavender;
+      background-color: rgba(220, 38, 38, 0.08);
     }
+  }
+
+  &:focus-visible {
+    @include focus-ring;
   }
 }
 
@@ -887,43 +974,111 @@
   align-items: center;
   gap: $spacing-xs;
   width: 100%;
+}
 
-  .category-edit-input {
-    flex: 1;
-    min-height: 40px;
-  }
+.category-edit-input {
+  flex: 1;
+  min-height: 38px;
+  padding: 0 $spacing-sm;
 }
 
 .category-edit-buttons {
   display: flex;
-  gap: 4px;
+  gap: $spacing-2xs;
 }
 
-.category-delete-warning {
-  margin: $spacing-sm 0;
+// --- Delete Confirmation Modal & Status Change Modal ---
+.delete-modal {
+  &__message {
+    font-size: $font-size-base;
+    color: $color-deep-navy;
+    margin: 0 0 $spacing-sm 0;
+    line-height: $line-height-normal;
+  }
 
-  .category-delete-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: $spacing-xs;
-    margin-top: $spacing-sm;
+  &__item-preview {
+    padding: $spacing-sm $spacing-md;
+    background-color: $color-surface-secondary;
+    border: 1px solid $color-subtle-border;
+    border-radius: $radius-md;
+    font-weight: $font-weight-semibold;
+    color: $color-deep-navy;
   }
 }
 
-// --- Status & Delete Modals ---
-.status-modal__desc,
-.delete-modal__message {
-  font-size: $font-size-sm;
-  color: $color-soft-lavender;
-  line-height: $line-height-relaxed;
-  margin: 0 0 $spacing-sm 0;
+.status-modal {
+  &__desc {
+    font-size: $font-size-sm;
+    color: $color-text-muted;
+    margin-bottom: $spacing-md;
+    line-height: 1.5;
+  }
 }
 
-.delete-modal__item-preview {
-  padding: 10px;
-  background-color: rgba(222, 224, 237, 0.08);
-  border-radius: $radius-md;
-  font-weight: $font-weight-semibold;
-  color: $color-secondary-blue;
-  font-size: $font-size-sm;
+// --- Item Details Modal Details ---
+.item-details {
+  &__note {
+    font-size: $font-size-base;
+    color: $color-deep-navy;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin: 0;
+  }
+
+  &__empty-note {
+    font-size: $font-size-sm;
+    color: $color-text-subtle;
+    font-style: italic;
+    margin: 0;
+  }
+
+  &__external-link {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    padding: $spacing-sm $spacing-md;
+    border: 1px solid $color-subtle-border;
+    border-radius: $radius-md;
+    background-color: $color-surface-secondary;
+    text-decoration: none;
+    transition: all $transition-fast;
+    width: 100%;
+
+    &:hover {
+      border-color: $color-primary-blue;
+      background-color: $color-white;
+      box-shadow: $shadow-xs;
+    }
+  }
+
+  &__link-label {
+    font-weight: $font-weight-semibold;
+    color: $color-primary-blue;
+    font-size: $font-size-sm;
+  }
+
+  &__link-url {
+    color: $color-text-subtle;
+    font-size: $font-size-xs;
+    flex: 1;
+    @include truncate;
+  }
+
+  &__link-icon {
+    color: $color-primary-blue;
+    flex-shrink: 0;
+  }
+
+  &__meta-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__meta-val {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    color: $color-deep-navy;
+  }
 }

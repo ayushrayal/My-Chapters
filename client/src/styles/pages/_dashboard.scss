@@ -10,34 +10,50 @@
 }
 
 // ==============================================================================
-// TOP NAVIGATION BAR (Deep Navy Background)
+// TOP NAVIGATION BAR (Floating Pill on Desktop, Clean Header on Mobile)
 // ==============================================================================
 
 .dashboard-nav {
   position: sticky;
   top: 0;
   z-index: 500;
-  background-color: $color-deep-navy;
-  border-bottom: 1.5px solid rgba(222, 224, 237, 0.16);
+  background-color: $color-white;
+  border-bottom: 1px solid $color-subtle-border;
   padding: 0 $spacing-md;
 
-  @include respond-to('tablet') {
-    padding: 0 $spacing-xl;
+  @include desktop-only {
+    position: sticky;
+    top: 14px;
+    background-color: transparent;
+    border-bottom: none;
+    padding: 0 $spacing-md;
+    max-width: 1060px;
+    margin: 14px auto 0;
+    width: 100%;
   }
 
   &__inner {
     max-width: 1040px;
     margin: 0 auto;
-    height: 64px;
+    height: 60px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: $spacing-sm;
+
+    @include desktop-only {
+      background-color: $color-white;
+      border: 1px solid $color-subtle-border;
+      border-radius: $radius-pill;
+      box-shadow: $shadow-float;
+      padding: 0 $spacing-lg;
+    }
   }
 
   &__left {
     display: flex;
     align-items: center;
+    gap: $spacing-md;
     min-width: 0;
   }
 
@@ -52,7 +68,7 @@
       font-size: $font-size-base;
       font-weight: $font-weight-extrabold;
       letter-spacing: -0.025em;
-      color: $color-soft-lavender;
+      color: $color-deep-navy;
       text-transform: uppercase;
       white-space: nowrap;
 
@@ -64,16 +80,16 @@
     &-badge {
       font-size: $font-size-xs;
       font-weight: $font-weight-semibold;
-      color: $color-lime-accent;
-      background-color: rgba(58, 78, 251, 0.28);
-      border: 1px solid rgba(227, 255, 59, 0.25);
+      color: $color-primary-blue;
+      background-color: rgba(58, 78, 251, 0.08);
+      border: 1px solid rgba(58, 78, 251, 0.18);
       padding: 2px $spacing-sm;
       border-radius: $radius-pill;
       @include truncate;
-      max-width: 140px;
+      max-width: 130px;
 
       @include respond-to('tablet') {
-        max-width: 220px;
+        max-width: 200px;
       }
     }
   }
@@ -85,23 +101,44 @@
     flex-shrink: 0;
   }
 
-  &__username {
+  &__user-pill {
     display: none;
-    font-size: $font-size-sm;
-    color: rgba(222, 224, 237, 0.72);
-    font-weight: $font-weight-medium;
-    @include truncate;
-    max-width: 140px;
+    align-items: center;
+    gap: $spacing-xs;
+    padding: 3px 10px 3px 4px;
+    background-color: $color-surface-secondary;
+    border: 1px solid $color-subtle-border;
+    border-radius: $radius-pill;
 
     @include desktop-only {
-      display: inline;
+      display: inline-flex;
     }
+  }
+
+  &__avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: $radius-full;
+    background: linear-gradient(135deg, $color-primary-blue, $color-secondary-blue);
+    color: $color-white;
+    font-size: 12px;
+    font-weight: $font-weight-bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__username {
+    font-size: $font-size-sm;
+    color: $color-deep-navy;
+    font-weight: $font-weight-semibold;
+    @include truncate;
+    max-width: 120px;
   }
 }
 
 // ==============================================================================
 // MAIN CONTENT CONTAINER
-// Respects mobile bottom navigation with sufficient bottom clearance
 // ==============================================================================
 
 .dashboard-main {
@@ -111,62 +148,57 @@
   margin: 0 auto;
   padding: $spacing-lg $spacing-md;
 
-  // Mobile bottom navigation padding clearance so navigation NEVER overlaps content
   @include mobile-only {
     padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
   }
 
   @include respond-to('tablet') {
-    padding: $spacing-2xl $spacing-xl;
+    padding: $spacing-xl $spacing-md;
   }
 }
 
 // ==============================================================================
-// WELCOME SECTION (Deep Navy Accent Surface)
+// WELCOME SECTION (Clean White Card with Subtle Primary Blue Accent)
 // ==============================================================================
 
 .welcome-section {
-  background-color: $color-deep-navy;
-  border: 1.5px solid rgba(58, 78, 251, 0.35);
-  border-radius: $radius-lg;
+  background-color: $color-white;
+  border: 1px solid $color-subtle-border;
+  border-radius: $radius-card;
   padding: $spacing-lg;
-  margin-bottom: $spacing-xl;
-  box-shadow: $shadow-md;
+  margin-bottom: $spacing-lg;
+  box-shadow: $shadow-sm;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, $color-primary-blue, $color-secondary-blue);
+    border-top-left-radius: $radius-card;
+    border-bottom-left-radius: $radius-card;
+  }
 
   @include respond-to('tablet') {
     padding: $spacing-xl;
   }
 
-  &__badge {
-    display: inline-flex;
-    align-items: center;
-    font-size: $font-size-xs;
-    font-weight: $font-weight-bold;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: $color-lime-accent;
-    background-color: rgba(227, 255, 59, 0.12);
-    border: 1px solid rgba(227, 255, 59, 0.3);
-    padding: 3px $spacing-sm;
-    border-radius: $radius-pill;
-    margin-bottom: $spacing-xs;
-  }
-
   &__greeting {
-    font-size: $font-size-2xl;
+    font-size: clamp(1.6rem, 3.5vw, 2.2rem);
     font-weight: $font-weight-extrabold;
-    color: $color-soft-lavender;
+    color: $color-deep-navy;
     margin-bottom: $spacing-2xs;
     letter-spacing: -0.025em;
-
-    @include respond-to('tablet') {
-      font-size: $font-size-3xl;
-    }
+    line-height: $line-height-tight;
   }
 
   &__tagline {
     font-size: $font-size-base;
-    color: rgba(222, 224, 237, 0.78);
+    color: $color-text-muted;
     line-height: $line-height-normal;
   }
 }
@@ -176,9 +208,9 @@
 // ==============================================================================
 
 .account-card {
-  background-color: #DEE0ED;
-  border: 1.5px solid rgba(37, 41, 67, 0.16);
-  border-radius: $radius-lg;
+  background-color: $color-white;
+  border: 1px solid $color-subtle-border;
+  border-radius: $radius-card;
   padding: $spacing-lg;
   box-shadow: $shadow-sm;
 
@@ -191,28 +223,28 @@
     align-items: center;
     justify-content: space-between;
     padding-bottom: $spacing-md;
-    border-bottom: 1.5px solid rgba(37, 41, 67, 0.12);
+    border-bottom: 1px solid $color-subtle-border;
     margin-bottom: $spacing-lg;
     gap: $spacing-sm;
   }
 
   &__title {
-    font-size: $font-size-lg;
+    font-size: $font-size-xl;
     font-weight: $font-weight-bold;
     color: $color-deep-navy;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.015em;
   }
 
   &__badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 3px $spacing-md;
     font-size: $font-size-xs;
-    font-weight: $font-weight-semibold;
-    background-color: $color-deep-navy;
-    color: $color-lime-accent;
+    font-weight: $font-weight-bold;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: $color-primary-blue;
+    background-color: rgba(58, 78, 251, 0.08);
+    border: 1px solid rgba(58, 78, 251, 0.2);
+    padding: 3px $spacing-sm;
     border-radius: $radius-pill;
-    letter-spacing: 0.03em;
   }
 
   &__grid {
@@ -222,26 +254,30 @@
 
     @include respond-to('tablet') {
       grid-template-columns: repeat(2, 1fr);
-      gap: $spacing-lg;
     }
   }
 
   &__item {
     display: flex;
     flex-direction: column;
-    gap: $spacing-2xs;
-    background-color: rgba(37, 41, 67, 0.04);
-    border: 1px solid rgba(37, 41, 67, 0.08);
-    border-radius: $radius-md;
+    gap: 4px;
     padding: $spacing-md;
+    background-color: $color-surface-secondary;
+    border: 1px solid $color-subtle-border;
+    border-radius: $radius-md;
+    transition: border-color $transition-fast;
+
+    &:hover {
+      border-color: $color-border-light-hover;
+    }
   }
 
   &__label {
-    font-size: $font-size-xs;
+    font-size: 11px;
     font-weight: $font-weight-semibold;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: rgba(37, 41, 67, 0.68);
+    color: $color-text-subtle;
   }
 
   &__value {
@@ -249,12 +285,11 @@
     font-weight: $font-weight-semibold;
     color: $color-deep-navy;
     word-break: break-word;
-    overflow-wrap: break-word;
   }
 }
 
 // ==============================================================================
-// PROFILE PAGE SPECIFIC STYLES
+// PROFILE PAGE STYLING
 // ==============================================================================
 
 .profile-page {
@@ -266,69 +301,63 @@
 .profile-header-card {
   display: flex;
   align-items: center;
-  gap: $spacing-md;
-  background-color: $color-deep-navy;
-  border: 1.5px solid rgba(58, 78, 251, 0.35);
-  border-radius: $radius-lg;
+  gap: $spacing-lg;
+  background-color: $color-white;
+  border: 1px solid $color-subtle-border;
+  border-radius: $radius-card;
   padding: $spacing-lg;
-  box-shadow: $shadow-md;
+  box-shadow: $shadow-sm;
+  flex-wrap: wrap;
 
   @include respond-to('tablet') {
     padding: $spacing-xl;
-    gap: $spacing-lg;
   }
 
   &__avatar {
-    width: 56px;
-    height: 56px;
-    border-radius: $radius-pill;
-    background-color: $color-primary-blue;
-    color: $color-lime-accent;
+    width: 64px;
+    height: 64px;
+    border-radius: $radius-full;
+    background: linear-gradient(135deg, $color-primary-blue, $color-secondary-blue);
+    color: $color-white;
+    font-size: 28px;
+    font-weight: $font-weight-extrabold;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: $font-size-xl;
-    font-weight: $font-weight-extrabold;
+    box-shadow: 0 4px 14px rgba(58, 78, 251, 0.28);
     flex-shrink: 0;
-
-    @include respond-to('tablet') {
-      width: 64px;
-      height: 64px;
-      font-size: $font-size-2xl;
-    }
   }
 
   &__info {
     flex: 1;
-    min-width: 0;
+    min-width: 200px;
   }
 
   &__name {
-    font-size: $font-size-xl;
-    font-weight: $font-weight-bold;
-    color: $color-soft-lavender;
+    font-size: clamp(1.4rem, 3vw, 1.8rem);
+    font-weight: $font-weight-extrabold;
+    color: $color-deep-navy;
+    margin: 0 0 4px 0;
+    line-height: $line-height-tight;
     letter-spacing: -0.02em;
-    @include truncate;
-
-    @include respond-to('tablet') {
-      font-size: $font-size-2xl;
-    }
   }
 
   &__email {
     font-size: $font-size-sm;
-    color: rgba(222, 224, 237, 0.72);
-    @include truncate;
+    color: $color-text-muted;
+    margin: 0;
   }
 
   &__badge {
-    padding: 3px $spacing-md;
     font-size: $font-size-xs;
-    font-weight: $font-weight-semibold;
-    background-color: rgba(227, 255, 59, 0.15);
-    color: $color-lime-accent;
-    border: 1px solid rgba(227, 255, 59, 0.3);
+    font-weight: $font-weight-bold;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: $color-primary-blue;
+    background-color: rgba(58, 78, 251, 0.08);
+    border: 1px solid rgba(58, 78, 251, 0.2);
+    padding: 4px $spacing-md;
     border-radius: $radius-pill;
-    letter-spacing: 0.03em;
+    align-self: center;
   }
 }

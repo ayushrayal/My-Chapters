@@ -23,6 +23,12 @@
     margin-left: 2px;
     font-weight: $font-weight-bold;
   }
+
+  &__counter {
+    font-size: 11px;
+    color: $color-text-subtle;
+    font-weight: 400;
+  }
 }
 
 .input-wrapper {
@@ -34,28 +40,29 @@
 
 .form-input {
   width: 100%;
-  min-height: 48px; // Mobile touch target >= 44px
+  min-height: 46px; // Mobile touch target >= 44px
   padding: 0 $spacing-md;
   font-family: $font-family-base;
   font-size: $font-size-base;
   color: $color-deep-navy;
-  background-color: rgba(222, 224, 237, 0.35);
-  border: 1.5px solid rgba(37, 41, 67, 0.2);
+  background-color: $color-white;
+  border: 1.5px solid $color-subtle-border;
   border-radius: $radius-md;
-  transition: all $transition-fast;
+  transition: border-color $transition-fast, box-shadow $transition-fast, background-color $transition-fast;
 
   &::placeholder {
-    color: rgba(37, 41, 67, 0.45);
+    color: $color-text-subtle;
   }
 
   &:hover:not(:disabled):not(:focus) {
-    border-color: rgba(37, 41, 67, 0.4);
-    background-color: rgba(222, 224, 237, 0.5);
+    border-color: $color-border-light-hover;
   }
 
   &:focus {
-    @include focus-ring;
-    background-color: #DEE0ED;
+    outline: none;
+    border-color: $color-border-focus;
+    box-shadow: 0 0 0 3px rgba(58, 78, 251, 0.18);
+    background-color: $color-white;
   }
 
   &--with-toggle {
@@ -63,18 +70,19 @@
   }
 
   &--error {
-    border-color: $color-primary-blue;
+    border-color: $color-error-red;
 
     &:focus {
-      border-color: $color-primary-blue;
-      box-shadow: 0 0 0 3px rgba(58, 78, 251, 0.25);
+      border-color: $color-error-red;
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
     }
   }
 
   &:disabled {
-    background-color: rgba(37, 41, 67, 0.08);
+    background-color: $color-surface-secondary;
     cursor: not-allowed;
-    color: rgba(37, 41, 67, 0.5);
+    color: $color-text-disabled;
+    border-color: $color-subtle-border;
   }
 }
 
@@ -87,7 +95,7 @@
   align-items: center;
   justify-content: center;
   min-width: 44px;
-  min-height: 40px;
+  min-height: 38px;
   border-radius: $radius-sm;
   color: $color-primary-blue;
   font-family: $font-family-base;
@@ -97,7 +105,7 @@
 
   &:hover {
     color: $color-deep-navy;
-    background-color: rgba(37, 41, 67, 0.06);
+    background-color: rgba(58, 78, 251, 0.08);
   }
 
   &:focus-visible {
@@ -108,7 +116,7 @@
 .form-error {
   font-size: $font-size-xs;
   font-weight: $font-weight-medium;
-  color: $color-primary-blue;
+  color: $color-error-red;
   min-height: 1.125rem;
   line-height: 1.25;
   display: flex;
@@ -117,13 +125,49 @@
 
   &::before {
     content: "•";
-    color: $color-primary-blue;
+    color: $color-error-red;
     font-size: 1.2em;
   }
 }
 
 .form-hint {
   font-size: $font-size-xs;
-  color: rgba(37, 41, 67, 0.65);
+  color: $color-text-muted;
   line-height: 1.35;
+}
+
+// Textarea
+.form-textarea {
+  min-height: 96px;
+  padding: $spacing-sm $spacing-md;
+  line-height: $line-height-normal;
+  resize: vertical;
+}
+
+// Select
+.select-wrapper {
+  position: relative;
+  width: 100%;
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid $color-deep-navy;
+    pointer-events: none;
+    opacity: 0.6;
+  }
+}
+
+.form-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 36px;
+  cursor: pointer;
 }

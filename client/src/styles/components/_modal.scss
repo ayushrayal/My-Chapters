@@ -3,16 +3,16 @@
 
 // ==============================================================================
 // MODAL & DIALOG SYSTEM
-// Strictly uses approved 5-color palette: Deep Navy (#252943), Soft Lavender (#DEE0ED),
-// Primary Blue (#3A4EFB), Secondary Blue (#33A4FA), Lime Accent (#E3FF3B).
+// Fintech/SaaS Aesthetic: Clean White Surface, Soft Blur, Mobile Bottom Sheet
 // ==============================================================================
 
 .modal-overlay {
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background-color: rgba(37, 41, 67, 0.78);
-  backdrop-filter: blur(4px);
+  background-color: rgba(37, 41, 67, 0.48);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -20,23 +20,23 @@
   overflow-y: auto;
 
   @include mobile-only {
-    padding: $spacing-sm;
+    padding: 0;
     align-items: flex-end; // Bottom sheet on small screens
   }
 }
 
 .modal-container {
-  background-color: $color-deep-navy;
-  color: $color-soft-lavender;
-  border: 1.5px solid rgba(222, 224, 237, 0.18);
-  border-radius: $radius-lg;
+  background-color: $color-white;
+  color: $color-deep-navy;
+  border: 1px solid $color-subtle-border;
+  border-radius: $radius-modal;
   box-shadow: $shadow-modal;
   width: 100%;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  animation: modalEnter 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: modalEnter 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 
   &--sm {
     max-width: 440px;
@@ -54,6 +54,9 @@
     max-height: 88vh;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
     margin-bottom: 0;
   }
 }
@@ -61,7 +64,7 @@
 @keyframes modalEnter {
   from {
     opacity: 0;
-    transform: translateY(16px) scale(0.98);
+    transform: translateY(20px) scale(0.98);
   }
   to {
     opacity: 1;
@@ -74,7 +77,7 @@
   align-items: center;
   justify-content: space-between;
   padding: $spacing-md $spacing-lg;
-  border-bottom: 1px solid rgba(222, 224, 237, 0.12);
+  border-bottom: 1px solid $color-subtle-border;
   gap: $spacing-sm;
 
   &__meta {
@@ -89,33 +92,48 @@
   font-family: $font-family-base;
   font-size: $font-size-xl;
   font-weight: $font-weight-bold;
-  color: $color-soft-lavender;
+  color: $color-deep-navy;
   margin: 0;
   line-height: $line-height-tight;
+  letter-spacing: -0.015em;
+}
+
+.modal-subtitle {
+  font-size: $font-size-sm;
+  color: $color-text-muted;
+  margin: 2px 0 0 0;
+}
+
+.bottom-sheet-drag-handle {
+  width: 36px;
+  height: 4px;
+  background-color: $color-subtle-border;
+  border-radius: $radius-pill;
+  margin: 8px auto 0;
 }
 
 .modal-close-btn {
   background: transparent;
   border: none;
-  color: rgba(222, 224, 237, 0.65);
-  font-size: 28px;
+  color: $color-text-subtle;
+  font-size: 26px;
   line-height: 1;
   cursor: pointer;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: $radius-md;
+  border-radius: $radius-sm;
   transition: all $transition-fast;
 
   &:hover {
-    color: $color-soft-lavender;
-    background-color: rgba(222, 224, 237, 0.1);
+    color: $color-deep-navy;
+    background-color: rgba(37, 41, 67, 0.06);
   }
 
   &:focus-visible {
-    @include focus-ring-dark;
+    @include focus-ring;
   }
 }
 
@@ -139,8 +157,8 @@
   justify-content: flex-end;
   gap: $spacing-sm;
   padding: $spacing-md $spacing-lg;
-  border-top: 1px solid rgba(222, 224, 237, 0.12);
-  background-color: rgba(37, 41, 67, 0.95);
+  border-top: 1px solid $color-subtle-border;
+  background-color: $color-surface-secondary;
 
   @include mobile-only {
     padding: $spacing-sm $spacing-md;
