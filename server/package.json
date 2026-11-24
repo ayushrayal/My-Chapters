@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node src/server.js",
+    "build": "node ../scripts/build-production.js",
     "dev": "node --watch src/server.js",
     "migrate:someday": "node src/scripts/migrate-someday-other.js",
     "test": "node --test tests/**/*.test.js"
