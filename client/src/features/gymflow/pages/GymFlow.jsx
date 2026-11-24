@@ -447,7 +447,7 @@ export function GymFlow() {
         {/* ANALYTICS TAB */}
         {activeTab === 'analytics' && (
           <div className="gymflow-tab-content" id="gymflow-panel-analytics" role="tabpanel">
-            <GymAnalyticsView analytics={analytics} onRefresh={fetchAnalytics} />
+            <GymAnalyticsView analytics={analytics} templates={templates} onRefresh={fetchAnalytics} />
           </div>
         )}
 

@@ -25,9 +25,9 @@ async function startServer() {
       console.warn('[Server] Notice: Someday category auto-provisioning deferred:', migErr.message);
     }
 
-    // 3. Start HTTP server
-    server = app.listen(env.PORT, () => {
-      console.log(`[Server] My Chapters API backend running on port ${env.PORT} [${env.NODE_ENV}]`);
+    // 3. Start HTTP server listening on 0.0.0.0 for container/Render compatibility
+    server = app.listen(env.PORT, '0.0.0.0', () => {
+      console.log(`[Server] My Chapters backend running on http://0.0.0.0:${env.PORT} [${env.NODE_ENV}]`);
       console.log(`[Server] Health check available at http://localhost:${env.PORT}/api/health`);
     });
   } catch (error) {

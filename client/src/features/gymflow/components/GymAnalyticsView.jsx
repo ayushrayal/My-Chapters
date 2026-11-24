@@ -18,7 +18,7 @@ import {
   SparklesIcon
 } from '../../../components/common/Icons.jsx';
 
-export function GymAnalyticsView({ analytics, onRefresh }) {
+export function GymAnalyticsView({ analytics, templates = [], onRefresh }) {
   const [range, setRange] = useState('30d');
   const [selectedTemplate, setSelectedTemplate] = useState('');
   const [selectedBodyPart, setSelectedBodyPart] = useState('');
@@ -66,33 +66,98 @@ export function GymAnalyticsView({ analytics, onRefresh }) {
   const maxRoutineVol = templatesBreakdown.reduce((max, t) => Math.max(max, t.totalVolume || 0), 0) || 1;
   const maxBpVol = bodyPartsBreakdown.reduce((max, bp) => Math.max(max, bp.totalVolume || 0), 0) || 1;
 
-  // Cascading Filter Options derived from analytics.filterOptions
+  // Cascading Filter Options derived from analytics.filterOptions and user templates
   const filterOptions = analytics?.filterOptions || {};
 
-  const routineOptions = (filterOptions.routines?.length ? filterOptions.routines : templatesBreakdown).map((t) => ({
-    value: t.name || t.id,
-    label: t.name
+  // 1. Gather all routine options from backend filterOptions, templates prop, and breakdown
+  const routineNamesSet = new Set();
+  if (Array.isArray(filterOptions.routines)) {
+    filterOptions.routines.forEach((r) => {
+      const name = typeof r === 'string' ? r : r.name || r.id;
+      if (name) routineNamesSet.add(name);
+    });
+  }
+  if (Array.isArray(templates)) {
+    templates.forEach((t) => {
+      if (t.name) routineNamesSet.add(t.name);
+    });
+  }
+  if (Array.isArray(templatesBreakdown)) {
+    templatesBreakdown.forEach((t) => {
+      const name = typeof t === 'string' ? t : t.name || t.id;
+      if (name) routineNamesSet.add(name);
+    });
+  }
+
+  const routineOptions = Array.from(routineNamesSet).sort().map((name) => ({
+    value: name,
+    label: name
   }));
 
+  // 2. Cascading Body Parts
   let availableBodyParts = [];
-  if (selectedTemplate && filterOptions.bodyPartsByRoutine?.[selectedTemplate]) {
+  if (selectedTemplate && filterOptions.bodyPartsByRoutine?.[selectedTemplate]?.length) {
     availableBodyParts = filterOptions.bodyPartsByRoutine[selectedTemplate];
-  } else if (filterOptions.allBodyParts?.length) {
-    availableBodyParts = filterOptions.allBodyParts;
-  } else {
-    availableBodyParts = bodyPartsBreakdown.map((bp) => bp.name);
+  } else if (selectedTemplate && Array.isArray(templates)) {
+    const matchedTpl = templates.find((t) => t.name === selectedTemplate || t._id === selectedTemplate);
+    if (matchedTpl?.bodyParts?.length) {
+      availableBodyParts = matchedTpl.bodyParts.map((bp) => bp.name);
+    }
   }
-  const bodyPartOptions = availableBodyParts.map((bp) => ({ value: bp, label: bp }));
 
-  let availableExercises = [];
-  if (selectedBodyPart && filterOptions.exercisesByBodyPart?.[selectedBodyPart]) {
-    availableExercises = filterOptions.exercisesByBodyPart[selectedBodyPart];
-  } else if (filterOptions.allExercises?.length) {
-    availableExercises = filterOptions.allExercises;
-  } else {
-    availableExercises = exercisesBreakdown.map((ex) => ex.name);
+  if (!availableBodyParts.length) {
+    if (filterOptions.allBodyParts?.length) {
+      availableBodyParts = filterOptions.allBodyParts;
+    } else if (Array.isArray(templates) && templates.length > 0) {
+      const bpSet = new Set();
+      templates.forEach((t) => t.bodyParts?.forEach((bp) => bp.name && bpSet.add(bp.name)));
+      availableBodyParts = Array.from(bpSet);
+    } else {
+      availableBodyParts = bodyPartsBreakdown.map((bp) => bp.name);
+    }
   }
-  const exerciseOptions = availableExercises.map((ex) => ({ value: ex, label: ex }));
+
+  const bodyPartOptions = availableBodyParts
+    .map((bp) => (typeof bp === 'string' ? bp : bp.name || bp.id))
+    .filter(Boolean)
+    .map((name) => ({ value: name, label: name }));
+
+  // 3. Cascading Exercises
+  let availableExercises = [];
+  if (selectedBodyPart && filterOptions.exercisesByBodyPart?.[selectedBodyPart]?.length) {
+    availableExercises = filterOptions.exercisesByBodyPart[selectedBodyPart];
+  } else if (selectedBodyPart && Array.isArray(templates)) {
+    const exSet = new Set();
+    templates.forEach((t) => {
+      t.bodyParts?.forEach((bp) => {
+        if (bp.name === selectedBodyPart) {
+          bp.exercises?.forEach((ex) => ex.name && exSet.add(ex.name));
+        }
+      });
+    });
+    availableExercises = Array.from(exSet);
+  }
+
+  if (!availableExercises.length) {
+    if (filterOptions.allExercises?.length) {
+      availableExercises = filterOptions.allExercises;
+    } else if (Array.isArray(templates) && templates.length > 0) {
+      const exSet = new Set();
+      templates.forEach((t) => {
+        t.bodyParts?.forEach((bp) => {
+          bp.exercises?.forEach((ex) => ex.name && exSet.add(ex.name));
+        });
+      });
+      availableExercises = Array.from(exSet);
+    } else {
+      availableExercises = exercisesBreakdown.map((ex) => ex.name);
+    }
+  }
+
+  const exerciseOptions = availableExercises
+    .map((ex) => (typeof ex === 'string' ? ex : ex.name || ex.id))
+    .filter(Boolean)
+    .map((name) => ({ value: name, label: name }));
 
   const handleTemplateChange = (val) => {
     setSelectedTemplate(val);
@@ -122,25 +187,23 @@ export function GymAnalyticsView({ analytics, onRefresh }) {
   return (
     <div className="gymflow-analytics-page" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {/* 1. Controls Row: Range Selector + FilterBar */}
-      <div className="gymflow-analytics-controls" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-          {/* Range Segmented Control */}
-          <div style={{ minWidth: '280px', flex: '0 1 auto' }}>
-            <SegmentedFilter
-              options={[
-                { id: '7d', label: 'Last 7 days' },
-                { id: '30d', label: 'Last 30 days' },
-                { id: '90d', label: 'Last 90 days' }
-              ]}
-              value={range}
-              onChange={setRange}
-              ariaLabel="Analytics date range"
-            />
-          </div>
+      <div className="gymflow-analytics-controls">
+        <div className="gymflow-analytics-controls__range">
+          <SegmentedFilter
+            options={[
+              { id: '7d', label: 'Last 7 days' },
+              { id: '30d', label: 'Last 30 days' },
+              { id: '90d', label: 'Last 90 days' }
+            ]}
+            value={range}
+            onChange={setRange}
+            ariaLabel="Analytics date range"
+          />
         </div>
 
         {/* FilterBar with FilterSelects */}
         <FilterBar
+          className="gymflow-analytics-controls__filters"
           appliedChips={[
             selectedTemplate ? { id: 'template', label: `Routine: ${selectedTemplate}`, onRemove: () => handleTemplateChange('') } : null,
             selectedBodyPart ? { id: 'bodyPart', label: `Body Part: ${selectedBodyPart}`, onRemove: () => handleBodyPartChange('') } : null,

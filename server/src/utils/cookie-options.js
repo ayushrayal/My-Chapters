@@ -44,15 +44,14 @@ export const AUTH_COOKIE_NAME = 'mc_auth_token';
  */
 export function getAuthCookieOptions() {
   const isProduction = env.NODE_ENV === 'production';
+  const isSecure = isProduction && process.env.COOKIE_SECURE !== 'false';
   const maxAge = parseDurationToMs(env.JWT_EXPIRES_IN);
 
   /** @type {import('express').CookieOptions} */
   const options = {
     httpOnly: true,
-    secure: isProduction,
-    // When cross-origin in production with HTTPS, 'none' is required for cookies over CORS.
-    // In local development over HTTP, 'lax' is required because browsers reject 'none' without 'secure'.
-    sameSite: isProduction ? 'none' : 'lax',
+    secure: isSecure,
+    sameSite: isSecure ? 'none' : 'lax',
     path: '/',
     maxAge
   };

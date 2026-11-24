@@ -3,6 +3,9 @@ import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
+import path from 'node:path';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { env } from './config/env.js';
 import authRoutes from './routes/auth.routes.js';
 import somedayCategoryRoutes from './routes/someday-category.routes.js';
@@ -17,20 +20,50 @@ import { notFoundHandler } from './middleware/not-found.middleware.js';
 import { errorHandler } from './middleware/error.middleware.js';
 import { ApiResponse } from './utils/api-response.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const publicPath = path.resolve(__dirname, '../public');
+
 const app = express();
+
+// Trust reverse proxy (Render / Heroku / load balancers for HTTPS header detection)
+app.set('trust proxy', 1);
 
 // 1. HTTP Security Headers with Helmet
 app.use(
   helmet({
-    contentSecurityPolicy: env.NODE_ENV === 'production' ? undefined : false,
+    contentSecurityPolicy: env.NODE_ENV === 'production'
+      ? {
+          directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+            fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
+            imgSrc: ["'self'", 'data:', 'blob:', 'https:'],
+            connectSrc: ["'self'"]
+          }
+        }
+      : false,
     crossOriginEmbedderPolicy: false
   })
 );
 
-// 2. Strict Cross-Origin Resource Sharing (CORS)
+// 2. Cross-Origin Resource Sharing (CORS)
 app.use(
   cors({
-    origin: env.CLIENT_URL,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g. mobile apps, curl, or standard same-origin requests)
+      if (!origin) return callback(null, true);
+      try {
+        const clientOrigin = new URL(env.CLIENT_URL).origin;
+        if (origin === clientOrigin) return callback(null, true);
+      } catch {}
+      // Allow same-origin or localhost during development/testing
+      if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
@@ -74,10 +107,28 @@ app.use('/api/gymflow/schedule', gymWeeklyScheduleRoutes);
 app.use('/api/gymflow/workout', gymWorkoutSessionRoutes);
 app.use('/api/gymflow/analytics', gymAnalyticsRoutes);
 
-// 10. 404 Not Found Catch-All
+// 11. API 404 Catch-All: ensures unmatched /api routes always return a JSON 404 and never index.html
+app.use('/api', notFoundHandler);
+
+// 12. Serve Static Frontend Files from server/public directory
+app.use(express.static(publicPath));
+
+// 13. React SPA Fallback: for all non-API GET routes, serve index.html for client-side routing
+app.use((req, res, next) => {
+  if (req.method !== 'GET') {
+    return next();
+  }
+  const indexPath = path.join(publicPath, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    return res.sendFile(indexPath);
+  }
+  next();
+});
+
+// 14. 404 Not Found Catch-All
 app.use(notFoundHandler);
 
-// 11. Centralized Error Handler
+// 15. Centralized Error Handler
 app.use(errorHandler);
 
 export default app;

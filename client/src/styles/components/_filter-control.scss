@@ -559,7 +559,14 @@
       align-items: center;
       gap: 10px;
       flex: 1;
-      flex-wrap: wrap;
+      width: 100%;
+      flex-wrap: nowrap;
+
+      .filter-select {
+        flex: 1 1 0%;
+        min-width: 0;
+        width: 100%;
+      }
     }
   }
 

@@ -77,8 +77,16 @@ export function validateOrigin(req, _res, next) {
 
   // If Origin header is present (standard in browsers for POST requests)
   if (origin) {
-    const clientOrigin = new URL(env.CLIENT_URL).origin;
-    if (origin !== clientOrigin) {
+    let clientOrigin;
+    try {
+      clientOrigin = new URL(env.CLIENT_URL).origin;
+    } catch {
+      clientOrigin = env.CLIENT_URL;
+    }
+    const host = req.get('host');
+    const isSameHost = host && (origin === `http://${host}` || origin === `https://${host}`);
+
+    if (origin !== clientOrigin && !isSameHost) {
       return next(AppError.forbidden(`Cross-site request blocked: untrusted origin ${origin}`));
     }
   }
