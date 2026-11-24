@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { somedayApi } from '../services/someday.api.js';
 import { parseApiError } from '../../../utils/error-handler.js';
+import { useToast } from '../../../context/ToastContext.jsx';
 
 export function useSomeday() {
+  const { toast } = useToast();
   const [categories, setCategories] = useState([]);
   const [items, setItems] = useState([]);
   const [allItemsForStats, setAllItemsForStats] = useState([]);
@@ -109,11 +111,14 @@ export function useSomeday() {
     setError(null);
     try {
       const newItem = await somedayApi.createItem(payload);
-      setSuccessMessage(`"${newItem.name}" added to Someday.`);
+      const msg = `"${newItem.name}" added to Someday.`;
+      setSuccessMessage(msg);
+      toast?.success?.(msg);
       await refreshAll();
       return newItem;
     } catch (err) {
       const parsed = parseApiError(err);
+      toast?.error?.(parsed.message || 'Failed to create item');
       throw parsed;
     }
   };
@@ -122,11 +127,14 @@ export function useSomeday() {
     setError(null);
     try {
       const updated = await somedayApi.updateItem(itemId, payload);
-      setSuccessMessage(`"${updated.name}" updated successfully.`);
+      const msg = `"${updated.name}" updated successfully.`;
+      setSuccessMessage(msg);
+      toast?.success?.(msg);
       await refreshAll();
       return updated;
     } catch (err) {
       const parsed = parseApiError(err);
+      toast?.error?.(parsed.message || 'Failed to update item');
       throw parsed;
     }
   };
@@ -135,12 +143,15 @@ export function useSomeday() {
     setError(null);
     try {
       await somedayApi.deleteItem(itemId);
-      setSuccessMessage(`"${itemName}" deleted from Someday.`);
+      const msg = `"${itemName}" deleted from Someday.`;
+      setSuccessMessage(msg);
+      toast?.success?.(msg);
       await refreshAll();
       return true;
     } catch (err) {
       const parsed = parseApiError(err);
       setError(parsed.message);
+      toast?.error?.(parsed.message || 'Failed to delete item');
       throw parsed;
     }
   };
@@ -155,16 +166,17 @@ export function useSomeday() {
         }
       }
       const updated = await somedayApi.updateItem(itemId, payload);
-      setSuccessMessage(
-        newStatus === 'PURCHASED'
-          ? `Marked "${updated.name}" as Purchased.`
-          : `Moved "${updated.name}" back to Planned.`
-      );
+      const msg = newStatus === 'PURCHASED'
+        ? `Marked "${updated.name}" as Purchased.`
+        : `Moved "${updated.name}" back to Planned.`;
+      setSuccessMessage(msg);
+      toast?.success?.(msg);
       await refreshAll();
       return updated;
     } catch (err) {
       const parsed = parseApiError(err);
       setError(parsed.message);
+      toast?.error?.(parsed.message || 'Failed to update item status');
       throw parsed;
     }
   };
@@ -175,11 +187,14 @@ export function useSomeday() {
     setError(null);
     try {
       const newCat = await somedayApi.createCategory(name);
-      setSuccessMessage(`Category "${newCat.name}" created.`);
+      const msg = `Category "${newCat.name}" created.`;
+      setSuccessMessage(msg);
+      toast?.success?.(msg);
       await refreshAll();
       return newCat;
     } catch (err) {
       const parsed = parseApiError(err);
+      toast?.error?.(parsed.message || 'Failed to create category');
       throw parsed;
     }
   };
@@ -188,11 +203,14 @@ export function useSomeday() {
     setError(null);
     try {
       const updated = await somedayApi.updateCategory(categoryId, name);
-      setSuccessMessage(`Category renamed to "${updated.name}".`);
+      const msg = `Category renamed to "${updated.name}".`;
+      setSuccessMessage(msg);
+      toast?.success?.(msg);
       await refreshAll();
       return updated;
     } catch (err) {
       const parsed = parseApiError(err);
+      toast?.error?.(parsed.message || 'Failed to rename category');
       throw parsed;
     }
   };
@@ -202,9 +220,9 @@ export function useSomeday() {
     try {
       const result = await somedayApi.deleteCategory(categoryId);
       const moved = result.movedItems || 0;
-      setSuccessMessage(
-        `Category "${categoryName}" deleted. ${moved} item${moved === 1 ? '' : 's'} moved to Other.`
-      );
+      const msg = `Category "${categoryName}" deleted. ${moved} item${moved === 1 ? '' : 's'} moved to Other.`;
+      setSuccessMessage(msg);
+      toast?.success?.(msg);
       // If active filter was the deleted category, reset to ALL
       if (categoryIdFilter === categoryId) {
         setCategoryIdFilter('ALL');
@@ -214,6 +232,7 @@ export function useSomeday() {
     } catch (err) {
       const parsed = parseApiError(err);
       setError(parsed.message);
+      toast?.error?.(parsed.message || 'Failed to delete category');
       throw parsed;
     }
   };

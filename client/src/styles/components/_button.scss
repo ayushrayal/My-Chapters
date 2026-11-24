@@ -90,14 +90,14 @@
     box-shadow: 0 2px 8px rgba(227, 255, 59, 0.35);
 
     &:hover:not(:disabled) {
-      background-color: #D5F522;
+      background-color: $color-lime-hover;
       box-shadow: 0 4px 14px rgba(227, 255, 59, 0.5);
       transform: translateY(-1px);
     }
 
     &:active:not(:disabled) {
-      transform: translateY(0);
-      background-color: #C6E617;
+      transform: translateY(0) scale(0.98);
+      background-color: $color-lime-active;
     }
   }
 
@@ -109,14 +109,14 @@
     box-shadow: 0 2px 8px rgba(22, 139, 104, 0.25);
 
     &:hover:not(:disabled) {
-      background-color: #127355;
-      border-color: #127355;
+      background-color: $color-success-hover;
+      border-color: $color-success-hover;
       transform: translateY(-1px);
     }
 
     &:active:not(:disabled) {
-      background-color: #0E5B43;
-      transform: translateY(0);
+      background-color: $color-success-active;
+      transform: translateY(0) scale(0.98);
     }
   }
 
@@ -127,14 +127,14 @@
     border-color: $color-error-red;
 
     &:hover:not(:disabled) {
-      background-color: #B91C1C;
-      border-color: #B91C1C;
+      background-color: $color-error-hover;
+      border-color: $color-error-hover;
       transform: translateY(-1px);
     }
 
     &:active:not(:disabled) {
-      background-color: #991B1B;
-      transform: translateY(0);
+      background-color: $color-error-active;
+      transform: translateY(0) scale(0.98);
     }
   }
 
@@ -239,7 +239,7 @@
     color: $color-deep-navy;
 
     &:hover:not(:disabled) {
-      background-color: #D5F522;
+      background-color: $color-lime-hover;
     }
   }
 

@@ -1,3 +1,5 @@
+export { ToastProvider, useToast } from '../../context/ToastContext.jsx';
+
 export function Toast({
   type = 'info',
   title,
@@ -8,19 +10,19 @@ export function Toast({
 }) {
   return (
     <div
-      className={`toast toast--${type} ${className}`}
+      className={`toast-notification toast-notification--${type} ${className}`}
       role={type === 'error' ? 'alert' : 'status'}
       aria-live="polite"
       {...props}
     >
-      <div className="toast__content">
-        {title && <span className="toast__title">{title}</span>}
-        {message && <p className="toast__message">{message}</p>}
+      <div className="toast-notification__content">
+        {title && <h5 className="toast-notification__title">{title}</h5>}
+        {message && <p className="toast-notification__message">{message}</p>}
       </div>
       {onClose && (
         <button
           type="button"
-          className="toast__close-btn"
+          className="toast-notification__close-btn"
           onClick={onClose}
           aria-label="Dismiss notification"
         >
@@ -30,4 +32,3 @@ export function Toast({
     </div>
   );
 }
-

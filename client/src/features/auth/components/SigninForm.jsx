@@ -107,6 +107,7 @@ export function SigninForm() {
         id="identifier"
         name="identifier"
         type="text"
+        icon="user"
         placeholder="Enter your email or username"
         value={formData.identifier}
         onChange={handleChange}
@@ -121,6 +122,7 @@ export function SigninForm() {
         id="password"
         name="password"
         type="password"
+        icon="lock"
         placeholder="Enter your password"
         value={formData.password}
         onChange={handleChange}

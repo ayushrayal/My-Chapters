@@ -8,7 +8,6 @@ import { CategoryManagementModal } from '../components/CategoryManagementModal.j
 import { StatusChangeModal } from '../components/StatusChangeModal.jsx';
 import { DeleteConfirmModal } from '../components/DeleteConfirmModal.jsx';
 import { Button } from '../../../components/common/Button.jsx';
-import { Loader } from '../../../components/common/Loader.jsx';
 
 export function Someday() {
   const {
@@ -97,7 +96,7 @@ export function Someday() {
 
   return (
     <div className="someday-page">
-      {/* Page Header */}
+      {/* 1. Page Header with Title, Subtitle & Gradient Desktop Add Button */}
       <header className="someday-header">
         <div className="someday-header__content">
           <h1 className="someday-header__title">Someday</h1>
@@ -107,18 +106,22 @@ export function Someday() {
         </div>
 
         <div className="someday-header__actions">
-          <Button
-            variant="primary"
-            size="md"
+          <button
+            type="button"
+            className="someday-header__add-btn"
             onClick={() => setIsAddModalOpen(true)}
             aria-label="Add new item to Someday"
           >
-            + Add Item
-          </Button>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            <span>Add Item</span>
+          </button>
         </div>
       </header>
 
-      {/* Real Statistics Calculated from Actual API Data */}
+      {/* 2. Stat Cards (Total, Planned, Purchased with Icons & Accent Bars) */}
       <SomedayStats stats={stats} />
 
       {/* Global Alerts */}
@@ -146,56 +149,92 @@ export function Someday() {
         </div>
       )}
 
-      {/* Filters Bar: Category & Status Controls */}
+      {/* 3. Filters Toolbar: Category & Segmented Status Controls */}
       <section className="someday-controls" aria-label="Someday item filters">
-        {/* Category Dropdown & Management trigger */}
+        {/* Desktop Category Dropdown & Manage */}
         <div className="someday-controls__category-group">
-          <label htmlFor="someday-category-filter" className="someday-controls__label">
-            Category
-          </label>
-          <div className="someday-controls__select-wrapper">
-            <select
-              id="someday-category-filter"
-              value={categoryIdFilter}
-              onChange={(e) => setCategoryIdFilter(e.target.value)}
-              className="form-input someday-controls__select"
-            >
-              <option value="ALL">All Categories</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name} {cat.isSystem ? '(Default)' : ''} ({cat.itemCount || 0})
-                </option>
-              ))}
-            </select>
+          <div className="someday-controls__desktop-category">
+            <label htmlFor="someday-category-filter" className="someday-controls__label">
+              Category
+            </label>
+            <div className="someday-controls__select-wrapper">
+              <select
+                id="someday-category-filter"
+                value={categoryIdFilter}
+                onChange={(e) => setCategoryIdFilter(e.target.value)}
+                className="form-input someday-controls__select"
+              >
+                <option value="ALL">All Categories</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name} {cat.isSystem ? '(Default)' : ''} ({cat.itemCount || 0})
+                  </option>
+                ))}
+              </select>
 
+              <button
+                type="button"
+                className="someday-controls__manage-btn"
+                onClick={() => setIsCategoryModalOpen(true)}
+                title="Manage categories"
+                aria-label="Open category management"
+              >
+                Manage
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile Horizontally Scrollable Chips */}
+          <div className="someday-controls__mobile-chips" role="tablist" aria-label="Category filter chips">
             <button
               type="button"
-              className="someday-controls__manage-btn"
-              onClick={() => setIsCategoryModalOpen(true)}
-              title="Manage categories"
-              aria-label="Open category management"
+              className={`category-chip ${categoryIdFilter === 'ALL' ? 'category-chip--active' : ''}`}
+              onClick={() => setCategoryIdFilter('ALL')}
             >
-              Manage
+              All
+            </button>
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                className={`category-chip ${categoryIdFilter === cat.id ? 'category-chip--active' : ''}`}
+                onClick={() => setCategoryIdFilter(cat.id)}
+              >
+                <span>{cat.name}</span>
+                <span className="category-chip__count">{cat.itemCount || 0}</span>
+              </button>
+            ))}
+            <button
+              type="button"
+              className="category-chip category-chip--manage"
+              onClick={() => setIsCategoryModalOpen(true)}
+              aria-label="Manage categories"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+              <span>Manage</span>
             </button>
           </div>
         </div>
 
-        {/* Status Filter Tabs (All, Planned, Purchased) */}
+        {/* Status Segmented Control with Counts in Small Badges */}
         <div className="someday-controls__status-group">
           <span className="someday-controls__label">Status</span>
-          <div className="status-filter-pills" role="radiogroup" aria-label="Status filter">
+          <div className="status-segmented-control" role="radiogroup" aria-label="Status filter">
             <button
               type="button"
-              className={`status-filter-pill ${statusFilter === 'ALL' ? 'status-filter-pill--active' : ''}`}
+              className={`status-segmented-btn ${statusFilter === 'ALL' ? 'status-segmented-btn--active' : ''}`}
               onClick={() => setStatusFilter('ALL')}
               aria-checked={statusFilter === 'ALL'}
               role="radio"
             >
-              All
+              <span>All</span>
             </button>
             <button
               type="button"
-              className={`status-filter-pill ${statusFilter === 'PLANNED' ? 'status-filter-pill--active' : ''}`}
+              className={`status-segmented-btn ${statusFilter === 'PLANNED' ? 'status-segmented-btn--active' : ''}`}
               onClick={() => setStatusFilter('PLANNED')}
               aria-checked={statusFilter === 'PLANNED'}
               role="radio"
@@ -204,7 +243,7 @@ export function Someday() {
             </button>
             <button
               type="button"
-              className={`status-filter-pill ${statusFilter === 'PURCHASED' ? 'status-filter-pill--active' : ''}`}
+              className={`status-segmented-btn ${statusFilter === 'PURCHASED' ? 'status-segmented-btn--active' : ''}`}
               onClick={() => setStatusFilter('PURCHASED')}
               aria-checked={statusFilter === 'PURCHASED'}
               role="radio"
@@ -215,38 +254,62 @@ export function Someday() {
         </div>
       </section>
 
-      {/* Main Collection Grid or Empty State */}
+      {/* 4. Main Collection Grid (1 col mobile, 2 tablet, 3 desktop) */}
       <section className="someday-content" aria-label="Someday collection">
         {isLoading ? (
-          <div className="someday-loading" aria-live="polite">
-            <Loader message="Loading your Someday collection..." />
+          /* Skeleton Loader Placeholder Grid */
+          <div className="someday-skeleton-grid" aria-label="Loading someday items">
+            {[1, 2, 3, 4, 5, 6].map((key) => (
+              <div key={key} className="someday-skeleton-card">
+                <div className="someday-skeleton-header">
+                  <div className="skeleton-box skeleton-box--badge" />
+                  <div className="skeleton-box skeleton-box--badge" />
+                </div>
+                <div className="skeleton-box skeleton-box--title" />
+                <div className="skeleton-box skeleton-box--text" />
+                <div className="skeleton-box skeleton-box--text skeleton-box--short" />
+                <div className="someday-skeleton-actions">
+                  <div className="skeleton-box skeleton-box--btn" />
+                  <div className="skeleton-box skeleton-box--btn" />
+                  <div className="skeleton-box skeleton-box--btn" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : items.length === 0 ? (
+          /* 5. Designed Empty State with Illustration-Style Icon */
           <div className="someday-empty-state">
-            <div className="someday-empty-state__icon" aria-hidden="true">
+            <div className="someday-empty-state__icon-box" aria-hidden="true">
               <svg
-                width="48"
-                height="48"
+                width="56"
+                height="56"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="1.75"
+                strokeWidth="1.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                className="someday-empty-state__svg"
               >
-                <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
+                <path d="M19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
             </div>
             <h3 className="someday-empty-state__title">{emptyState.title}</h3>
             <p className="someday-empty-state__subtitle">{emptyState.subtitle}</p>
             {emptyState.showAddAction && (
-              <Button
-                variant="primary"
+              <button
+                type="button"
+                className="someday-empty-state__action-btn"
                 onClick={() => setIsAddModalOpen(true)}
-                className="someday-empty-state__action"
               >
-                + Add Item
-              </Button>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                <span>Add Item to Someday</span>
+              </button>
             )}
           </div>
         ) : (
@@ -264,6 +327,20 @@ export function Someday() {
           </div>
         )}
       </section>
+
+      {/* Mobile Floating Action Button (FAB) at Bottom-Right above the tab bar */}
+      <button
+        type="button"
+        className="someday-mobile-fab"
+        onClick={() => setIsAddModalOpen(true)}
+        aria-label="Add new item"
+        title="Add item"
+      >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+      </button>
 
       {/* --- Modals --- */}
 

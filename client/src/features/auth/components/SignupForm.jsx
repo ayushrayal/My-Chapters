@@ -154,6 +154,7 @@ export function SignupForm() {
         id="username"
         name="username"
         type="text"
+        icon="user"
         placeholder="e.g. ayush"
         value={formData.username}
         onChange={handleChange}
@@ -168,6 +169,7 @@ export function SignupForm() {
         id="email"
         name="email"
         type="email"
+        icon="email"
         placeholder="you@example.com"
         value={formData.email}
         onChange={handleChange}
@@ -177,27 +179,136 @@ export function SignupForm() {
         disabled={isSubmitting}
       />
 
-      <Input
-        label="Password"
-        id="password"
-        name="password"
-        type="password"
-        placeholder="At least 8 characters"
-        value={formData.password}
-        onChange={handleChange}
-        error={errors.password}
-        hint="Min 8 characters, including uppercase, lowercase, and a number"
-        visibilityToggle
-        autoComplete="new-password"
-        required
-        disabled={isSubmitting}
-      />
+      <div className="password-field-group">
+        <Input
+          label="Password"
+          id="password"
+          name="password"
+          type="password"
+          icon="lock"
+          placeholder="At least 8 characters"
+          value={formData.password}
+          onChange={handleChange}
+          error={errors.password}
+          hint={!formData.password ? "Min 8 characters, including uppercase, lowercase, and a number" : undefined}
+          visibilityToggle
+          autoComplete="new-password"
+          required
+          disabled={isSubmitting}
+        />
+
+        {formData.password && (
+          <div className="password-strength" aria-live="polite">
+            <div className="password-strength__header">
+              <span className="password-strength__title">Password Strength</span>
+              <span className={`password-strength__rating password-strength__rating--${[
+                formData.password.length >= 8,
+                /[A-Z]/.test(formData.password),
+                /[a-z]/.test(formData.password),
+                /\d/.test(formData.password)
+              ].filter(Boolean).length}`}>
+                {(() => {
+                  const met = [
+                    formData.password.length >= 8,
+                    /[A-Z]/.test(formData.password),
+                    /[a-z]/.test(formData.password),
+                    /\d/.test(formData.password)
+                  ].filter(Boolean).length;
+                  if (met <= 1) return 'Weak';
+                  if (met === 2) return 'Fair';
+                  if (met === 3) return 'Good';
+                  return 'Strong';
+                })()}
+              </span>
+            </div>
+
+            <div className="password-strength__bars" role="progressbar" aria-valuenow={[
+              formData.password.length >= 8,
+              /[A-Z]/.test(formData.password),
+              /[a-z]/.test(formData.password),
+              /\d/.test(formData.password)
+            ].filter(Boolean).length * 25} aria-valuemin="0" aria-valuemax="100">
+              {[1, 2, 3, 4].map((step) => {
+                const metCount = [
+                  formData.password.length >= 8,
+                  /[A-Z]/.test(formData.password),
+                  /[a-z]/.test(formData.password),
+                  /\d/.test(formData.password)
+                ].filter(Boolean).length;
+                return (
+                  <span
+                    key={step}
+                    className={`password-strength__bar ${
+                      step <= metCount ? 'password-strength__bar--active' : ''
+                    } ${metCount === 4 ? 'password-strength__bar--lime' : ''}`}
+                  />
+                );
+              })}
+            </div>
+
+            <ul className="password-requirements">
+              <li className={`password-requirement ${formData.password.length >= 8 ? 'password-requirement--met' : ''}`}>
+                <span className="password-requirement__badge" aria-hidden="true">
+                  {formData.password.length >= 8 ? (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  ) : (
+                    <span className="password-requirement__bullet" />
+                  )}
+                </span>
+                <span>At least 8 characters</span>
+              </li>
+
+              <li className={`password-requirement ${/[A-Z]/.test(formData.password) ? 'password-requirement--met' : ''}`}>
+                <span className="password-requirement__badge" aria-hidden="true">
+                  {/[A-Z]/.test(formData.password) ? (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  ) : (
+                    <span className="password-requirement__bullet" />
+                  )}
+                </span>
+                <span>One uppercase letter</span>
+              </li>
+
+              <li className={`password-requirement ${/[a-z]/.test(formData.password) ? 'password-requirement--met' : ''}`}>
+                <span className="password-requirement__badge" aria-hidden="true">
+                  {/[a-z]/.test(formData.password) ? (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  ) : (
+                    <span className="password-requirement__bullet" />
+                  )}
+                </span>
+                <span>One lowercase letter</span>
+              </li>
+
+              <li className={`password-requirement ${/\d/.test(formData.password) ? 'password-requirement--met' : ''}`}>
+                <span className="password-requirement__badge" aria-hidden="true">
+                  {/\d/.test(formData.password) ? (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  ) : (
+                    <span className="password-requirement__bullet" />
+                  )}
+                </span>
+                <span>One number</span>
+              </li>
+            </ul>
+          </div>
+        )}
+      </div>
 
       <Input
         label="Space Name"
         id="spaceName"
         name="spaceName"
         type="text"
+        icon="space"
         placeholder="Your Space Name"
         value={formData.spaceName}
         onChange={handleChange}
@@ -212,6 +323,7 @@ export function SignupForm() {
         id="accessCode"
         name="accessCode"
         type="password"
+        icon="key"
         placeholder="Private rollout access code"
         value={formData.accessCode}
         onChange={handleChange}

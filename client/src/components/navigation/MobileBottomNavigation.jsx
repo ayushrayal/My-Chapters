@@ -7,8 +7,8 @@ export function MobileBottomNavigation({ className = '' }) {
       label: 'Home',
       icon: (
         <svg
-          width="22"
-          height="22"
+          width="20"
+          height="20"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -27,8 +27,8 @@ export function MobileBottomNavigation({ className = '' }) {
       label: 'Someday',
       icon: (
         <svg
-          width="22"
-          height="22"
+          width="20"
+          height="20"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -46,8 +46,8 @@ export function MobileBottomNavigation({ className = '' }) {
       label: 'Profile',
       icon: (
         <svg
-          width="22"
-          height="22"
+          width="20"
+          height="20"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"

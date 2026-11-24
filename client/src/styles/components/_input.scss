@@ -44,9 +44,32 @@
   width: 100%;
 }
 
+.input-icon-left {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-text-subtle;
+  pointer-events: none;
+  z-index: 2;
+  transition: color $transition-fast;
+
+  svg {
+    display: block;
+  }
+}
+
+.input-wrapper:focus-within .input-icon-left {
+  color: $color-primary-blue;
+}
+
 .form-input {
   width: 100%;
-  min-height: 46px; // Touch target >= 44px
+  height: 52px;
+  min-height: 52px;
   padding: 0 $spacing-md;
   font-family: $font-family-body;
   font-size: $font-size-14;
@@ -65,22 +88,27 @@
   }
 
   &:focus {
-    @include focus-ring;
     border-color: $color-primary-blue;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(58, 78, 251, 0.2);
     background-color: $color-white;
   }
 
+  &--with-icon {
+    padding-left: 46px;
+  }
+
   &--with-toggle {
-    padding-right: 52px;
+    padding-right: 50px;
   }
 
   &--error {
     border-color: $color-error-red;
 
     &:focus {
-      outline: 2px solid $color-error-red;
-      outline-offset: 2px;
-      box-shadow: 0 0 0 2px $color-bg-page, 0 0 0 4px rgba(220, 38, 38, 0.25);
+      outline: none;
+      border-color: $color-error-red;
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
     }
   }
 
@@ -94,28 +122,35 @@
 
 .input-toggle-btn {
   position: absolute;
-  right: $spacing-xs;
+  right: 8px;
   top: 50%;
   transform: translateY(-50%);
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 44px;
-  min-height: 38px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  background: transparent;
   border-radius: $radius-8;
-  color: $color-primary-blue;
-  font-family: $font-family-body;
-  font-size: $font-size-12;
-  font-weight: $font-weight-semibold;
-  transition: all $transition-fast;
+  color: $color-text-subtle;
+  cursor: pointer;
+  z-index: 2;
+  transition: color $transition-fast, background-color $transition-fast;
 
   &:hover {
-    color: $color-deep-navy;
+    color: $color-primary-blue;
     background-color: rgba(58, 78, 251, 0.08);
   }
 
   &:focus-visible {
     @include focus-ring;
+  }
+
+  svg {
+    display: block;
+    pointer-events: none;
   }
 }
 
@@ -123,16 +158,16 @@
   font-size: $font-size-12;
   font-weight: $font-weight-medium;
   color: $color-error-red;
-  min-height: 1.125rem;
-  line-height: 1.25;
-  display: flex;
+  min-height: 1.25rem;
+  line-height: 1.35;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  margin-top: 2px;
 
-  &::before {
-    content: "•";
+  &__icon {
+    flex-shrink: 0;
     color: $color-error-red;
-    font-size: 1.2em;
   }
 }
 

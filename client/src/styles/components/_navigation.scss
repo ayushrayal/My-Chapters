@@ -2,34 +2,390 @@
 @use '../abstracts/mixins' as *;
 
 // ==============================================================================
-// MOBILE BOTTOM NAVIGATION (Floating, Rounded, Elevated Tab Bar)
+// SLIM TOP BAR (Mobile Header)
+// ==============================================================================
+
+.mobile-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 54px;
+  padding: 0 $spacing-md;
+  background-color: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid $color-subtle-border;
+  position: sticky;
+  top: 0;
+  z-index: 400;
+
+  @include desktop-only {
+    display: none !important;
+  }
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    min-width: 0;
+  }
+
+  &__wordmark {
+    font-family: $font-family-heading;
+    font-size: 15px;
+    font-weight: $font-weight-extrabold;
+    letter-spacing: -0.03em;
+    color: $color-deep-navy;
+    text-transform: uppercase;
+  }
+
+  &__badge {
+    font-size: 11px;
+    font-weight: $font-weight-semibold;
+    color: $color-primary-blue;
+    background-color: rgba(58, 78, 251, 0.08);
+    border: 1px solid rgba(58, 78, 251, 0.16);
+    padding: 2px 8px;
+    border-radius: $radius-pill;
+    @include truncate;
+    max-width: 140px;
+  }
+
+  &__avatar-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+}
+
+// ==============================================================================
+// DESKTOP STICKY GLASS NAVBAR
+// ==============================================================================
+
+.dashboard-nav {
+  display: none;
+
+  @include desktop-only {
+    display: block;
+    position: sticky;
+    top: 0;
+    z-index: 500;
+    background-color: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid $color-subtle-border;
+    width: 100%;
+  }
+
+  &__inner {
+    max-width: 1080px;
+    margin: 0 auto;
+    height: 64px;
+    padding: 0 $spacing-lg;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $spacing-md;
+  }
+
+  &__left {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+    flex-shrink: 0;
+  }
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+
+    &-title {
+      font-family: $font-family-heading;
+      font-size: 17px;
+      font-weight: $font-weight-extrabold;
+      letter-spacing: -0.03em;
+      color: $color-deep-navy;
+      text-transform: uppercase;
+    }
+
+    &-badge {
+      font-size: 11px;
+      font-weight: $font-weight-semibold;
+      color: $color-primary-blue;
+      background-color: rgba(58, 78, 251, 0.08);
+      border: 1px solid rgba(58, 78, 251, 0.18);
+      padding: 3px 10px;
+      border-radius: $radius-pill;
+      max-width: 180px;
+      @include truncate;
+    }
+  }
+
+  &__actions {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  &__user-menu {
+    position: relative;
+  }
+
+  &__avatar-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px 4px 4px;
+    background-color: rgba(222, 224, 237, 0.45);
+    border: 1px solid $color-subtle-border;
+    border-radius: $radius-pill;
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:hover {
+      background-color: rgba(222, 224, 237, 0.8);
+      border-color: $color-border-light-hover;
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+
+  &__username {
+    font-size: $font-size-14;
+    font-weight: $font-weight-semibold;
+    color: $color-deep-navy;
+    max-width: 120px;
+    @include truncate;
+  }
+
+  &__chevron {
+    color: $color-text-subtle;
+    transition: transform $transition-fast;
+
+    &--open {
+      transform: rotate(180deg);
+    }
+  }
+
+  // Dropdown Menu
+  &__dropdown {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    width: 250px;
+    background-color: $color-white;
+    border: 1.5px solid $color-subtle-border;
+    border-radius: $radius-14;
+    box-shadow: $shadow-xl;
+    padding: 8px;
+    z-index: 600;
+    animation: dropdownSlideIn 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  &__dropdown-header {
+    padding: 8px 10px;
+  }
+
+  &__dropdown-name {
+    font-family: $font-family-heading;
+    font-size: 14px;
+    font-weight: $font-weight-bold;
+    color: $color-deep-navy;
+    margin: 0 0 2px 0;
+    @include truncate;
+  }
+
+  &__dropdown-email {
+    font-size: 12px;
+    color: $color-text-subtle;
+    margin: 0 0 6px 0;
+    @include truncate;
+  }
+
+  &__dropdown-space {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  &__dropdown-role {
+    font-size: 10px;
+    font-weight: $font-weight-bold;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background-color: $color-lime;
+    color: $color-deep-navy;
+    padding: 2px 7px;
+    border-radius: $radius-pill;
+  }
+
+  &__dropdown-spacename {
+    font-size: 11px;
+    color: $color-text-muted;
+    font-weight: $font-weight-medium;
+    @include truncate;
+  }
+
+  &__dropdown-divider {
+    height: 1px;
+    background-color: $color-subtle-border;
+    margin: 6px 0;
+  }
+
+  &__dropdown-links,
+  &__dropdown-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 10px;
+    border: none;
+    background: transparent;
+    border-radius: $radius-8;
+    font-size: 13px;
+    font-weight: $font-weight-medium;
+    color: $color-deep-navy;
+    text-align: left;
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    svg {
+      color: $color-text-subtle;
+      transition: color $transition-fast;
+    }
+
+    &:hover {
+      background-color: $color-bg-page;
+      color: $color-primary-blue;
+
+      svg {
+        color: $color-primary-blue;
+      }
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+
+    &--logout {
+      color: $color-error-red;
+
+      svg {
+        color: $color-error-red;
+      }
+
+      &:hover {
+        background-color: rgba(220, 38, 38, 0.08);
+        color: $color-error-red;
+
+        svg {
+          color: $color-error-red;
+        }
+      }
+    }
+  }
+}
+
+@keyframes dropdownSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// ==============================================================================
+// DESKTOP SEGMENTED NAVIGATION LINKS (Centered in Glass Navbar)
+// ==============================================================================
+
+.desktop-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background-color: rgba(222, 224, 237, 0.5);
+  padding: 4px;
+  border-radius: $radius-pill;
+  border: 1px solid $color-subtle-border;
+
+  &__link {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 18px;
+    border-radius: $radius-pill;
+    font-size: $font-size-14;
+    font-weight: $font-weight-medium;
+    color: $color-text-muted;
+    text-decoration: none;
+    transition: all $transition-fast;
+
+    &:hover:not(&--active) {
+      color: $color-deep-navy;
+      background-color: rgba(255, 255, 255, 0.65);
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+
+    // Active item: Gradient pill
+    &--active {
+      color: $color-white;
+      background: $color-primary-gradient;
+      font-weight: $font-weight-semibold;
+      box-shadow: 0 2px 8px rgba(58, 78, 251, 0.28);
+    }
+  }
+}
+
+// ==============================================================================
+// MOBILE BOTTOM TAB BAR (Fixed, Safe-Area Padded, Gradient Active Icon)
 // ==============================================================================
 
 .mobile-bottom-nav {
   position: fixed;
-  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-  left: 16px;
-  right: 16px;
+  bottom: 0;
+  left: 0;
+  right: 0;
   z-index: 900;
-  pointer-events: none;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid $color-subtle-border;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: 0 -4px 16px rgba(37, 41, 67, 0.05);
 
   @include desktop-only {
     display: none !important;
   }
 
   &__container {
-    pointer-events: auto;
     display: flex;
     align-items: center;
     justify-content: space-around;
-    height: 60px;
-    max-width: 440px;
+    height: 58px;
+    max-width: 480px;
     margin: 0 auto;
-    padding: 0 $spacing-xs;
-    background-color: $color-white;
-    border-radius: $radius-24;
-    border: 1px solid $color-subtle-border;
-    box-shadow: $shadow-float;
+    padding: 0 $spacing-sm;
   }
 
   &__item {
@@ -39,29 +395,30 @@
     align-items: center;
     justify-content: center;
     gap: 3px;
-    min-height: 48px; // Touch-friendly >= 44px
-    padding: 4px $spacing-xs;
+    min-height: 48px;
+    padding: 3px $spacing-xs;
     color: $color-text-subtle;
     text-decoration: none;
     transition: all $transition-fast;
     border-radius: $radius-12;
 
     &:hover {
-      color: $color-primary-blue;
+      color: $color-deep-navy;
     }
 
     &:focus-visible {
       @include focus-ring;
     }
 
-    // Active Tab State (Primary Blue on White Surface with active indicator)
+    // Active Tab State with Gradient Icon Background
     &--active {
       color: $color-primary-blue;
-      font-weight: $font-weight-semibold;
 
       .mobile-bottom-nav__icon-wrapper {
-        background-color: rgba(58, 78, 251, 0.12);
-        color: $color-primary-blue;
+        background: $color-primary-gradient;
+        color: $color-white;
+        box-shadow: 0 2px 8px rgba(58, 78, 251, 0.32);
+        border-radius: $radius-10;
       }
 
       .mobile-bottom-nav__label {
@@ -77,60 +434,18 @@
     justify-content: center;
     width: 38px;
     height: 28px;
-    border-radius: $radius-pill;
+    border-radius: $radius-10;
     transition: all $transition-fast;
+
+    svg {
+      display: block;
+    }
   }
 
   &__label {
-    font-size: $font-size-12;
+    font-size: 11px;
     font-weight: $font-weight-medium;
     letter-spacing: -0.01em;
     line-height: 1;
-  }
-}
-
-// ==============================================================================
-// DESKTOP NAVIGATION LINKS (Floating Pill Container)
-// ==============================================================================
-
-.desktop-nav-links {
-  display: none;
-
-  @include desktop-only {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    background-color: rgba(222, 224, 237, 0.45);
-    padding: 4px;
-    border-radius: $radius-pill;
-    border: 1px solid $color-subtle-border;
-  }
-
-  &__link {
-    display: inline-flex;
-    align-items: center;
-    padding: 6px 16px;
-    border-radius: $radius-pill;
-    font-size: $font-size-14;
-    font-weight: $font-weight-medium;
-    color: $color-text-muted;
-    text-decoration: none;
-    transition: all $transition-fast;
-
-    &:hover {
-      color: $color-deep-navy;
-      background-color: rgba(255, 255, 255, 0.85);
-    }
-
-    &:focus-visible {
-      @include focus-ring;
-    }
-
-    &--active {
-      color: $color-primary-blue;
-      background-color: $color-white;
-      font-weight: $font-weight-bold;
-      box-shadow: $shadow-sm;
-    }
   }
 }

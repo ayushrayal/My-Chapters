@@ -17,8 +17,16 @@ export function StatusChangeModal({
       // Default to today's local date YYYY-MM-DD
       const today = new Date().toISOString().split('T')[0];
       setPurchaseDate(today);
+
+      const handleKeyDown = (e) => {
+        if (e.key === 'Escape') {
+          onClose?.();
+        }
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
     }
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   if (!isOpen || !item) return null;
 

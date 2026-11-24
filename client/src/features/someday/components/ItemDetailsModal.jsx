@@ -1,6 +1,18 @@
+import { useEffect } from 'react';
 import { Button } from '../../../components/common/Button.jsx';
 
 export function ItemDetailsModal({ item, isOpen, onClose, onEdit }) {
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose?.();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen || !item) return null;
 
   const isPurchased = item.status === 'PURCHASED';

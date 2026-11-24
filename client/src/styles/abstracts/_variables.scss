@@ -4,10 +4,12 @@
 
 // 1. Core Brand Colors
 $color-primary-gradient: linear-gradient(135deg, #3A4EFB 0%, #33A4FA 100%);
+$gradient-primary: $color-primary-gradient;
 $color-primary-blue: #3A4EFB;
 $color-secondary-blue: #33A4FA;
 $color-accent-lime: #E3FF3B;
 $color-lime-accent: #E3FF3B;
+$color-lime: #E3FF3B;
 $color-deep-navy: #252943;
 $color-ink-dark: #252943;
 $color-soft-surface: #DEE0ED;
@@ -18,6 +20,29 @@ $color-surface-secondary: #F4F5FA;
 $color-white: #FFFFFF;
 $color-error-red: #DC2626;
 $color-fresh-green: #168B68;
+
+// Extended Brand & Surface Tints
+$color-surface-tint: #F8F9FD;
+$color-shimmer-base: #F0F2F8;
+$color-shimmer-highlight: #E5E8F2;
+$color-accent-lime-hover: #D5F522;
+$color-lime-hover: #D5F522;
+$color-accent-lime-active: #C6E617;
+$color-lime-active: #C6E617;
+$color-accent-lime-border-dark: #C8E500;
+$color-lime-border-dark: #C8E500;
+$color-accent-lime-border-light: #B7D900;
+$color-lime-border-light: #B7D900;
+$color-accent-lime-accessible: #A3CF00;
+$color-lime-accessible: #A3CF00;
+$color-secondary-blue-dark: #0284C7;
+$color-secondary-blue-deep: #0369A1;
+$color-warning-amber: #D97706;
+$color-warning-amber-dark: #B45309;
+$color-success-hover: #127355;
+$color-success-active: #0E5B43;
+$color-error-hover: #B91C1C;
+$color-error-active: #991B1B;
 
 // 2. Semantic Surfaces & Backgrounds
 $color-bg-app: #F4F5FA;
@@ -96,9 +121,14 @@ $font-weight-bold: 700;
 $font-weight-extrabold: 800;
 
 // Type Scale: 12 / 14 / 16 / 20 / 28 / 40 / 56
+$font-size-11: 0.6875rem; // 11px
 $font-size-12: 0.75rem;   // 12px
+$font-size-13: 0.8125rem; // 13px
 $font-size-14: 0.875rem;  // 14px
+$font-size-15: 0.9375rem; // 15px
 $font-size-16: 1rem;      // 16px
+$font-size-17: 1.0625rem; // 17px
+$font-size-18: 1.125rem;  // 18px
 $font-size-20: 1.25rem;   // 20px
 $font-size-28: 1.75rem;   // 28px
 $font-size-40: 2.5rem;    // 40px
@@ -142,9 +172,14 @@ $spacing-2xl: 48px;
 $spacing-3xl: 64px;
 
 // 9. Radii Scale (8 / 12 / 16 / 24)
+$radius-4: 4px;
+$radius-6: 6px;
 $radius-8: 8px;
+$radius-10: 10px;
 $radius-12: 12px;
+$radius-14: 14px;
 $radius-16: 16px;
+$radius-20: 20px;
 $radius-24: 24px;
 
 $radius-xs: 4px;
@@ -161,7 +196,9 @@ $radius-full: 9999px;
 $shadow-xs: 0 1px 2px rgba(37, 41, 67, 0.04);
 $shadow-sm: 0 1px 3px rgba(37, 41, 67, 0.05), 0 1px 2px rgba(37, 41, 67, 0.04);
 $shadow-md: 0 4px 16px -2px rgba(37, 41, 67, 0.08), 0 2px 6px -1px rgba(37, 41, 67, 0.04);
+$shadow-card: $shadow-md;
 $shadow-lg: 0 12px 32px -4px rgba(37, 41, 67, 0.12), 0 4px 12px -2px rgba(37, 41, 67, 0.06);
+$shadow-xl: $shadow-lg;
 $shadow-modal: 0 24px 48px -8px rgba(37, 41, 67, 0.18), 0 8px 20px -4px rgba(37, 41, 67, 0.08);
 $shadow-float: 0 8px 24px -2px rgba(37, 41, 67, 0.08), 0 2px 8px -1px rgba(37, 41, 67, 0.04);
 $shadow-nav: 0 8px 24px -2px rgba(37, 41, 67, 0.08);

@@ -124,8 +124,10 @@
   font-size: 24px;
   line-height: 1;
   cursor: pointer;
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -139,6 +141,10 @@
 
   &:focus-visible {
     @include focus-ring;
+  }
+
+  &:active {
+    transform: scale(0.92);
   }
 }
 

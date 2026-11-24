@@ -1,0 +1,163 @@
+@use '../abstracts/variables' as *;
+@use '../abstracts/mixins' as *;
+
+// ==============================================================================
+// TOAST NOTIFICATION SYSTEM
+// Pure white card, 12px radius, layered shadow, accessible palette accents
+// ==============================================================================
+
+.toast-container {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  max-width: 420px;
+  width: calc(100vw - 32px);
+  pointer-events: none;
+
+  @include mobile-only {
+    top: 16px;
+    left: 16px;
+    right: 16px;
+    margin: 0 auto;
+    max-width: 100%;
+    width: auto;
+  }
+}
+
+.toast-notification {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-sm;
+  padding: $spacing-md;
+  background-color: $color-white;
+  color: $color-deep-navy;
+  border-radius: $radius-12;
+  border: 1px solid $color-subtle-border;
+  box-shadow: $shadow-lg;
+  animation: toastSlideIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+
+  // 1. Success Toast (Fresh Green accent bar + lime dot indicator)
+  &--success {
+    border-left: 4px solid $color-fresh-green;
+
+    .toast-notification__icon-wrap {
+      background-color: rgba(22, 139, 104, 0.12);
+      color: $color-fresh-green;
+    }
+  }
+
+  // 2. Error Toast (Red accent bar)
+  &--error {
+    border-left: 4px solid $color-error-red;
+
+    .toast-notification__icon-wrap {
+      background-color: rgba(220, 38, 38, 0.1);
+      color: $color-error-red;
+    }
+  }
+
+  // 3. Info / Notice Toast (Primary blue accent bar)
+  &--info {
+    border-left: 4px solid $color-primary-blue;
+
+    .toast-notification__icon-wrap {
+      background-color: rgba(58, 78, 251, 0.1);
+      color: $color-primary-blue;
+    }
+  }
+
+  &__icon-wrap {
+    width: 32px;
+    height: 32px;
+    border-radius: $radius-8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    svg {
+      display: block;
+    }
+  }
+
+  &__content {
+    flex: 1;
+    min-width: 0;
+    padding-top: 2px;
+  }
+
+  &__title {
+    font-family: $font-family-heading;
+    font-size: $font-size-14;
+    font-weight: $font-weight-bold;
+    color: $color-deep-navy;
+    margin: 0 0 2px 0;
+    line-height: $line-height-tight;
+    letter-spacing: -0.01em;
+  }
+
+  &__message {
+    font-family: $font-family-body;
+    font-size: $font-size-13;
+    color: $color-text-muted;
+    margin: 0;
+    line-height: 1.45;
+    word-break: break-word;
+  }
+
+  &__close-btn {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    margin: -8px -8px -8px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: $radius-8;
+    color: $color-text-subtle;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: color $transition-fast, background-color $transition-fast;
+
+    &:hover {
+      color: $color-deep-navy;
+      background-color: rgba(37, 41, 67, 0.06);
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+
+    &:active {
+      transform: scale(0.92);
+    }
+  }
+}
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// Media Query for Motion Safety
+@media (prefers-reduced-motion: reduce) {
+  .toast-notification {
+    animation: none !important;
+  }
+}

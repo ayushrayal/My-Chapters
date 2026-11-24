@@ -123,4 +123,21 @@
   --focus-ring-color: #3A4EFB;
   --focus-ring-offset: 2px;
   --focus-ring: 0 0 0 2px var(--color-bg-page), 0 0 0 4px var(--focus-ring-color);
+
+  /* --- 8. EXTENDED SEMANTIC TOKENS --- */
+  --color-surface-tint: #F8F9FD;
+  --color-shimmer-base: #F0F2F8;
+  --color-shimmer-highlight: #E5E8F2;
+  --color-accent-lime-active: #C6E617;
+  --color-accent-lime-border-dark: #C8E500;
+  --color-accent-lime-border-light: #B7D900;
+  --color-accent-lime-accessible: #A3CF00;
+  --color-secondary-blue-dark: #0284C7;
+  --color-secondary-blue-deep: #0369A1;
+  --color-warning-amber: #D97706;
+  --color-warning-amber-dark: #B45309;
+  --color-success-hover: #127355;
+  --color-success-active: #0E5B43;
+  --color-error-hover: #B91C1C;
+  --color-error-active: #991B1B;
 }
