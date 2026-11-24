@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { BottomNavigation } from '../BottomNavigation.jsx';
 
 describe('BottomNavigation Component', () => {
-  it('renders Home, Someday, and Profile navigation links', () => {
+  it('renders Home, Dayflow, Someday, and Profile navigation links', () => {
     render(
       <MemoryRouter initialEntries={['/dashboard']}>
         <BottomNavigation />
@@ -15,13 +15,16 @@ describe('BottomNavigation Component', () => {
     expect(nav).toBeDefined();
 
     const homeLink = screen.getByRole('link', { name: /home/i });
+    const dayflowLink = screen.getByRole('link', { name: /dayflow/i });
     const somedayLink = screen.getByRole('link', { name: /someday/i });
     const profileLink = screen.getByRole('link', { name: /profile/i });
 
     expect(homeLink).toBeDefined();
+    expect(dayflowLink).toBeDefined();
     expect(somedayLink).toBeDefined();
     expect(profileLink).toBeDefined();
     expect(homeLink.getAttribute('href')).toBe('/dashboard');
+    expect(dayflowLink.getAttribute('href')).toBe('/dayflow');
     expect(somedayLink.getAttribute('href')).toBe('/someday');
     expect(profileLink.getAttribute('href')).toBe('/profile');
   });

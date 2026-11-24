@@ -7,6 +7,8 @@ import { env } from './config/env.js';
 import authRoutes from './routes/auth.routes.js';
 import somedayCategoryRoutes from './routes/someday-category.routes.js';
 import somedayItemRoutes from './routes/someday-item.routes.js';
+import dayflowTemplateRoutes from './routes/dayflow-template.routes.js';
+import dayflowScheduleRoutes from './routes/dayflow-schedule.routes.js';
 import { notFoundHandler } from './middleware/not-found.middleware.js';
 import { errorHandler } from './middleware/error.middleware.js';
 import { ApiResponse } from './utils/api-response.js';
@@ -57,10 +59,15 @@ app.use('/api/auth', authRoutes);
 app.use('/api/someday/categories', somedayCategoryRoutes);
 app.use('/api/someday/items', somedayItemRoutes);
 
-// 9. 404 Not Found Catch-All
+// 9. Dayflow Feature Routes
+app.use('/api/dayflow/templates', dayflowTemplateRoutes);
+app.use('/api/dayflow/schedule', dayflowScheduleRoutes);
+app.use('/api/dayflow', dayflowScheduleRoutes);
+
+// 10. 404 Not Found Catch-All
 app.use(notFoundHandler);
 
-// 10. Centralized Error Handler
+// 11. Centralized Error Handler
 app.use(errorHandler);
 
 export default app;

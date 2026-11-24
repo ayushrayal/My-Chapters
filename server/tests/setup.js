@@ -31,13 +31,17 @@ export async function setupTestDatabase() {
   const { AuthSession } = await import('../src/models/auth-session.model.js');
   const { SomedayCategory } = await import('../src/models/someday-category.model.js');
   const { SomedayItem } = await import('../src/models/someday-item.model.js');
+  const { DayflowTemplate } = await import('../src/models/dayflow-template.model.js');
+  const { DayflowSchedule } = await import('../src/models/dayflow-schedule.model.js');
 
   await Promise.all([
     User.init(),
     Space.init(),
     AuthSession.init(),
     SomedayCategory.init(),
-    SomedayItem.init()
+    SomedayItem.init(),
+    DayflowTemplate.init(),
+    DayflowSchedule.init()
   ]);
 }
 

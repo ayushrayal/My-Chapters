@@ -1,17 +1,11 @@
-export function PageContainer({
-  children,
-  className = '',
-  maxWidth = '1040px',
-  ...props
-}) {
+/**
+ * Standard PageContainer component to enforce consistent max-width (~1200px)
+ * and responsive horizontal padding across all views.
+ */
+export function PageContainer({ children, className = '', ...props }) {
   return (
-    <div
-      className={`page-container ${className}`}
-      style={{ maxWidth, margin: '0 auto', width: '100%' }}
-      {...props}
-    >
+    <div className={`page-container ${className}`.trim()} {...props}>
       {children}
     </div>
   );
 }
-

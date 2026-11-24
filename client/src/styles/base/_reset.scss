@@ -31,9 +31,15 @@ body {
 img,
 picture,
 video,
-canvas,
-svg {
+canvas {
   display: block;
+  max-width: 100%;
+}
+
+svg {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
   max-width: 100%;
 }
 
@@ -49,6 +55,9 @@ button {
   cursor: pointer;
   background: none;
   border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 a {

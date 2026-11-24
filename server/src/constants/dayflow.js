@@ -1,0 +1,22 @@
+export const DAYFLOW_TASK_STATUS = Object.freeze({
+  UPCOMING: 'UPCOMING',
+  CURRENT: 'CURRENT',
+  PENDING: 'PENDING',
+  COMPLETED: 'COMPLETED',
+  SKIPPED: 'SKIPPED'
+});
+
+export const DAYFLOW_TASK_STATUS_VALUES = Object.freeze(
+  Object.values(DAYFLOW_TASK_STATUS)
+);
+
+export const DAYFLOW_SCHEDULE_STATUS = Object.freeze({
+  NOT_SCHEDULED: 'NOT_SCHEDULED',
+  SCHEDULED: 'SCHEDULED',
+  REST_DAY: 'REST_DAY',
+  FINISHED: 'FINISHED'
+});
+
+export const DAYFLOW_SCHEDULE_STATUS_VALUES = Object.freeze(
+  Object.values(DAYFLOW_SCHEDULE_STATUS)
+);

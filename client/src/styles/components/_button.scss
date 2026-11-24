@@ -5,7 +5,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: $spacing-xs;
+  gap: 6px;
   font-family: $font-family-body;
   font-weight: $font-weight-semibold;
   font-size: $font-size-14;
@@ -18,6 +18,13 @@
   padding: 0 $spacing-lg;
   white-space: nowrap;
   letter-spacing: -0.01em;
+
+  svg {
+    display: inline-block;
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+  }
 
   &:focus-visible {
     @include focus-ring;
@@ -183,23 +190,32 @@
 }
 
 // ==============================================================================
-// ICON BUTTON
+// ICON BUTTON & GHOST ACTION BUTTONS
 // ==============================================================================
 
-.icon-btn {
+.icon-btn,
+.btn-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  min-width: 40px;
-  min-height: 40px;
-  border-radius: $radius-12;
-  border: 1.5px solid transparent;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: $radius-8;
+  border: 1px solid transparent;
   background: transparent;
   color: $color-deep-navy;
   cursor: pointer;
   transition: all $transition-fast;
+  padding: 0;
+
+  svg {
+    display: inline-block;
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+  }
 
   &:hover:not(:disabled) {
     background-color: rgba(37, 41, 67, 0.06);
@@ -233,6 +249,15 @@
     }
   }
 
+  &--danger {
+    color: rgba(37, 41, 67, 0.45);
+
+    &:hover:not(:disabled) {
+      color: #DC2626;
+      background-color: rgba(220, 38, 38, 0.08);
+    }
+  }
+
   &--lime,
   &--accent {
     background-color: $color-accent-lime;
@@ -249,6 +274,11 @@
     min-width: 32px;
     min-height: 32px;
     border-radius: $radius-8;
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
   }
 
   &--lg {
@@ -262,6 +292,42 @@
   &--disabled {
     opacity: 0.45;
     cursor: not-allowed;
+  }
+}
+
+// Small inline ghost button for block header "+ Add Task" and quick actions
+.btn-ghost-sm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
+  min-height: 32px;
+  background-color: transparent;
+  color: $color-primary-blue;
+  border: 1px solid rgba(58, 78, 251, 0.2);
+  border-radius: $radius-8;
+  font-family: $font-family-body;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all $transition-fast;
+
+  svg {
+    display: inline-block;
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+  }
+
+  &:hover:not(:disabled) {
+    background-color: rgba(58, 78, 251, 0.06);
+    border-color: $color-primary-blue;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
   }
 }
 
