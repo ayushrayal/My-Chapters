@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '../../../components/common/Button.jsx';
 import { Input } from '../../../components/common/Input.jsx';
+import { FilterSelect } from '../../../components/common/FilterControl/FilterSelect.jsx';
 
 export function ItemFormModal({
   isOpen,
@@ -246,20 +247,22 @@ export function ItemFormModal({
                 )}
               </div>
               <div className="select-picker-wrap">
-                <select
-                  id="item-category"
-                  name="categoryId"
-                  className={`form-input form-select ${fieldErrors.categoryId ? 'form-input--error' : ''}`}
+                <FilterSelect
                   value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value)}
-                  required
-                >
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name} {cat.isSystem ? '(System Default)' : ''}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => {
+                    setCategoryId(val);
+                    if (fieldErrors.categoryId) {
+                      setFieldErrors((prev) => ({ ...prev, categoryId: null }));
+                    }
+                  }}
+                  options={categories.map((cat) => ({
+                    value: cat.id,
+                    label: `${cat.name} ${cat.isSystem ? '(System Default)' : ''}`
+                  }))}
+                  placeholder="Select a category"
+                  allowClear={false}
+                  ariaLabel="Item category"
+                />
               </div>
               {fieldErrors.categoryId && (
                 <span className="form-error">{fieldErrors.categoryId}</span>

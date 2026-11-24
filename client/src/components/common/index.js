@@ -19,4 +19,5 @@ export { SkeletonLoader } from './SkeletonLoader.jsx';
 export { Toast } from './Toast.jsx';
 export { ConfirmDialog } from './ConfirmDialog.jsx';
 export { Loader } from './Loader.jsx';
+export { Stack, Row } from './Stack.jsx';
 export { ProtectedRoute } from './ProtectedRoute.jsx';

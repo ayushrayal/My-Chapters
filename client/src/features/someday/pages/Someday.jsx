@@ -8,6 +8,7 @@ import { CategoryManagementModal } from '../components/CategoryManagementModal.j
 import { StatusChangeModal } from '../components/StatusChangeModal.jsx';
 import { DeleteConfirmModal } from '../components/DeleteConfirmModal.jsx';
 import { Button } from '../../../components/common/Button.jsx';
+import { FilterSelect, FilterChips } from '../../../components/common/FilterControl/index.js';
 
 export function Someday() {
   const {
@@ -154,23 +155,26 @@ export function Someday() {
         {/* Desktop Category Dropdown & Manage */}
         <div className="someday-controls__category-group">
           <div className="someday-controls__desktop-category">
-            <label htmlFor="someday-category-filter" className="someday-controls__label">
+            <label className="someday-controls__label">
               Category
             </label>
-            <div className="someday-controls__select-wrapper">
-              <select
-                id="someday-category-filter"
-                value={categoryIdFilter}
-                onChange={(e) => setCategoryIdFilter(e.target.value)}
-                className="form-input someday-controls__select"
-              >
-                <option value="ALL">All Categories</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name} {cat.isSystem ? '(Default)' : ''} ({cat.itemCount || 0})
-                  </option>
-                ))}
-              </select>
+            <div className="someday-controls__select-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ flex: 1, minWidth: '200px' }}>
+                <FilterSelect
+                  value={categoryIdFilter}
+                  onChange={setCategoryIdFilter}
+                  options={[
+                    { value: 'ALL', label: 'All Categories' },
+                    ...categories.map((cat) => ({
+                      value: cat.id,
+                      label: `${cat.name} ${cat.isSystem ? '(Default)' : ''} (${cat.itemCount || 0})`
+                    }))
+                  ]}
+                  placeholder="All Categories"
+                  allowClear={false}
+                  ariaLabel="Filter items by category"
+                />
+              </div>
 
               <button
                 type="button"

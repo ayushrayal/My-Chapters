@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CloseIcon } from '../../../components/common/Icons.jsx';
+import { FilterSelect } from '../../../components/common/FilterControl/FilterSelect.jsx';
 
 export function TaskModal({
   isOpen,
@@ -92,25 +93,23 @@ export function TaskModal({
 
         <form onSubmit={handleSubmit} className="dayflow-modal-form">
           <div className="dayflow-form-group">
-            <label className="dayflow-form-label" htmlFor="task-block">
+            <label className="dayflow-form-label">
               Time Block *
             </label>
-            <select
-              id="task-block"
-              className="dayflow-select"
+            <FilterSelect
               value={blockId}
-              onChange={(e) => setBlockId(e.target.value)}
-              required
-            >
-              {blocks.map((b) => {
+              onChange={setBlockId}
+              options={blocks.map((b) => {
                 const bId = b._id || b.id;
-                return (
-                  <option key={bId} value={bId}>
-                    {b.name} ({b.startTime} - {b.endTime})
-                  </option>
-                );
+                return {
+                  value: bId,
+                  label: `${b.name} (${b.startTime} - ${b.endTime})`
+                };
               })}
-            </select>
+              placeholder="Select Time Block"
+              allowClear={false}
+              ariaLabel="Time Block"
+            />
           </div>
 
           <div className="dayflow-form-group">

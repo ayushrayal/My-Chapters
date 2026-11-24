@@ -33,6 +33,9 @@ export async function setupTestDatabase() {
   const { SomedayItem } = await import('../src/models/someday-item.model.js');
   const { DayflowTemplate } = await import('../src/models/dayflow-template.model.js');
   const { DayflowSchedule } = await import('../src/models/dayflow-schedule.model.js');
+  const { GymTemplate } = await import('../src/models/gym-template.model.js');
+  const { GymWeeklySchedule } = await import('../src/models/gym-weekly-schedule.model.js');
+  const { GymWorkoutSession } = await import('../src/models/gym-workout-session.model.js');
 
   await Promise.all([
     User.init(),
@@ -41,7 +44,10 @@ export async function setupTestDatabase() {
     SomedayCategory.init(),
     SomedayItem.init(),
     DayflowTemplate.init(),
-    DayflowSchedule.init()
+    DayflowSchedule.init(),
+    GymTemplate.init(),
+    GymWeeklySchedule.init(),
+    GymWorkoutSession.init()
   ]);
 }
 

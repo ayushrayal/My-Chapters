@@ -23,9 +23,12 @@
 @use './components/navigation';
 @use './components/modal';
 @use './components/card';
+@use './components/layout';
+@use './components/filter-control';
 
 // 4. Pages
 @use './pages/auth';
 @use './pages/dashboard';
 @use './pages/someday';
 @use './pages/dayflow';
+@use './pages/gymflow';

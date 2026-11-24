@@ -76,6 +76,14 @@ export function DesktopNavigation({
             Dayflow
           </NavLink>
           <NavLink
+            to="/gymflow"
+            className={({ isActive }) =>
+              `desktop-nav-links__link ${isActive ? 'desktop-nav-links__link--active' : ''}`
+            }
+          >
+            GymFlow
+          </NavLink>
+          <NavLink
             to="/someday"
             className={({ isActive }) =>
               `desktop-nav-links__link ${isActive ? 'desktop-nav-links__link--active' : ''}`

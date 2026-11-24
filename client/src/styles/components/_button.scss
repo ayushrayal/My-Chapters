@@ -331,6 +331,38 @@
   }
 }
 
+.btn-ghost-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 10px;
+  height: 32px;
+  min-height: 32px;
+  background-color: #F8FAFD;
+  color: rgba(37, 41, 67, 0.7);
+  border: 1px solid #DEE0ED;
+  border-radius: 8px;
+  font-family: $font-family-body;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all $transition-fast;
+
+  &:hover:not(:disabled) {
+    background-color: rgba(58, 78, 251, 0.08);
+    border-color: rgba(58, 78, 251, 0.3);
+    color: $color-primary-blue;
+  }
+
+  &--active {
+    background-color: rgba(58, 78, 251, 0.1);
+    border-color: $color-primary-blue;
+    color: $color-primary-blue;
+  }
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);

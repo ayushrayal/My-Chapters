@@ -9,6 +9,10 @@ import somedayCategoryRoutes from './routes/someday-category.routes.js';
 import somedayItemRoutes from './routes/someday-item.routes.js';
 import dayflowTemplateRoutes from './routes/dayflow-template.routes.js';
 import dayflowScheduleRoutes from './routes/dayflow-schedule.routes.js';
+import gymTemplateRoutes from './routes/gym-template.routes.js';
+import gymWeeklyScheduleRoutes from './routes/gym-weekly-schedule.routes.js';
+import gymWorkoutSessionRoutes from './routes/gym-workout-session.routes.js';
+import gymAnalyticsRoutes from './routes/gym-analytics.routes.js';
 import { notFoundHandler } from './middleware/not-found.middleware.js';
 import { errorHandler } from './middleware/error.middleware.js';
 import { ApiResponse } from './utils/api-response.js';
@@ -63,6 +67,12 @@ app.use('/api/someday/items', somedayItemRoutes);
 app.use('/api/dayflow/templates', dayflowTemplateRoutes);
 app.use('/api/dayflow/schedule', dayflowScheduleRoutes);
 app.use('/api/dayflow', dayflowScheduleRoutes);
+
+// 10. GymFlow Feature Routes
+app.use('/api/gymflow/templates', gymTemplateRoutes);
+app.use('/api/gymflow/schedule', gymWeeklyScheduleRoutes);
+app.use('/api/gymflow/workout', gymWorkoutSessionRoutes);
+app.use('/api/gymflow/analytics', gymAnalyticsRoutes);
 
 // 10. 404 Not Found Catch-All
 app.use(notFoundHandler);

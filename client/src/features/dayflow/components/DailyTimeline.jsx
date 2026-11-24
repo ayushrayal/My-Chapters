@@ -105,7 +105,7 @@ export function DailyTimeline({
               aria-selected={filterBlockId === 'ALL'}
             >
               <span>All Blocks</span>
-              <span className="block-filter-chip__count">{tasks.length}</span>
+              <span className="block-filter-chip__badge">{tasks.length}</span>
             </button>
 
             {blocks.map((block) => {
@@ -121,7 +121,7 @@ export function DailyTimeline({
                   aria-selected={filterBlockId === bId}
                 >
                   <span className="block-filter-chip__label">{block.name}</span>
-                  <span className="block-filter-chip__count">{count}</span>
+                  <span className="block-filter-chip__badge">{count}</span>
                 </button>
               );
             })}

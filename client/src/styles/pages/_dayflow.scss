@@ -4434,12 +4434,20 @@
     }
   }
 
-  &__title-col {
+  &__title-col,
+  &__col-title {
     flex: 1 !important;
     min-width: 0 !important;
     display: flex !important;
     flex-direction: column !important;
     gap: 2px !important;
+  }
+
+  &__col-meta {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-shrink: 0 !important;
   }
 
   &__title {
@@ -4506,7 +4514,8 @@
   }
 
   /* Actions Group */
-  &__actions {
+  &__actions,
+  &__col-buttons {
     display: flex !important;
     align-items: center !important;
     gap: 6px !important;

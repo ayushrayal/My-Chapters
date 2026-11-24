@@ -1,0 +1,230 @@
+@use '../abstracts/variables' as *;
+@use '../abstracts/mixins' as *;
+
+// ==============================================================================
+// UNIVERSAL SPACING SYSTEM & LAYOUT PRIMITIVES
+// Rules:
+// - Spacing scale: 4, 8, 12, 16, 20, 24, 32, 40
+// - Page header: 12px between title & subtitle, 16px between subtitle & button/toolbar, 20-24px before 1st card
+// - Cards in list: 16px gap
+// - Items inside card: 12px gap
+// - Card padding: 16px mobile, 20-24px desktop
+// - Buttons side-by-side: 12px gap
+// - Mobile action buttons: own row, full width, 48px tall, 16px space above, 20px space below
+// - Bottom clearance: 88px on mobile so floating bottom bar never covers content
+// ==============================================================================
+
+// Layout Primitives classes
+.layout-stack {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.layout-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+// Universal Page Container Polish
+.page-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 16px 96px 16px; // 96px bottom clearance for mobile nav
+  box-sizing: border-box;
+
+  @include respond-to('tablet') {
+    padding: 24px 24px 48px 24px;
+  }
+
+  @include respond-to('desktop') {
+    padding: 32px 32px 64px 32px;
+  }
+}
+
+// Page Header Standard Spacing
+.page-header,
+.gymflow-header,
+.dayflow-header,
+.someday-header,
+.dashboard-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  margin-bottom: 24px;
+  box-sizing: border-box;
+
+  @include respond-to('tablet') {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  &__content,
+  &__titles {
+    display: flex;
+    flex-direction: column;
+    gap: 12px; // 12px between title and subtitle
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__title,
+  .gymflow-header__title,
+  .dayflow-header__title {
+    font-family: $font-family-heading;
+    font-size: 26px;
+    font-weight: 800;
+    color: $color-deep-navy;
+    line-height: 1.2;
+    margin: 0;
+
+    @include respond-to('tablet') {
+      font-size: 32px;
+    }
+  }
+
+  &__subtitle,
+  .gymflow-header__subtitle,
+  .dayflow-header__subtitle {
+    font-size: 14px;
+    color: rgba(37, 41, 67, 0.7);
+    line-height: 1.45;
+    margin: 0;
+  }
+
+  &__actions,
+  .gymflow-header__actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    margin-top: 16px;
+    margin-bottom: 20px;
+
+    @include respond-to('tablet') {
+      width: auto;
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+
+    // On mobile, header action buttons go on their own row, full width, 48px tall
+    .btn--primary,
+    .btn--secondary,
+    .btn {
+      @media (max-width: 767px) {
+        width: 100%;
+        min-height: 48px;
+        height: 48px;
+        font-size: 15px;
+        font-weight: 700;
+        justify-content: center;
+      }
+    }
+  }
+}
+
+// Section & Tab Headers
+.gymflow-tab-header,
+.section-header-block {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  margin-bottom: 20px;
+  box-sizing: border-box;
+
+  @include respond-to('tablet') {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  > div:first-child {
+    display: flex;
+    flex-direction: column;
+    gap: 12px; // 12px between title & subtitle
+  }
+
+  &__left {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+  }
+
+  .gymflow-tab-title {
+    font-family: $font-family-heading;
+    font-size: 20px;
+    font-weight: 800;
+    color: $color-deep-navy;
+    margin: 0;
+    line-height: 1.25;
+
+    @include respond-to('tablet') {
+      font-size: 22px;
+    }
+  }
+
+  .gymflow-tab-sub {
+    font-size: 13.5px;
+    color: rgba(37, 41, 67, 0.7);
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  .btn {
+    @media (max-width: 767px) {
+      width: 100%;
+      min-height: 48px;
+      height: 48px;
+      font-size: 14.5px;
+      font-weight: 700;
+      justify-content: center;
+      margin-top: 16px;
+      margin-bottom: 20px;
+    }
+  }
+}
+
+// Card Padding Standards
+.card,
+.section-card,
+.gymflow-template-card,
+.gymflow-schedule-card,
+.gymflow-exercise-card,
+.timeline-node__card {
+  padding: 16px;
+  border-radius: 16px;
+  box-sizing: border-box;
+
+  @include respond-to('tablet') {
+    padding: 22px;
+  }
+}
+
+// Consistent Card List Gap
+.cards-list,
+.gymflow-schedule-list,
+.timeline-stream,
+.gymflow-templates-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px !important;
+}
+
+// Side by side buttons default gap
+.btn-group-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}

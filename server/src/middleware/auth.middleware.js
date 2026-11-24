@@ -57,6 +57,7 @@ export async function requireAuth(req, _res, next) {
     }
 
     // Attach verified context to request
+    user.activeSpaceId = user.spaceId;
     req.user = user;
     req.space = space;
     req.authSession = session;

@@ -19,7 +19,34 @@ export function ToastProvider({ children }) {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  const showToast = useCallback(({ type = 'info', title, message, duration = 4000 }) => {
+  const showToast = useCallback((arg1, arg2, arg3) => {
+    // Support both showToast('message', 'type', duration) and showToast({ type, title, message, duration })
+    let type = 'info';
+    let title = '';
+    let message = '';
+    let duration = 4000;
+
+    if (typeof arg1 === 'string') {
+      message = arg1;
+      if (typeof arg2 === 'string') {
+        type = arg2;
+      }
+      if (typeof arg3 === 'number') {
+        duration = arg3;
+      }
+      title = type === 'error' ? 'Error' : type === 'success' ? 'Success' : 'Notice';
+    } else if (arg1 && typeof arg1 === 'object') {
+      type = arg1.type || 'info';
+      title = arg1.title || (type === 'error' ? 'Error' : type === 'success' ? 'Success' : 'Notice');
+      message = arg1.message || '';
+      duration = arg1.duration ?? 4000;
+    }
+
+    // Do NOT display empty / blank toasts
+    if (!message || (typeof message === 'string' && !message.trim())) {
+      return null;
+    }
+
     const id = `toast-${++toastCounter}-${Date.now()}`;
     const newToast = { id, type, title, message, duration };
 
