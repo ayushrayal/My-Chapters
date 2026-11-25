@@ -21,27 +21,63 @@ console.log('[Build] ========================================\n');
 
 // 1. Ensure backend dependencies are installed
 console.log('[Build] [Step 1/5] Checking backend dependencies in server/...');
+const isCiOrRender = Boolean(process.env.RENDER || process.env.CI || process.env.IS_PULL_REQUEST);
 const serverNodeModules = path.join(serverDir, 'node_modules');
-if (!fs.existsSync(serverNodeModules) || !fs.existsSync(path.join(serverNodeModules, 'express'))) {
-  console.log('[Build] Installing server dependencies...');
-  execSync('npm install --production=false', { cwd: serverDir, stdio: 'inherit' });
+const serverExpress = path.join(serverNodeModules, 'express');
+const serverMongoose = path.join(serverNodeModules, 'mongoose');
+
+const serverNeedsInstall =
+  isCiOrRender ||
+  !fs.existsSync(serverNodeModules) ||
+  !fs.existsSync(serverExpress) ||
+  !fs.existsSync(serverMongoose);
+
+if (serverNeedsInstall) {
+  console.log('[Build] Installing server production dependencies...');
+  execSync('npm install --omit=dev', { cwd: serverDir, stdio: 'inherit' });
 } else {
-  console.log('[Build] Server dependencies are already installed.');
+  console.log('[Build] Server dependencies verified.');
 }
 
-// 2. Ensure frontend dependencies are installed (including devDependencies like vite)
+// 2. Ensure frontend dependencies are installed (including @tanstack/react-query and Vite)
 console.log('\n[Build] [Step 2/5] Checking frontend dependencies in client/...');
 const clientNodeModules = path.join(clientDir, 'node_modules');
-if (!fs.existsSync(clientNodeModules) || !fs.existsSync(path.join(clientNodeModules, 'vite'))) {
-  console.log('[Build] Installing client dependencies (with devDependencies for Vite)...');
-  execSync('npm install --include=dev', { cwd: clientDir, stdio: 'inherit' });
+const clientVite = path.join(clientNodeModules, 'vite', 'bin', 'vite.js');
+const clientReactQuery = path.join(clientNodeModules, '@tanstack', 'react-query', 'package.json');
+const clientReact = path.join(clientNodeModules, 'react', 'package.json');
+const clientRouter = path.join(clientNodeModules, 'react-router-dom', 'package.json');
+
+const clientNeedsInstall =
+  isCiOrRender ||
+  !fs.existsSync(clientNodeModules) ||
+  !fs.existsSync(clientVite) ||
+  !fs.existsSync(clientReactQuery) ||
+  !fs.existsSync(clientReact) ||
+  !fs.existsSync(clientRouter);
+
+if (clientNeedsInstall) {
+  console.log('[Build] Installing client dependencies (including @tanstack/react-query & Vite)...');
+  execSync('npm install --include=dev', {
+    cwd: clientDir,
+    stdio: 'inherit',
+    env: { ...process.env, NODE_ENV: 'development' }
+  });
 } else {
-  console.log('[Build] Client dependencies are already installed.');
+  console.log('[Build] Client dependencies verified.');
+}
+
+if (!fs.existsSync(clientReactQuery)) {
+  console.error('[Build] Critical Error: @tanstack/react-query is not installed in client/node_modules!');
+  process.exit(1);
 }
 
 // 3. Run Vite production build in client directory
 console.log('\n[Build] [Step 3/5] Executing "npm run build" in client...');
-execSync('npm run build', { cwd: clientDir, stdio: 'inherit' });
+execSync('npm run build', {
+  cwd: clientDir,
+  stdio: 'inherit',
+  env: { ...process.env, NODE_ENV: 'production' }
+});
 
 if (!fs.existsSync(clientDistDir)) {
   console.error(`[Build] Error: Build output directory not found at ${clientDistDir}`);
