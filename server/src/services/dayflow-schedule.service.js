@@ -184,7 +184,7 @@ export class DayflowScheduleService {
     const doc = await DayflowSchedule.findOne({
       spaceId: spaceObjectId,
       date
-    });
+    }).lean();
 
     if (!doc) {
       return {
@@ -701,7 +701,9 @@ export class DayflowScheduleService {
     const schedules = await DayflowSchedule.find({
       spaceId: spaceObjectId,
       date: { $gte: startDate, $lte: endDate }
-    });
+    })
+      .select('date isRestDay isFinished templateName tasks.status')
+      .lean();
 
     return schedules.map((s) => {
       let status = DAYFLOW_SCHEDULE_STATUS.SCHEDULED;
@@ -741,7 +743,9 @@ export class DayflowScheduleService {
       query.date = { $gte: startDate, $lte: endDate };
     }
 
-    const schedules = await DayflowSchedule.find(query).sort({ date: 1 });
+    const schedules = await DayflowSchedule.find(query)
+      .sort({ date: 1 })
+      .lean();
 
     // 1. Overall & Weekly Stats (Excluding Rest Days)
     let totalTasks = 0;

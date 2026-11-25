@@ -15,15 +15,15 @@ export class GymWorkoutSessionService {
    * Get workout session by date. If none exists, also returns assigned template information if configured.
    */
   static async getSessionByDate(spaceId, date) {
-    let session = await GymWorkoutSession.findOne({ spaceId, date });
+    let session = await GymWorkoutSession.findOne({ spaceId, date }).lean();
     
     // Find assigned template for this weekday
     const dayName = new Date(`${date}T00:00:00`).toLocaleDateString('en-US', { weekday: 'long' });
-    const weeklySchedule = await GymWeeklySchedule.findOne({ spaceId }).populate('days.templateId');
+    const weeklySchedule = await GymWeeklySchedule.findOne({ spaceId }).populate('days.templateId').lean();
     const dayAssignment = weeklySchedule?.days?.find((d) => d.weekday === dayName);
 
     return {
-      session,
+      session: session ? { ...session, id: session._id.toString() } : null,
       dayAssignment: dayAssignment || null
     };
   }
@@ -293,7 +293,7 @@ export class GymWorkoutSessionService {
         ]
       };
 
-      const pastSession = await GymWorkoutSession.findOne(query).sort({ date: -1 });
+      const pastSession = await GymWorkoutSession.findOne(query).sort({ date: -1 }).lean();
 
       if (pastSession) {
         let prevEx = null;

@@ -36,7 +36,7 @@ export class DayflowTemplateService {
    */
   static async getTemplates(spaceId) {
     const spaceObjectId = new mongoose.Types.ObjectId(spaceId);
-    const docs = await DayflowTemplate.find({ spaceId: spaceObjectId }).sort({ createdAt: -1 });
+    const docs = await DayflowTemplate.find({ spaceId: spaceObjectId }).sort({ createdAt: -1 }).lean();
     return docs.map(formatTemplate);
   }
 
@@ -50,7 +50,7 @@ export class DayflowTemplateService {
     const doc = await DayflowTemplate.findOne({
       _id: templateObjectId,
       spaceId: spaceObjectId
-    });
+    }).lean();
 
     if (!doc) {
       throw AppError.notFound('Template not found in your Space');

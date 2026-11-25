@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { dayflowApi } from '../services/dayflow.api.js';
 import { parseApiError } from '../../../utils/error-handler.js';
 import { useToast } from '../../../context/ToastContext.jsx';
@@ -7,6 +7,12 @@ function getTodayString() {
   const d = new Date();
   const pad = (n) => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+function getMonthKey(dateStr) {
+  if (!dateStr || typeof dateStr !== 'string') return '';
+  const parts = dateStr.split('-');
+  return parts.length >= 2 ? `${parts[0]}-${parts[1]}` : '';
 }
 
 export function useDayflow(initialDate = null) {
@@ -23,34 +29,60 @@ export function useDayflow(initialDate = null) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState(null);
 
-  // Load schedule for currently selected date
+  // In-flight tracking & caching refs
+  const templatesLoadedRef = useRef(false);
+  const loadedMonthRef = useRef('');
+  const lastRequestedDateRef = useRef(selectedDate);
+  const inFlightScheduleDateRef = useRef(null);
+
+  // 1. Load schedule for a specific date (with race condition prevention)
   const loadSchedule = useCallback(async (dateToLoad = selectedDate) => {
+    lastRequestedDateRef.current = dateToLoad;
+    inFlightScheduleDateRef.current = dateToLoad;
     try {
       const data = await dayflowApi.getSchedule(dateToLoad);
-      setSchedule(data);
+      // Only commit to state if this response corresponds to the latest requested date
+      if (lastRequestedDateRef.current === dateToLoad) {
+        setSchedule(data);
+      }
       return data;
     } catch (err) {
-      const parsed = parseApiError(err);
-      setError(parsed.message);
+      if (lastRequestedDateRef.current === dateToLoad) {
+        const parsed = parseApiError(err);
+        setError(parsed.message);
+      }
       return null;
+    } finally {
+      if (inFlightScheduleDateRef.current === dateToLoad) {
+        inFlightScheduleDateRef.current = null;
+      }
     }
   }, [selectedDate]);
 
-  // Load templates list
-  const loadTemplates = useCallback(async () => {
+  // 2. Load templates list (cached; only fetches if forced or not yet loaded)
+  const loadTemplates = useCallback(async (force = false) => {
+    if (templatesLoadedRef.current && !force) {
+      return templates;
+    }
     try {
       const data = await dayflowApi.getTemplates();
-      setTemplates(data);
+      setTemplates(data || []);
+      templatesLoadedRef.current = true;
       return data;
     } catch (err) {
       const parsed = parseApiError(err);
       setError(parsed.message);
       return [];
     }
-  }, []);
+  }, [templates]);
 
-  // Load calendar overview for current month
-  const loadCalendarOverview = useCallback(async (refDateStr = selectedDate) => {
+  // 3. Load calendar overview for month (cached per month)
+  const loadCalendarOverview = useCallback(async (refDateStr = selectedDate, force = false) => {
+    const monthKey = getMonthKey(refDateStr);
+    if (!force && loadedMonthRef.current === monthKey && calendarOverview.length > 0) {
+      return calendarOverview;
+    }
+
     try {
       const parts = refDateStr.split('-');
       const y = parseInt(parts[0], 10);
@@ -61,14 +93,15 @@ export function useDayflow(initialDate = null) {
       const endDate = `${y}-${pad(m)}-${pad(new Date(y, m, 0).getDate())}`;
 
       const data = await dayflowApi.getCalendarOverview(startDate, endDate);
-      setCalendarOverview(data);
+      setCalendarOverview(data || []);
+      loadedMonthRef.current = monthKey;
       return data;
     } catch (err) {
       return [];
     }
-  }, [selectedDate]);
+  }, [selectedDate, calendarOverview]);
 
-  // Load analytics for specified range or current date window
+  // 4. Load analytics for specified range or current date window
   const loadAnalytics = useCallback(async (params = selectedDate) => {
     try {
       let startDate;
@@ -105,25 +138,62 @@ export function useDayflow(initialDate = null) {
     }
   }, [selectedDate]);
 
-  // Initial load
+  // Initial load: Fetch schedule, templates (once), and calendar overview (once per month)
   useEffect(() => {
     let isMounted = true;
     setIsLoading(true);
     setError(null);
 
-    Promise.all([
+    const initialTasks = [
       loadSchedule(selectedDate),
       loadTemplates(),
-      loadCalendarOverview(selectedDate),
-      loadAnalytics(selectedDate)
-    ]).finally(() => {
+      loadCalendarOverview(selectedDate)
+    ];
+
+    Promise.all(initialTasks).finally(() => {
       if (isMounted) setIsLoading(false);
     });
 
     return () => {
       isMounted = false;
     };
-  }, [selectedDate, loadSchedule, loadTemplates, loadCalendarOverview, loadAnalytics]);
+  }, []); // Run once on initial mount
+
+  // Targeted date navigation: ONLY loads schedule when date changes (and checks month boundary)
+  useEffect(() => {
+    // Skip initial mount since it's handled above
+    if (lastRequestedDateRef.current === selectedDate && schedule) {
+      return;
+    }
+
+    let isMounted = true;
+    setError(null);
+
+    // 1. Always load the new date's schedule
+    loadSchedule(selectedDate);
+
+    // 2. Only re-fetch calendar overview if the user navigated across month boundaries
+    const newMonth = getMonthKey(selectedDate);
+    if (newMonth !== loadedMonthRef.current) {
+      loadCalendarOverview(selectedDate, true);
+    }
+
+    // 3. Only fetch analytics if the analytics tab is currently active
+    if (activeTab === 'analytics') {
+      loadAnalytics(selectedDate);
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedDate, activeTab, loadSchedule, loadCalendarOverview, loadAnalytics, schedule]);
+
+  // Lazy-load analytics when user switches to Analytics tab
+  useEffect(() => {
+    if (activeTab === 'analytics' && !analytics) {
+      loadAnalytics(selectedDate);
+    }
+  }, [activeTab, analytics, loadAnalytics, selectedDate]);
 
   // Date navigation handlers
   const changeDate = useCallback((newDate) => {
@@ -148,21 +218,24 @@ export function useDayflow(initialDate = null) {
     setSelectedDate(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`);
   }, [selectedDate]);
 
-  // Refresh current day
+  // Explicit refresh of current day (re-validates schedule and month overview)
   const refreshDay = useCallback(async () => {
     setIsRefreshing(true);
     try {
-      await Promise.all([
+      const promises = [
         loadSchedule(selectedDate),
-        loadCalendarOverview(selectedDate),
-        loadAnalytics(selectedDate)
-      ]);
+        loadCalendarOverview(selectedDate, true)
+      ];
+      if (activeTab === 'analytics' || analytics) {
+        promises.push(loadAnalytics(selectedDate));
+      }
+      await Promise.all(promises);
     } finally {
       setIsRefreshing(false);
     }
-  }, [loadSchedule, loadCalendarOverview, loadAnalytics, selectedDate]);
+  }, [loadSchedule, loadCalendarOverview, loadAnalytics, selectedDate, activeTab, analytics]);
 
-  // --- Schedule Mutations ---
+  // --- Schedule Mutations (Invalidate only affected data) ---
 
   const saveDaySchedule = async (blocks, tasks) => {
     setError(null);
@@ -174,7 +247,11 @@ export function useDayflow(initialDate = null) {
       });
       setSchedule(saved);
       toast?.success?.('Daily schedule saved successfully.');
-      await Promise.all([loadCalendarOverview(selectedDate), loadAnalytics(selectedDate)]);
+      // Refresh calendar overview for the month to reflect task count/status
+      loadCalendarOverview(selectedDate, true);
+      if (activeTab === 'analytics' || analytics) {
+        loadAnalytics(selectedDate);
+      }
       return saved;
     } catch (err) {
       const parsed = parseApiError(err);
@@ -203,7 +280,10 @@ export function useDayflow(initialDate = null) {
       }
 
       toast?.success?.('Template applied to schedule.');
-      await Promise.all([loadCalendarOverview(selectedDate), loadAnalytics(selectedDate)]);
+      loadCalendarOverview(selectedDate, true);
+      if (activeTab === 'analytics' || analytics) {
+        loadAnalytics(selectedDate);
+      }
       return result;
     } catch (err) {
       const parsed = parseApiError(err);
@@ -224,7 +304,10 @@ export function useDayflow(initialDate = null) {
       setSelectedDate(targetDate);
       setSchedule(moved);
       toast?.success?.(`Schedule moved to ${targetDate}.`);
-      await Promise.all([loadCalendarOverview(targetDate), loadAnalytics(targetDate)]);
+      loadCalendarOverview(targetDate, true);
+      if (activeTab === 'analytics' || analytics) {
+        loadAnalytics(targetDate);
+      }
       return moved;
     } catch (err) {
       const parsed = parseApiError(err);
@@ -244,7 +327,10 @@ export function useDayflow(initialDate = null) {
       });
       setSchedule(result);
       toast?.success?.(isRestDay ? `Marked ${date} as a Rest Day.` : `Rest Day cleared.`);
-      await Promise.all([loadCalendarOverview(date), loadAnalytics(date)]);
+      loadCalendarOverview(date, true);
+      if (activeTab === 'analytics' || analytics) {
+        loadAnalytics(date);
+      }
       return result;
     } catch (err) {
       const parsed = parseApiError(err);
@@ -269,7 +355,11 @@ export function useDayflow(initialDate = null) {
         toast?.info?.('Task marked as Skipped.');
       }
 
-      await loadAnalytics(selectedDate);
+      // Background refresh calendar and analytics
+      loadCalendarOverview(selectedDate, true);
+      if (activeTab === 'analytics' || analytics) {
+        loadAnalytics(selectedDate);
+      }
       return updatedSchedule;
     } catch (err) {
       const parsed = parseApiError(err);
@@ -285,7 +375,10 @@ export function useDayflow(initialDate = null) {
       const updatedSchedule = await dayflowApi.deleteTask(taskId, selectedDate);
       setSchedule(updatedSchedule);
       toast?.success?.('Task removed from schedule.');
-      await loadAnalytics(selectedDate);
+      loadCalendarOverview(selectedDate, true);
+      if (activeTab === 'analytics' || analytics) {
+        loadAnalytics(selectedDate);
+      }
       return updatedSchedule;
     } catch (err) {
       const parsed = parseApiError(err);
@@ -301,7 +394,10 @@ export function useDayflow(initialDate = null) {
       const finished = await dayflowApi.finishDay(date);
       setSchedule(finished);
       toast?.success?.(`Day finished and locked! Great execution.`);
-      await Promise.all([loadCalendarOverview(date), loadAnalytics(date)]);
+      loadCalendarOverview(date, true);
+      if (activeTab === 'analytics' || analytics) {
+        loadAnalytics(date);
+      }
       return finished;
     } catch (err) {
       const parsed = parseApiError(err);
@@ -311,7 +407,7 @@ export function useDayflow(initialDate = null) {
     }
   };
 
-  // --- Template Mutations ---
+  // --- Template Mutations (Modifies templates state in-place, zero schedule fetches) ---
 
   const createTemplate = async (payload) => {
     setError(null);
@@ -368,7 +464,7 @@ export function useDayflow(initialDate = null) {
     analytics,
     isLoading,
     isLoadingSchedule: isLoading,
-    isLoadingTemplates: isLoading,
+    isLoadingTemplates: !templatesLoadedRef.current,
     isRefreshing,
     error,
     toast,
@@ -387,7 +483,6 @@ export function useDayflow(initialDate = null) {
     setRestDay: toggleRestDay,
     toggleRestDay,
     createTask: async (payload) => {
-      // Adding task to current schedule
       const currentBlocks = schedule?.blocks || [];
       const currentTasks = schedule?.tasks || [];
       const newTask = {

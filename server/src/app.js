@@ -111,15 +111,34 @@ app.use('/api/gymflow/analytics', gymAnalyticsRoutes);
 app.use('/api', notFoundHandler);
 
 // 12. Serve Static Frontend Files from server/public directory
-app.use(express.static(publicPath));
+app.use(
+  express.static(publicPath, {
+    maxAge: '1y',
+    immutable: true,
+    setHeaders: (res, filePath) => {
+      // Content-hashed assets in /assets/ get 1 year immutable caching
+      if (filePath.includes(`${path.sep}assets${path.sep}`) || filePath.includes('/assets/')) {
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      } else {
+        // index.html and root static files must always revalidate
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+      }
+    }
+  })
+);
 
-// 13. React SPA Fallback: for all non-API GET routes, serve index.html for client-side routing
+// 13. React SPA Fallback: for all non-API GET routes, serve index.html with no-cache revalidation
 app.use((req, res, next) => {
   if (req.method !== 'GET') {
     return next();
   }
   const indexPath = path.join(publicPath, 'index.html');
   if (fs.existsSync(indexPath)) {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     return res.sendFile(indexPath);
   }
   next();

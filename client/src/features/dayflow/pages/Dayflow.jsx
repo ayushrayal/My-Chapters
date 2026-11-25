@@ -51,11 +51,22 @@ export function Dayflow() {
     finishDay,
     moveSchedule,
     fetchCalendarOverview,
-    fetchAnalytics
+    fetchAnalytics,
+    setActiveTab: setHookActiveTab
   } = useDayflow();
 
   // Active top tab: 'timeline', 'templates', 'analytics'
   const [activeTab, setActiveTab] = useState('timeline');
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    if (setHookActiveTab) {
+      setHookActiveTab(tab);
+    }
+    if (tab === 'analytics' && !analytics) {
+      fetchAnalytics();
+    }
+  };
 
   // Modals state
   const [isTemplateEditorOpen, setIsTemplateEditorOpen] = useState(false);
@@ -184,7 +195,7 @@ export function Dayflow() {
             <button
               type="button"
               className={`dayflow-segmented-tabs__tab ${activeTab === 'timeline' ? 'dayflow-segmented-tabs__tab--active' : ''}`}
-              onClick={() => setActiveTab('timeline')}
+              onClick={() => handleTabChange('timeline')}
               role="tab"
               aria-selected={activeTab === 'timeline'}
             >
@@ -197,7 +208,7 @@ export function Dayflow() {
             <button
               type="button"
               className={`dayflow-segmented-tabs__tab ${activeTab === 'templates' ? 'dayflow-segmented-tabs__tab--active' : ''}`}
-              onClick={() => setActiveTab('templates')}
+              onClick={() => handleTabChange('templates')}
               role="tab"
               aria-selected={activeTab === 'templates'}
             >
@@ -210,7 +221,7 @@ export function Dayflow() {
             <button
               type="button"
               className={`dayflow-segmented-tabs__tab ${activeTab === 'analytics' ? 'dayflow-segmented-tabs__tab--active' : ''}`}
-              onClick={() => setActiveTab('analytics')}
+              onClick={() => handleTabChange('analytics')}
               role="tab"
               aria-selected={activeTab === 'analytics'}
             >

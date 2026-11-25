@@ -1,14 +1,26 @@
+import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate, Link } from 'react-router-dom';
 import { AuthLayout } from '../layouts/AuthLayout.jsx';
 import { DashboardLayout } from '../layouts/DashboardLayout.jsx';
 import { ProtectedRoute } from '../components/common/ProtectedRoute.jsx';
-import { Signup } from '../features/auth/pages/Signup.jsx';
-import { Signin } from '../features/auth/pages/Signin.jsx';
-import { Dashboard } from '../features/dashboard/pages/Dashboard.jsx';
-import { Someday } from '../features/someday/pages/Someday.jsx';
-import { Dayflow } from '../features/dayflow/pages/Dayflow.jsx';
-import { GymFlow } from '../features/gymflow/pages/GymFlow.jsx';
-import { Profile } from '../features/profile/pages/Profile.jsx';
+import { Loader } from '../components/common/Loader.jsx';
+
+// Route-based code splitting for production bundle optimization
+const Signup = lazy(() => import('../features/auth/pages/Signup.jsx').then((m) => ({ default: m.Signup })));
+const Signin = lazy(() => import('../features/auth/pages/Signin.jsx').then((m) => ({ default: m.Signin })));
+const Dashboard = lazy(() => import('../features/dashboard/pages/Dashboard.jsx').then((m) => ({ default: m.Dashboard })));
+const Someday = lazy(() => import('../features/someday/pages/Someday.jsx').then((m) => ({ default: m.Someday })));
+const Dayflow = lazy(() => import('../features/dayflow/pages/Dayflow.jsx').then((m) => ({ default: m.Dayflow })));
+const GymFlow = lazy(() => import('../features/gymflow/pages/GymFlow.jsx').then((m) => ({ default: m.GymFlow })));
+const Profile = lazy(() => import('../features/profile/pages/Profile.jsx').then((m) => ({ default: m.Profile })));
+
+function PageFallback() {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+      <Loader size="lg" text="Loading..." />
+    </div>
+  );
+}
 
 function NotFound() {
   return (
@@ -28,33 +40,35 @@ function NotFound() {
 
 export function AppRoutes() {
   return (
-    <Routes>
-      {/* Root redirect to /dashboard (which redirects to /signin if unauthenticated) */}
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+    <Suspense fallback={<PageFallback />}>
+      <Routes>
+        {/* Root redirect to /dashboard (which redirects to /signin if unauthenticated) */}
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-      {/* Public Auth Routes wrapped in AuthLayout (redirects to /dashboard if already signed in) */}
-      <Route element={<AuthLayout />}>
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/signin" element={<Signin />} />
-      </Route>
+        {/* Public Auth Routes wrapped in AuthLayout (redirects to /dashboard if already signed in) */}
+        <Route element={<AuthLayout />}>
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/signin" element={<Signin />} />
+        </Route>
 
-      {/* Protected Routes wrapped in ProtectedRoute & DashboardLayout */}
-      <Route
-        element={
-          <ProtectedRoute>
-            <DashboardLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/dayflow" element={<Dayflow />} />
-        <Route path="/gymflow" element={<GymFlow />} />
-        <Route path="/someday" element={<Someday />} />
-        <Route path="/profile" element={<Profile />} />
-      </Route>
+        {/* Protected Routes wrapped in ProtectedRoute & DashboardLayout */}
+        <Route
+          element={
+            <ProtectedRoute>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dayflow" element={<Dayflow />} />
+          <Route path="/gymflow" element={<GymFlow />} />
+          <Route path="/someday" element={<Someday />} />
+          <Route path="/profile" element={<Profile />} />
+        </Route>
 
-      {/* Catch-all 404 Not Found */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+        {/* Catch-all 404 Not Found */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Suspense>
   );
 }

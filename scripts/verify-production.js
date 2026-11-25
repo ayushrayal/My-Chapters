@@ -90,11 +90,12 @@ async function verify() {
     method: 'GET'
   });
   assert(
-    '3. Root path / returns 200 and React index.html',
+    '3. Root path / returns 200, React index.html, and no-cache header',
     rootRes.statusCode === 200 &&
       rootRes.body.includes('<div id="root">') &&
-      rootRes.headers['content-type']?.includes('text/html'),
-    `Status: ${rootRes.statusCode}`
+      rootRes.headers['content-type']?.includes('text/html') &&
+      rootRes.headers['cache-control']?.includes('no-cache'),
+    `Status: ${rootRes.statusCode}, Cache-Control: ${rootRes.headers['cache-control']}`
   );
 
   // Extract asset link from index.html
@@ -109,9 +110,12 @@ async function verify() {
       method: 'GET'
     });
     assert(
-      `4a. Static JavaScript asset (${jsMatch[1]}) loads with 200`,
-      jsRes.statusCode === 200 && jsRes.body.length > 1000,
-      `Status: ${jsRes.statusCode}`
+      `4a. Static JavaScript asset (${jsMatch[1]}) loads with 200 and immutable cache header`,
+      jsRes.statusCode === 200 &&
+        jsRes.body.length > 1000 &&
+        jsRes.headers['cache-control']?.includes('max-age=31536000') &&
+        jsRes.headers['cache-control']?.includes('immutable'),
+      `Status: ${jsRes.statusCode}, Cache-Control: ${jsRes.headers['cache-control']}`
     );
   }
 
@@ -123,9 +127,12 @@ async function verify() {
       method: 'GET'
     });
     assert(
-      `4b. Static CSS asset (${cssMatch[1]}) loads with 200`,
-      cssRes.statusCode === 200 && cssRes.body.length > 1000,
-      `Status: ${cssRes.statusCode}`
+      `4b. Static CSS asset (${cssMatch[1]}) loads with 200 and immutable cache header`,
+      cssRes.statusCode === 200 &&
+        cssRes.body.length > 1000 &&
+        cssRes.headers['cache-control']?.includes('max-age=31536000') &&
+        cssRes.headers['cache-control']?.includes('immutable'),
+      `Status: ${cssRes.statusCode}, Cache-Control: ${cssRes.headers['cache-control']}`
     );
   }
 

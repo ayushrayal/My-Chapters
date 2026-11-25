@@ -33,13 +33,13 @@ export class GymAnalyticsService {
     }
 
     // Fetch matching workout sessions
-    const sessions = await GymWorkoutSession.find(query).sort({ date: 1 });
+    const sessions = await GymWorkoutSession.find(query).sort({ date: 1 }).lean();
 
     // Fetch all sessions in the date window (including rest days) to calculate rest days and build cascading filter options
     const allSessionsInWindow = await GymWorkoutSession.find({
       spaceId,
       ...(query.date ? { date: query.date } : {})
-    }).sort({ date: 1 });
+    }).sort({ date: 1 }).lean();
 
     // Normalize target filters
     const filterBp = bodyPart?.trim() && bodyPart !== 'All Body Parts' ? bodyPart.trim().toLowerCase() : null;

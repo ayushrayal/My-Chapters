@@ -237,5 +237,6 @@ const gymWorkoutSessionSchema = new mongoose.Schema(
 
 // Enforce one workout session per Space per date
 gymWorkoutSessionSchema.index({ spaceId: 1, date: 1 }, { unique: true });
+gymWorkoutSessionSchema.index({ spaceId: 1, isRestDay: 1, date: 1 });
 
 export const GymWorkoutSession = mongoose.model('GymWorkoutSession', gymWorkoutSessionSchema);

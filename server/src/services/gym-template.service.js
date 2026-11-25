@@ -4,15 +4,16 @@ import { GYM_DEFAULT_SETS_PER_EXERCISE } from '../constants/gymflow.js';
 
 export class GymTemplateService {
   static async getTemplates(spaceId) {
-    return GymTemplate.find({ spaceId }).sort({ createdAt: -1 });
+    const templates = await GymTemplate.find({ spaceId }).sort({ createdAt: -1 }).lean();
+    return templates.map((t) => ({ ...t, id: t._id.toString() }));
   }
 
   static async getTemplateById(spaceId, templateId) {
-    const template = await GymTemplate.findOne({ _id: templateId, spaceId });
+    const template = await GymTemplate.findOne({ _id: templateId, spaceId }).lean();
     if (!template) {
       throw AppError.notFound('Workout template not found');
     }
-    return template;
+    return { ...template, id: template._id.toString() };
   }
 
   static async createTemplate(spaceId, data) {
