@@ -103,15 +103,17 @@ export class SomedayItemService {
   }
 
   /**
-   * Retrieves items belonging to the authenticated user's Space with optional category and status filtering.
+   * Retrieves items belonging to the authenticated user's Space with optional category, status, and pagination filtering.
    *
    * @param {object} params
    * @param {string|mongoose.Types.ObjectId} params.spaceId
    * @param {string} [params.categoryId]
    * @param {string} [params.status]
+   * @param {number} [params.page]
+   * @param {number} [params.limit]
    * @returns {Promise<Array<object>>}
    */
-  static async getItems({ spaceId, categoryId, status }) {
+  static async getItems({ spaceId, categoryId, status, page, limit }) {
     const spaceObjectId = new mongoose.Types.ObjectId(spaceId);
 
     const query = { spaceId: spaceObjectId };
@@ -124,12 +126,54 @@ export class SomedayItemService {
       query.status = status;
     }
 
-    const items = await SomedayItem.find(query)
+    let cursor = SomedayItem.find(query)
       .populate('categoryId', 'name isSystem')
       .sort({ createdAt: -1 })
       .lean();
 
+    if (limit && Number(limit) > 0) {
+      const parsedLimit = Math.min(Number(limit), 200);
+      const parsedPage = Math.max(Number(page) || 1, 1);
+      cursor = cursor.skip((parsedPage - 1) * parsedLimit).limit(parsedLimit);
+    }
+
+    const items = await cursor;
     return items.map(formatItem);
+  }
+
+  /**
+   * Retrieves high-performance aggregated item statistics scoped to user's Space.
+   * Computes counts for total, planned, and purchased items in a single aggregation pipeline.
+   *
+   * @param {string|mongoose.Types.ObjectId} spaceId
+   * @returns {Promise<{ total: number, planned: number, purchased: number }>}
+   */
+  static async getStats(spaceId) {
+    const spaceObjectId = new mongoose.Types.ObjectId(spaceId);
+
+    const results = await SomedayItem.aggregate([
+      { $match: { spaceId: spaceObjectId } },
+      {
+        $group: {
+          _id: '$status',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    let planned = 0;
+    let purchased = 0;
+
+    for (const r of results) {
+      if (r._id === SOMEDAY_STATUS.PLANNED) planned = r.count;
+      if (r._id === SOMEDAY_STATUS.PURCHASED) purchased = r.count;
+    }
+
+    return {
+      total: planned + purchased,
+      planned,
+      purchased
+    };
   }
 
   /**

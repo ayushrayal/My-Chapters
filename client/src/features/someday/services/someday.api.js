@@ -66,6 +66,15 @@ export const somedayApi = {
   },
 
   /**
+   * Retrieves aggregated item statistics for Dashboard and overview widgets.
+   * @returns {Promise<{ total: number, planned: number, purchased: number }>}
+   */
+  async getStats() {
+    const response = await api.get('/someday/items/stats');
+    return response.data?.data || { total: 0, planned: 0, purchased: 0 };
+  },
+
+  /**
    * Retrieves single item details.
    * @param {string} itemId
    * @returns {Promise<object>}

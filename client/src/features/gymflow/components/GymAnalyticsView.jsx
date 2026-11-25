@@ -69,24 +69,31 @@ export function GymAnalyticsView({ analytics, templates = [], onRefresh }) {
   // Cascading Filter Options derived from analytics.filterOptions and user templates
   const filterOptions = analytics?.filterOptions || {};
 
+  // Normalize template list whether passed as array or object
+  const templateList = Array.isArray(templates)
+    ? templates
+    : Array.isArray(templates?.templates)
+    ? templates.templates
+    : [];
+
   // 1. Gather all routine options from backend filterOptions, templates prop, and breakdown
   const routineNamesSet = new Set();
+
+  const addValidRoutine = (item) => {
+    if (!item) return;
+    const name = typeof item === 'string' ? item : item.name || item.title || item.templateName || item.id;
+    const trimmed = typeof name === 'string' ? name.trim() : '';
+    if (trimmed && !['ALL', 'All Routines', 'All Templates'].includes(trimmed)) {
+      routineNamesSet.add(trimmed);
+    }
+  };
+
   if (Array.isArray(filterOptions.routines)) {
-    filterOptions.routines.forEach((r) => {
-      const name = typeof r === 'string' ? r : r.name || r.id;
-      if (name) routineNamesSet.add(name);
-    });
+    filterOptions.routines.forEach(addValidRoutine);
   }
-  if (Array.isArray(templates)) {
-    templates.forEach((t) => {
-      if (t.name) routineNamesSet.add(t.name);
-    });
-  }
+  templateList.forEach(addValidRoutine);
   if (Array.isArray(templatesBreakdown)) {
-    templatesBreakdown.forEach((t) => {
-      const name = typeof t === 'string' ? t : t.name || t.id;
-      if (name) routineNamesSet.add(name);
-    });
+    templatesBreakdown.forEach(addValidRoutine);
   }
 
   const routineOptions = Array.from(routineNamesSet).sort().map((name) => ({
@@ -98,8 +105,10 @@ export function GymAnalyticsView({ analytics, templates = [], onRefresh }) {
   let availableBodyParts = [];
   if (selectedTemplate && filterOptions.bodyPartsByRoutine?.[selectedTemplate]?.length) {
     availableBodyParts = filterOptions.bodyPartsByRoutine[selectedTemplate];
-  } else if (selectedTemplate && Array.isArray(templates)) {
-    const matchedTpl = templates.find((t) => t.name === selectedTemplate || t._id === selectedTemplate);
+  } else if (selectedTemplate && templateList.length > 0) {
+    const matchedTpl = templateList.find(
+      (t) => (t.name || t.title) === selectedTemplate || t.id === selectedTemplate || t._id === selectedTemplate
+    );
     if (matchedTpl?.bodyParts?.length) {
       availableBodyParts = matchedTpl.bodyParts.map((bp) => bp.name);
     }
@@ -108,9 +117,9 @@ export function GymAnalyticsView({ analytics, templates = [], onRefresh }) {
   if (!availableBodyParts.length) {
     if (filterOptions.allBodyParts?.length) {
       availableBodyParts = filterOptions.allBodyParts;
-    } else if (Array.isArray(templates) && templates.length > 0) {
+    } else if (templateList.length > 0) {
       const bpSet = new Set();
-      templates.forEach((t) => t.bodyParts?.forEach((bp) => bp.name && bpSet.add(bp.name)));
+      templateList.forEach((t) => t.bodyParts?.forEach((bp) => bp.name && bpSet.add(bp.name)));
       availableBodyParts = Array.from(bpSet);
     } else {
       availableBodyParts = bodyPartsBreakdown.map((bp) => bp.name);
@@ -126,9 +135,9 @@ export function GymAnalyticsView({ analytics, templates = [], onRefresh }) {
   let availableExercises = [];
   if (selectedBodyPart && filterOptions.exercisesByBodyPart?.[selectedBodyPart]?.length) {
     availableExercises = filterOptions.exercisesByBodyPart[selectedBodyPart];
-  } else if (selectedBodyPart && Array.isArray(templates)) {
+  } else if (selectedBodyPart && templateList.length > 0) {
     const exSet = new Set();
-    templates.forEach((t) => {
+    templateList.forEach((t) => {
       t.bodyParts?.forEach((bp) => {
         if (bp.name === selectedBodyPart) {
           bp.exercises?.forEach((ex) => ex.name && exSet.add(ex.name));
@@ -141,9 +150,9 @@ export function GymAnalyticsView({ analytics, templates = [], onRefresh }) {
   if (!availableExercises.length) {
     if (filterOptions.allExercises?.length) {
       availableExercises = filterOptions.allExercises;
-    } else if (Array.isArray(templates) && templates.length > 0) {
+    } else if (templateList.length > 0) {
       const exSet = new Set();
-      templates.forEach((t) => {
+      templateList.forEach((t) => {
         t.bodyParts?.forEach((bp) => {
           bp.exercises?.forEach((ex) => ex.name && exSet.add(ex.name));
         });

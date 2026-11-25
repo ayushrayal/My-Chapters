@@ -132,6 +132,8 @@ export const getItemsQuerySchema = z.object({
     .enum([SOMEDAY_STATUS.PLANNED, SOMEDAY_STATUS.PURCHASED], {
       errorMap: () => ({ message: 'Status filter must be either PLANNED or PURCHASED' })
     })
-    .optional()
+    .optional(),
+  page: z.coerce.number().int().min(1).optional(),
+  limit: z.coerce.number().int().min(1).max(200).optional()
 });
 

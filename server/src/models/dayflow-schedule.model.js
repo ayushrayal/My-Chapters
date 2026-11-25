@@ -179,6 +179,7 @@ const dayflowScheduleSchema = new mongoose.Schema(
 
 // Unique compound index: One schedule per date per Space
 dayflowScheduleSchema.index({ spaceId: 1, date: 1 }, { unique: true });
+dayflowScheduleSchema.index({ spaceId: 1, isRestDay: 1, date: 1 });
 dayflowScheduleSchema.index({ spaceId: 1, isFinished: 1 });
 dayflowScheduleSchema.index({ spaceId: 1, templateName: 1 });
 

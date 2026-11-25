@@ -352,6 +352,14 @@ describe('GymFlow - Template Creation & API Suite', () => {
     assert.strictEqual(resAll.body.data.analytics.overall.totalReps, 40);
     assert.strictEqual(resAll.body.data.analytics.overall.totalCompletedExercises, 2);
 
+    // Filter options include user templates and custom routines
+    assert.ok(Array.isArray(resAll.body.data.analytics.filterOptions.routines));
+    assert.ok(resAll.body.data.analytics.filterOptions.routines.length > 0);
+    assert.ok(resAll.body.data.analytics.filterOptions.allBodyParts.includes('Chest'));
+    assert.ok(resAll.body.data.analytics.filterOptions.allBodyParts.includes('Back'));
+    assert.ok(resAll.body.data.analytics.filterOptions.allExercises.includes('Bench Press'));
+    assert.ok(resAll.body.data.analytics.filterOptions.allExercises.includes('Pullups'));
+
     // 2. Filter by Body Part "Chest"
     const resChest = await request(app)
       .get(`/api/gymflow/analytics?startDate=2026-11-01&endDate=2026-11-30&bodyPart=Chest`)

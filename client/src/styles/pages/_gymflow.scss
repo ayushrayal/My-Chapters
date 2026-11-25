@@ -1762,6 +1762,20 @@
 
   &__filters {
     width: 100%;
+    min-width: 0;
+
+    .filter-bar-container {
+      width: 100%;
+    }
+
+    .filter-bar {
+      width: 100%;
+    }
+
+    .filter-bar__desktop-row {
+      width: 100%;
+      min-width: 0;
+    }
   }
 }
 

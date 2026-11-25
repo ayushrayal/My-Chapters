@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { GymWorkoutSession } from '../models/gym-workout-session.model.js';
+import { GymTemplate } from '../models/gym-template.model.js';
 import { GYM_SET_STATUS } from '../constants/gymflow.js';
 
 export class GymAnalyticsService {
@@ -8,6 +9,14 @@ export class GymAnalyticsService {
    * (Date Range, Routine/Template, Body Part, Exercise) applied with AND logic.
    */
   static async getAnalytics(spaceId, { startDate, endDate, templateId, templateName, routine, bodyPart, exerciseName }) {
+    // 1. Fetch user's defined templates and all space workout sessions to populate routines & filter options
+    const [userTemplates, allSpaceSessions] = await Promise.all([
+      GymTemplate.find({ spaceId }).select('name bodyParts.name bodyParts.exercises.name').lean(),
+      GymWorkoutSession.find({ spaceId, isRestDay: false })
+        .select('templateName templateId bodyParts.name bodyParts.exercises.name')
+        .lean()
+    ]);
+
     const query = { spaceId, isRestDay: false };
 
     // Date range filter
@@ -21,25 +30,47 @@ export class GymAnalyticsService {
 
     // Routine / Template filter (supports ID or name)
     const rawRoutine = (routine || templateName || templateId)?.trim();
-    if (rawRoutine && rawRoutine !== 'ALL' && rawRoutine !== 'All Templates') {
+    if (rawRoutine && rawRoutine !== 'ALL' && rawRoutine !== 'All Templates' && rawRoutine !== 'All Routines') {
       if (mongoose.Types.ObjectId.isValid(rawRoutine)) {
         query.$or = [
           { templateId: new mongoose.Types.ObjectId(rawRoutine) },
           { templateName: new RegExp(`^${rawRoutine}$`, 'i') }
         ];
+      } else if (rawRoutine.toLowerCase() === 'custom routine') {
+        query.$or = [
+          { templateName: new RegExp(`^${rawRoutine}$`, 'i') },
+          { templateName: '' },
+          { templateName: null, templateId: null }
+        ];
       } else {
-        query.templateName = new RegExp(`^${rawRoutine}$`, 'i');
+        const matchedTpl = userTemplates.find(
+          (t) => t.name.toLowerCase() === rawRoutine.toLowerCase()
+        );
+        if (matchedTpl) {
+          query.$or = [
+            { templateId: matchedTpl._id },
+            { templateName: new RegExp(`^${rawRoutine}$`, 'i') }
+          ];
+        } else {
+          query.templateName = new RegExp(`^${rawRoutine}$`, 'i');
+        }
       }
     }
 
-    // Fetch matching workout sessions
-    const sessions = await GymWorkoutSession.find(query).sort({ date: 1 }).lean();
+    // Fetch matching workout sessions with targeted projections (avoids loading set notes, subdocument IDs)
+    const sessions = await GymWorkoutSession.find(query)
+      .select('date templateName templateId isFinished scoreBreakdown.totalScore treadmill bodyParts.name bodyParts.exercises.name bodyParts.exercises.sets.status bodyParts.exercises.sets.weightKg bodyParts.exercises.sets.reps')
+      .sort({ date: 1 })
+      .lean();
 
-    // Fetch all sessions in the date window (including rest days) to calculate rest days and build cascading filter options
+    // Fetch all sessions in the date window (including rest days) with minimal fields
     const allSessionsInWindow = await GymWorkoutSession.find({
       spaceId,
       ...(query.date ? { date: query.date } : {})
-    }).sort({ date: 1 }).lean();
+    })
+      .select('isRestDay date templateName templateId bodyParts.name bodyParts.exercises.name')
+      .sort({ date: 1 })
+      .lean();
 
     // Normalize target filters
     const filterBp = bodyPart?.trim() && bodyPart !== 'All Body Parts' ? bodyPart.trim().toLowerCase() : null;
@@ -167,8 +198,16 @@ export class GymAnalyticsService {
         }
       }
 
-      // Aggregate into templatePerformanceMap (if this session had matching filtered content)
-      const tName = session.templateName || 'Custom Routine';
+      // Aggregate into templatePerformanceMap (resolving template name if templateId exists)
+      let tName = session.templateName ? session.templateName.trim() : '';
+      if (!tName && session.templateId) {
+        const matched = userTemplates.find(
+          (t) => t._id.toString() === session.templateId.toString()
+        );
+        if (matched) tName = matched.name;
+      }
+      if (!tName) tName = 'Custom Routine';
+
       if (!templatePerformanceMap.has(tName)) {
         templatePerformanceMap.set(tName, {
           name: tName,
@@ -216,37 +255,104 @@ export class GymAnalyticsService {
     const averageTreadmillDuration =
       treadmillSessionsCount > 0 ? Math.round(treadmillTotalMinutes / treadmillSessionsCount) : 0;
 
-    // --- Build Cascading Filter Options Tree from window data ---
+    // --- Build Cascading Filter Options Tree from templates, historical sessions & current window ---
     const routinesSet = new Set();
     const bodyPartsByRoutine = {};
     const exercisesByBodyPart = {};
     const allBodyPartsSet = new Set();
     const allExercisesSet = new Set();
 
-    for (const s of allSessionsInWindow) {
-      if (s.isRestDay) continue;
-      const rName = s.templateName || 'Custom Routine';
-      routinesSet.add(rName);
+    const addFilterMapping = (rName, bpName, exName) => {
+      const routineClean = rName?.trim();
+      const bpClean = bpName?.trim();
+      const exClean = exName?.trim();
 
-      if (!bodyPartsByRoutine[rName]) {
-        bodyPartsByRoutine[rName] = new Set();
+      if (routineClean) {
+        routinesSet.add(routineClean);
+        if (!bodyPartsByRoutine[routineClean]) {
+          bodyPartsByRoutine[routineClean] = new Set();
+        }
+        if (bpClean) {
+          bodyPartsByRoutine[routineClean].add(bpClean);
+        }
       }
 
-      for (const bp of s.bodyParts || []) {
-        const bpName = bp.name ? bp.name.trim() : '';
-        if (!bpName) continue;
-        bodyPartsByRoutine[rName].add(bpName);
-        allBodyPartsSet.add(bpName);
-
-        if (!exercisesByBodyPart[bpName]) {
-          exercisesByBodyPart[bpName] = new Set();
+      if (bpClean) {
+        allBodyPartsSet.add(bpClean);
+        if (!exercisesByBodyPart[bpClean]) {
+          exercisesByBodyPart[bpClean] = new Set();
         }
+        if (exClean) {
+          exercisesByBodyPart[bpClean].add(exClean);
+        }
+      }
+
+      if (exClean) {
+        allExercisesSet.add(exClean);
+      }
+    };
+
+    // 1. Populate from User Templates (always present in dropdowns)
+    for (const tpl of userTemplates) {
+      const tName = tpl.name?.trim();
+      if (!tName) continue;
+      routinesSet.add(tName);
+
+      for (const bp of tpl.bodyParts || []) {
+        const bpName = bp.name?.trim();
+        if (!bpName) continue;
+        addFilterMapping(tName, bpName, null);
 
         for (const ex of bp.exercises || []) {
-          const exName = ex.name ? ex.name.trim() : '';
-          if (!exName) continue;
-          exercisesByBodyPart[bpName].add(exName);
-          allExercisesSet.add(exName);
+          const exName = ex.name?.trim();
+          if (exName) addFilterMapping(tName, bpName, exName);
+        }
+      }
+    }
+
+    // 2. Populate from all Space Sessions (to capture custom routines or past exercises)
+    for (const s of allSpaceSessions) {
+      let rName = s.templateName ? s.templateName.trim() : '';
+      if (!rName && s.templateId) {
+        const matched = userTemplates.find(
+          (t) => t._id.toString() === s.templateId.toString()
+        );
+        if (matched) rName = matched.name;
+      }
+      if (!rName) rName = 'Custom Routine';
+
+      for (const bp of s.bodyParts || []) {
+        const bpName = bp.name?.trim();
+        if (!bpName) continue;
+        addFilterMapping(rName, bpName, null);
+
+        for (const ex of bp.exercises || []) {
+          const exName = ex.name?.trim();
+          if (exName) addFilterMapping(rName, bpName, exName);
+        }
+      }
+    }
+
+    // 3. Populate from all Sessions in the current window (including rest days if any body parts logged)
+    for (const s of allSessionsInWindow) {
+      if (s.isRestDay) continue;
+      let rName = s.templateName ? s.templateName.trim() : '';
+      if (!rName && s.templateId) {
+        const matched = userTemplates.find(
+          (t) => t._id.toString() === s.templateId.toString()
+        );
+        if (matched) rName = matched.name;
+      }
+      if (!rName) rName = 'Custom Routine';
+
+      for (const bp of s.bodyParts || []) {
+        const bpName = bp.name?.trim();
+        if (!bpName) continue;
+        addFilterMapping(rName, bpName, null);
+
+        for (const ex of bp.exercises || []) {
+          const exName = ex.name?.trim();
+          if (exName) addFilterMapping(rName, bpName, exName);
         }
       }
     }

@@ -22,16 +22,27 @@ export class SomedayItemController {
 
   /**
    * GET /api/someday/items
-   * Retrieve items with optional categoryId and status filters.
+   * Retrieve items with optional categoryId, status, and pagination filters.
    */
   static async getItems(req, res) {
     const items = await SomedayItemService.getItems({
       spaceId: req.user.spaceId,
       categoryId: req.query.categoryId,
-      status: req.query.status
+      status: req.query.status,
+      page: req.query.page,
+      limit: req.query.limit
     });
 
     return ApiResponse.success(res, 'Items retrieved successfully', items);
+  }
+
+  /**
+   * GET /api/someday/items/stats
+   * Retrieve aggregated overview counts for Someday items.
+   */
+  static async getStats(req, res) {
+    const stats = await SomedayItemService.getStats(req.user.spaceId);
+    return ApiResponse.success(res, 'Item statistics retrieved successfully', stats);
   }
 
   /**

@@ -28,7 +28,7 @@ export function FilterSelect({
   // Detect mobile vs desktop view
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+      setIsMobile(window.innerWidth < 640);
     };
     checkMobile();
     window.addEventListener('resize', checkMobile);

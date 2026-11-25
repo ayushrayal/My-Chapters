@@ -744,6 +744,7 @@ export class DayflowScheduleService {
     }
 
     const schedules = await DayflowSchedule.find(query)
+      .select('date isRestDay isFinished templateName tasks._id tasks.title tasks.status tasks.blockId blocks._id blocks.name blocks.startTime blocks.endTime')
       .sort({ date: 1 })
       .lean();
 

@@ -16,16 +16,15 @@ export function Dashboard() {
   const { user, space } = useAuth();
   const spaceId = space?.id;
 
-  // Cached Someday items query to compute overview stats instantly
-  const { data: items = [], isLoading: isLoadingStats } = useQuery(
+  // Cached Someday items/stats query to compute overview stats with zero lag
+  const { data: rawStats = null, isLoading: isLoadingStats } = useQuery(
     {
       queryKey: queryKeys.someday.allItems(spaceId),
       queryFn: async () => {
         try {
-          const res = await somedayApi.getItems();
-          return Array.isArray(res) ? res : [];
+          return await somedayApi.getStats();
         } catch {
-          return [];
+          return { total: 0, planned: 0, purchased: 0 };
         }
       },
       staleTime: 60 * 1000,
@@ -35,11 +34,18 @@ export function Dashboard() {
   );
 
   const stats = useMemo(() => {
-    const total = items.length;
-    const planned = items.filter((i) => i.status === 'PLANNED').length;
-    const purchased = items.filter((i) => i.status === 'PURCHASED').length;
-    return { total, planned, purchased };
-  }, [items]);
+    if (Array.isArray(rawStats)) {
+      const total = rawStats.length;
+      const planned = rawStats.filter((i) => i.status === 'PLANNED').length;
+      const purchased = rawStats.filter((i) => i.status === 'PURCHASED').length;
+      return { total, planned, purchased };
+    }
+    return {
+      total: Number(rawStats?.total) || 0,
+      planned: Number(rawStats?.planned) || 0,
+      purchased: Number(rawStats?.purchased) || 0
+    };
+  }, [rawStats]);
 
   const greeting = getTimeBasedGreeting();
   const formattedDate = user?.createdAt

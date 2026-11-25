@@ -554,18 +554,19 @@
   &__desktop-row {
     display: none;
 
-    @include respond-to('tablet') {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex: 1;
-      width: 100%;
-      flex-wrap: nowrap;
+    @media (min-width: 640px) {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      gap: 10px !important;
+      flex: 1 !important;
+      width: 100% !important;
+      flex-wrap: nowrap !important;
 
       .filter-select {
-        flex: 1 1 0%;
-        min-width: 0;
-        width: 100%;
+        flex: 1 1 0% !important;
+        min-width: 0 !important;
+        width: auto !important;
       }
     }
   }
@@ -574,8 +575,8 @@
     display: block;
     width: 100%;
 
-    @include respond-to('tablet') {
-      display: none;
+    @media (min-width: 640px) {
+      display: none !important;
     }
   }
 

@@ -28,6 +28,11 @@ router.get(
 );
 
 router.get(
+  '/stats',
+  asyncHandler(SomedayItemController.getStats)
+);
+
+router.get(
   '/:itemId',
   validateParams(itemIdParamSchema),
   asyncHandler(SomedayItemController.getItemById)
