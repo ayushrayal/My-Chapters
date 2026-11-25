@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { authCache } from '../utils/auth-cache.js';
 
 const authSessionSchema = new mongoose.Schema(
   {
@@ -43,6 +44,35 @@ authSessionSchema.index({ userId: 1, revokedAt: 1 });
 authSessionSchema.methods.isActive = function () {
   return !this.revokedAt && this.expiresAt.getTime() > Date.now();
 };
+
+// Auto-invalidate session cache whenever an auth session is modified or deleted
+authSessionSchema.post('findOneAndUpdate', function (doc) {
+  if (doc && doc._id) {
+    authCache.invalidateSession(doc._id.toString());
+  } else {
+    const filter = this.getQuery ? this.getQuery() : null;
+    if (filter && (filter._id || filter.id)) {
+      authCache.invalidateSession(filter._id || filter.id);
+    }
+  }
+});
+
+authSessionSchema.post('findOneAndDelete', function (doc) {
+  if (doc && doc._id) {
+    authCache.invalidateSession(doc._id.toString());
+  } else {
+    const filter = this.getQuery ? this.getQuery() : null;
+    if (filter && (filter._id || filter.id)) {
+      authCache.invalidateSession(filter._id || filter.id);
+    }
+  }
+});
+
+authSessionSchema.post('save', function (doc) {
+  if (doc && doc._id) {
+    authCache.invalidateSession(doc._id.toString());
+  }
+});
 
 export const AuthSession = mongoose.model('AuthSession', authSessionSchema);
 

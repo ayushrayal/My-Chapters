@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import { ROLES, ROLE_VALUES } from '../constants/roles.js';
+import { authCache } from '../utils/auth-cache.js';
 
 const BCRYPT_SALT_ROUNDS = 12;
 
@@ -94,5 +95,34 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
   }
   return bcrypt.compare(candidatePassword, this.password);
 };
+
+// Auto-invalidate user cache whenever a user record is modified or deleted
+userSchema.post('findOneAndUpdate', function (doc) {
+  if (doc && doc._id) {
+    authCache.invalidateUser(doc._id.toString());
+  } else {
+    const filter = this.getQuery ? this.getQuery() : null;
+    if (filter && (filter._id || filter.id)) {
+      authCache.invalidateUser(filter._id || filter.id);
+    }
+  }
+});
+
+userSchema.post('findOneAndDelete', function (doc) {
+  if (doc && doc._id) {
+    authCache.invalidateUser(doc._id.toString());
+  } else {
+    const filter = this.getQuery ? this.getQuery() : null;
+    if (filter && (filter._id || filter.id)) {
+      authCache.invalidateUser(filter._id || filter.id);
+    }
+  }
+});
+
+userSchema.post('save', function (doc) {
+  if (doc && doc._id) {
+    authCache.invalidateUser(doc._id.toString());
+  }
+});
 
 export const User = mongoose.model('User', userSchema);

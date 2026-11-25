@@ -19,6 +19,8 @@ import gymAnalyticsRoutes from './routes/gym-analytics.routes.js';
 import { notFoundHandler } from './middleware/not-found.middleware.js';
 import { errorHandler } from './middleware/error.middleware.js';
 import { ApiResponse } from './utils/api-response.js';
+import { authCache } from './utils/auth-cache.js';
+import { queryProfiler } from './utils/query-profiler.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -85,7 +87,13 @@ app.get('/api/health', (_req, res) => {
   return ApiResponse.success(res, 'My Chapters API service is operational', {
     status: 'UP',
     timestamp: new Date().toISOString(),
-    uptime: `${Math.floor(process.uptime())}s`
+    uptime: `${Math.floor(process.uptime())}s`,
+    cache: authCache.getStats(),
+    database: {
+      queries: queryProfiler.totalQueries,
+      slowQueries: queryProfiler.slowQueries,
+      avgQueryDurationMs: queryProfiler.getStats().avgDurationMs
+    }
   });
 });
 

@@ -11,6 +11,7 @@ import { ROLES } from '../constants/roles.js';
 import { AppError } from '../utils/app-error.js';
 import { generateUniqueSlug } from '../utils/generate-slug.js';
 import { parseDurationToMs } from '../utils/cookie-options.js';
+import { authCache } from '../utils/auth-cache.js';
 
 /**
  * Constant-time comparison for ACCESS_CODE to prevent timing attacks.
@@ -261,6 +262,10 @@ export class AuthService {
         await AuthSession.findByIdAndUpdate(decoded.sid, {
           revokedAt: new Date()
         });
+        authCache.invalidateSession(decoded.sid);
+        if (decoded.sub) {
+          authCache.invalidateUser(decoded.sub);
+        }
       }
     } catch {
       // If token is invalid or expired, session is already inactive; safe to succeed.

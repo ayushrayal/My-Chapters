@@ -1,5 +1,9 @@
 import mongoose from 'mongoose';
 import { env } from './env.js';
+import { queryProfilerPlugin } from '../utils/query-profiler.js';
+
+// Register lightweight query profiler globally across all Mongoose schemas
+mongoose.plugin(queryProfilerPlugin);
 
 /**
  * Sanitizes MongoDB connection string for safe logging without exposing credentials.
@@ -37,7 +41,8 @@ export async function connectDatabase(customUri) {
       maxPoolSize: 20,
       minPoolSize: 5,
       serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000
+      socketTimeoutMS: 45000,
+      heartbeatFrequencyMS: 10000
     });
     return conn;
   } catch (error) {

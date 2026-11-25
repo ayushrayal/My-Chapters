@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { authCache } from '../utils/auth-cache.js';
 
 const spaceSchema = new mongoose.Schema(
   {
@@ -44,5 +45,34 @@ const spaceSchema = new mongoose.Schema(
 
 // Owner index for fast lookups
 spaceSchema.index({ owner: 1 });
+
+// Auto-invalidate space cache whenever a Space record is modified or deleted
+spaceSchema.post('findOneAndUpdate', function (doc) {
+  if (doc && doc._id) {
+    authCache.invalidateSpace(doc._id.toString());
+  } else {
+    const filter = this.getQuery ? this.getQuery() : null;
+    if (filter && (filter._id || filter.id)) {
+      authCache.invalidateSpace(filter._id || filter.id);
+    }
+  }
+});
+
+spaceSchema.post('findOneAndDelete', function (doc) {
+  if (doc && doc._id) {
+    authCache.invalidateSpace(doc._id.toString());
+  } else {
+    const filter = this.getQuery ? this.getQuery() : null;
+    if (filter && (filter._id || filter.id)) {
+      authCache.invalidateSpace(filter._id || filter.id);
+    }
+  }
+});
+
+spaceSchema.post('save', function (doc) {
+  if (doc && doc._id) {
+    authCache.invalidateSpace(doc._id.toString());
+  }
+});
 
 export const Space = mongoose.model('Space', spaceSchema);

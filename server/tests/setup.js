@@ -1,5 +1,6 @@
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
+import { authCache } from '../src/utils/auth-cache.js';
 
 let replSetInstance = null;
 
@@ -55,6 +56,7 @@ export async function setupTestDatabase() {
  * Clears all documents across all collections in the test database.
  */
 export async function clearTestDatabase() {
+  authCache.clear();
   if (mongoose.connection.readyState === 1) {
     const collections = mongoose.connection.collections;
     for (const key of Object.keys(collections)) {

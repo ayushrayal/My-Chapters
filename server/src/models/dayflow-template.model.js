@@ -95,5 +95,6 @@ const dayflowTemplateSchema = new mongoose.Schema(
 
 // Compound index for space scoping and performance
 dayflowTemplateSchema.index({ spaceId: 1, name: 1 });
+dayflowTemplateSchema.index({ spaceId: 1, createdAt: -1 });
 
 export const DayflowTemplate = mongoose.model('DayflowTemplate', dayflowTemplateSchema);

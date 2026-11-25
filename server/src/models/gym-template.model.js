@@ -100,5 +100,6 @@ const gymTemplateSchema = new mongoose.Schema(
 
 // Compound index for unique template name within a user space
 gymTemplateSchema.index({ spaceId: 1, name: 1 }, { unique: true });
+gymTemplateSchema.index({ spaceId: 1, createdAt: -1 });
 
 export const GymTemplate = mongoose.model('GymTemplate', gymTemplateSchema);
