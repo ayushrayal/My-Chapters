@@ -1,5 +1,8 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useContext } from 'react';
 import { dayflowApi } from '../services/dayflow.api.js';
+import { queryClient } from '../../../lib/queryClient.js';
+import { queryKeys } from '../../../lib/queryKeys.js';
+import { AuthContext } from '../../auth/context/AuthContext.jsx';
 import { parseApiError } from '../../../utils/error-handler.js';
 import { useToast } from '../../../context/ToastContext.jsx';
 
@@ -16,7 +19,10 @@ function getMonthKey(dateStr) {
 }
 
 export function useDayflow(initialDate = null) {
+  const auth = useContext(AuthContext);
+  const spaceId = auth?.space?.id;
   const { toast } = useToast();
+
   const [selectedDate, setSelectedDate] = useState(initialDate || getTodayString());
   const [activeTab, setActiveTab] = useState('schedule'); // 'schedule' | 'templates' | 'analytics'
 
@@ -29,114 +35,138 @@ export function useDayflow(initialDate = null) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState(null);
 
-  // In-flight tracking & caching refs
-  const templatesLoadedRef = useRef(false);
-  const loadedMonthRef = useRef('');
+  // In-flight tracking & race condition guards
   const lastRequestedDateRef = useRef(selectedDate);
   const inFlightScheduleDateRef = useRef(null);
 
-  // 1. Load schedule for a specific date (with race condition prevention)
-  const loadSchedule = useCallback(async (dateToLoad = selectedDate) => {
-    lastRequestedDateRef.current = dateToLoad;
-    inFlightScheduleDateRef.current = dateToLoad;
-    try {
-      const data = await dayflowApi.getSchedule(dateToLoad);
-      // Only commit to state if this response corresponds to the latest requested date
-      if (lastRequestedDateRef.current === dateToLoad) {
-        setSchedule(data);
+  // 1. Load schedule for a specific date (TanStack Query cached + race guard)
+  const loadSchedule = useCallback(
+    async (dateToLoad = selectedDate) => {
+      lastRequestedDateRef.current = dateToLoad;
+      inFlightScheduleDateRef.current = dateToLoad;
+      try {
+        const data = await queryClient.fetchQuery({
+          queryKey: queryKeys.dayflow.schedule(spaceId, dateToLoad),
+          queryFn: () => dayflowApi.getSchedule(dateToLoad),
+          staleTime: 30 * 1000
+        });
+
+        // Only commit to component state if response matches the latest user selection
+        if (lastRequestedDateRef.current === dateToLoad) {
+          setSchedule(data);
+        }
+        return data;
+      } catch (err) {
+        if (lastRequestedDateRef.current === dateToLoad) {
+          const parsed = parseApiError(err);
+          setError(parsed.message);
+        }
+        return null;
+      } finally {
+        if (inFlightScheduleDateRef.current === dateToLoad) {
+          inFlightScheduleDateRef.current = null;
+        }
       }
-      return data;
-    } catch (err) {
-      if (lastRequestedDateRef.current === dateToLoad) {
+    },
+    [selectedDate, spaceId]
+  );
+
+  // 2. Load templates list (TanStack Query cached 5 minutes)
+  const loadTemplates = useCallback(
+    async (force = false) => {
+      try {
+        if (force) {
+          await queryClient.invalidateQueries({ queryKey: queryKeys.dayflow.templates(spaceId) });
+        }
+        const data = await queryClient.fetchQuery({
+          queryKey: queryKeys.dayflow.templates(spaceId),
+          queryFn: () => dayflowApi.getTemplates(),
+          staleTime: 5 * 60 * 1000
+        });
+        setTemplates(data || []);
+        return data;
+      } catch (err) {
         const parsed = parseApiError(err);
         setError(parsed.message);
+        return [];
       }
-      return null;
-    } finally {
-      if (inFlightScheduleDateRef.current === dateToLoad) {
-        inFlightScheduleDateRef.current = null;
-      }
-    }
-  }, [selectedDate]);
+    },
+    [spaceId]
+  );
 
-  // 2. Load templates list (cached; only fetches if forced or not yet loaded)
-  const loadTemplates = useCallback(async (force = false) => {
-    if (templatesLoadedRef.current && !force) {
-      return templates;
-    }
-    try {
-      const data = await dayflowApi.getTemplates();
-      setTemplates(data || []);
-      templatesLoadedRef.current = true;
-      return data;
-    } catch (err) {
-      const parsed = parseApiError(err);
-      setError(parsed.message);
-      return [];
-    }
-  }, [templates]);
+  // 3. Load calendar overview for month (TanStack Query cached per month)
+  const loadCalendarOverview = useCallback(
+    async (refDateStr = selectedDate, force = false) => {
+      const monthKey = getMonthKey(refDateStr);
+      try {
+        if (force) {
+          await queryClient.invalidateQueries({ queryKey: queryKeys.dayflow.overview(spaceId, monthKey) });
+        }
 
-  // 3. Load calendar overview for month (cached per month)
-  const loadCalendarOverview = useCallback(async (refDateStr = selectedDate, force = false) => {
-    const monthKey = getMonthKey(refDateStr);
-    if (!force && loadedMonthRef.current === monthKey && calendarOverview.length > 0) {
-      return calendarOverview;
-    }
-
-    try {
-      const parts = refDateStr.split('-');
-      const y = parseInt(parts[0], 10);
-      const m = parseInt(parts[1], 10);
-      const pad = (n) => String(n).padStart(2, '0');
-
-      const startDate = `${y}-${pad(m)}-01`;
-      const endDate = `${y}-${pad(m)}-${pad(new Date(y, m, 0).getDate())}`;
-
-      const data = await dayflowApi.getCalendarOverview(startDate, endDate);
-      setCalendarOverview(data || []);
-      loadedMonthRef.current = monthKey;
-      return data;
-    } catch (err) {
-      return [];
-    }
-  }, [selectedDate, calendarOverview]);
-
-  // 4. Load analytics for specified range or current date window
-  const loadAnalytics = useCallback(async (params = selectedDate) => {
-    try {
-      let startDate;
-      let endDate;
-      let dateRef;
-
-      if (typeof params === 'object' && params !== null) {
-        startDate = params.startDate;
-        endDate = params.endDate;
-        dateRef = params.date || selectedDate;
-      } else {
-        dateRef = params || selectedDate;
-        const d = new Date(dateRef);
-        const end = new Date(d);
-        const start = new Date(d);
-        start.setDate(start.getDate() - 6);
-
+        const parts = refDateStr.split('-');
+        const y = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10);
         const pad = (n) => String(n).padStart(2, '0');
-        startDate = `${start.getFullYear()}-${pad(start.getMonth() + 1)}-${pad(start.getDate())}`;
-        endDate = `${end.getFullYear()}-${pad(end.getMonth() + 1)}-${pad(end.getDate())}`;
-      }
 
-      const data = await dayflowApi.getAnalytics({
-        startDate,
-        endDate,
-        date: dateRef
-      });
-      setAnalytics(data);
-      return data;
-    } catch (err) {
-      const parsed = parseApiError(err);
-      setError(parsed.message);
-      return null;
-    }
-  }, [selectedDate]);
+        const startDate = `${y}-${pad(m)}-01`;
+        const endDate = `${y}-${pad(m)}-${pad(new Date(y, m, 0).getDate())}`;
+
+        const data = await queryClient.fetchQuery({
+          queryKey: queryKeys.dayflow.overview(spaceId, monthKey),
+          queryFn: () => dayflowApi.getCalendarOverview(startDate, endDate),
+          staleTime: 5 * 60 * 1000
+        });
+
+        setCalendarOverview(data || []);
+        return data;
+      } catch {
+        return [];
+      }
+    },
+    [selectedDate, spaceId]
+  );
+
+  // 4. Load analytics for specified range or current date window (TanStack Query cached 2 minutes)
+  const loadAnalytics = useCallback(
+    async (params = selectedDate) => {
+      try {
+        let startDate;
+        let endDate;
+        let dateRef;
+
+        if (typeof params === 'object' && params !== null) {
+          startDate = params.startDate;
+          endDate = params.endDate;
+          dateRef = params.date || selectedDate;
+        } else {
+          dateRef = params || selectedDate;
+          const d = new Date(dateRef);
+          const end = new Date(d);
+          const start = new Date(d);
+          start.setDate(start.getDate() - 6);
+
+          const pad = (n) => String(n).padStart(2, '0');
+          startDate = `${start.getFullYear()}-${pad(start.getMonth() + 1)}-${pad(start.getDate())}`;
+          endDate = `${end.getFullYear()}-${pad(end.getMonth() + 1)}-${pad(end.getDate())}`;
+        }
+
+        const queryParams = { startDate, endDate, date: dateRef };
+        const data = await queryClient.fetchQuery({
+          queryKey: queryKeys.dayflow.analytics(spaceId, queryParams),
+          queryFn: () => dayflowApi.getAnalytics(queryParams),
+          staleTime: 2 * 60 * 1000
+        });
+
+        setAnalytics(data);
+        return data;
+      } catch (err) {
+        const parsed = parseApiError(err);
+        setError(parsed.message);
+        return null;
+      }
+    },
+    [selectedDate, spaceId]
+  );
 
   // Initial load: Fetch schedule, templates (once), and calendar overview (once per month)
   useEffect(() => {
@@ -161,7 +191,6 @@ export function useDayflow(initialDate = null) {
 
   // Targeted date navigation: ONLY loads schedule when date changes (and checks month boundary)
   useEffect(() => {
-    // Skip initial mount since it's handled above
     if (lastRequestedDateRef.current === selectedDate && schedule) {
       return;
     }
@@ -172,11 +201,9 @@ export function useDayflow(initialDate = null) {
     // 1. Always load the new date's schedule
     loadSchedule(selectedDate);
 
-    // 2. Only re-fetch calendar overview if the user navigated across month boundaries
+    // 2. Check if user navigated across month boundaries
     const newMonth = getMonthKey(selectedDate);
-    if (newMonth !== loadedMonthRef.current) {
-      loadCalendarOverview(selectedDate, true);
-    }
+    loadCalendarOverview(selectedDate);
 
     // 3. Only fetch analytics if the analytics tab is currently active
     if (activeTab === 'analytics') {
@@ -246,10 +273,11 @@ export function useDayflow(initialDate = null) {
         tasks
       });
       setSchedule(saved);
+      queryClient.setQueryData(queryKeys.dayflow.schedule(spaceId, selectedDate), saved);
       toast?.success?.('Daily schedule saved successfully.');
-      // Refresh calendar overview for the month to reflect task count/status
       loadCalendarOverview(selectedDate, true);
       if (activeTab === 'analytics' || analytics) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.dayflow.analytics(spaceId) });
         loadAnalytics(selectedDate);
       }
       return saved;
@@ -275,6 +303,7 @@ export function useDayflow(initialDate = null) {
       const appliedSchedule = Array.isArray(result) ? result[0] : result;
       if (appliedSchedule && appliedSchedule.date === selectedDate) {
         setSchedule(appliedSchedule);
+        queryClient.setQueryData(queryKeys.dayflow.schedule(spaceId, selectedDate), appliedSchedule);
       } else if (targetDate) {
         setSelectedDate(targetDate);
       }
@@ -282,6 +311,7 @@ export function useDayflow(initialDate = null) {
       toast?.success?.('Template applied to schedule.');
       loadCalendarOverview(selectedDate, true);
       if (activeTab === 'analytics' || analytics) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.dayflow.analytics(spaceId) });
         loadAnalytics(selectedDate);
       }
       return result;
@@ -303,9 +333,12 @@ export function useDayflow(initialDate = null) {
       });
       setSelectedDate(targetDate);
       setSchedule(moved);
+      queryClient.setQueryData(queryKeys.dayflow.schedule(spaceId, targetDate), moved);
+      queryClient.invalidateQueries({ queryKey: queryKeys.dayflow.schedule(spaceId, sourceDate || selectedDate) });
       toast?.success?.(`Schedule moved to ${targetDate}.`);
       loadCalendarOverview(targetDate, true);
       if (activeTab === 'analytics' || analytics) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.dayflow.analytics(spaceId) });
         loadAnalytics(targetDate);
       }
       return moved;
@@ -326,9 +359,11 @@ export function useDayflow(initialDate = null) {
         overwrite
       });
       setSchedule(result);
+      queryClient.setQueryData(queryKeys.dayflow.schedule(spaceId, date), result);
       toast?.success?.(isRestDay ? `Marked ${date} as a Rest Day.` : `Rest Day cleared.`);
       loadCalendarOverview(date, true);
       if (activeTab === 'analytics' || analytics) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.dayflow.analytics(spaceId) });
         loadAnalytics(date);
       }
       return result;
@@ -348,6 +383,7 @@ export function useDayflow(initialDate = null) {
         ...payload
       });
       setSchedule(updatedSchedule);
+      queryClient.setQueryData(queryKeys.dayflow.schedule(spaceId, selectedDate), updatedSchedule);
 
       if (payload.status === 'COMPLETED') {
         toast?.success?.('Task marked as Completed.');
@@ -355,9 +391,9 @@ export function useDayflow(initialDate = null) {
         toast?.info?.('Task marked as Skipped.');
       }
 
-      // Background refresh calendar and analytics
       loadCalendarOverview(selectedDate, true);
       if (activeTab === 'analytics' || analytics) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.dayflow.analytics(spaceId) });
         loadAnalytics(selectedDate);
       }
       return updatedSchedule;
@@ -374,9 +410,11 @@ export function useDayflow(initialDate = null) {
     try {
       const updatedSchedule = await dayflowApi.deleteTask(taskId, selectedDate);
       setSchedule(updatedSchedule);
+      queryClient.setQueryData(queryKeys.dayflow.schedule(spaceId, selectedDate), updatedSchedule);
       toast?.success?.('Task removed from schedule.');
       loadCalendarOverview(selectedDate, true);
       if (activeTab === 'analytics' || analytics) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.dayflow.analytics(spaceId) });
         loadAnalytics(selectedDate);
       }
       return updatedSchedule;
@@ -393,9 +431,11 @@ export function useDayflow(initialDate = null) {
     try {
       const finished = await dayflowApi.finishDay(date);
       setSchedule(finished);
-      toast?.success?.(`Day finished and locked! Great execution.`);
+      queryClient.setQueryData(queryKeys.dayflow.schedule(spaceId, date), finished);
+      toast?.success?.('Day finished and locked! Great execution.');
       loadCalendarOverview(date, true);
       if (activeTab === 'analytics' || analytics) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.dayflow.analytics(spaceId) });
         loadAnalytics(date);
       }
       return finished;
@@ -407,13 +447,14 @@ export function useDayflow(initialDate = null) {
     }
   };
 
-  // --- Template Mutations (Modifies templates state in-place, zero schedule fetches) ---
+  // --- Template Mutations ---
 
   const createTemplate = async (payload) => {
     setError(null);
     try {
       const created = await dayflowApi.createTemplate(payload);
       setTemplates((prev) => [created, ...prev]);
+      queryClient.invalidateQueries({ queryKey: queryKeys.dayflow.templates(spaceId) });
       toast?.success?.(`Template "${created.name}" created.`);
       return created;
     } catch (err) {
@@ -429,6 +470,7 @@ export function useDayflow(initialDate = null) {
     try {
       const updated = await dayflowApi.updateTemplate(templateId, payload);
       setTemplates((prev) => prev.map((t) => (t.id === templateId ? updated : t)));
+      queryClient.invalidateQueries({ queryKey: queryKeys.dayflow.templates(spaceId) });
       toast?.success?.(`Template "${updated.name}" updated.`);
       return updated;
     } catch (err) {
@@ -444,6 +486,7 @@ export function useDayflow(initialDate = null) {
     try {
       await dayflowApi.deleteTemplate(templateId);
       setTemplates((prev) => prev.filter((t) => t.id !== templateId));
+      queryClient.invalidateQueries({ queryKey: queryKeys.dayflow.templates(spaceId) });
       toast?.success?.(`Template "${templateName}" deleted.`);
     } catch (err) {
       const parsed = parseApiError(err);
@@ -464,7 +507,7 @@ export function useDayflow(initialDate = null) {
     analytics,
     isLoading,
     isLoadingSchedule: isLoading,
-    isLoadingTemplates: !templatesLoadedRef.current,
+    isLoadingTemplates: templates.length === 0 && isLoading,
     isRefreshing,
     error,
     toast,

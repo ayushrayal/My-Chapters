@@ -1,18 +1,19 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useContext } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { somedayApi } from '../services/someday.api.js';
+import { queryClient } from '../../../lib/queryClient.js';
+import { queryKeys } from '../../../lib/queryKeys.js';
+import { AuthContext } from '../../auth/context/AuthContext.jsx';
 import { parseApiError } from '../../../utils/error-handler.js';
 import { useToast } from '../../../context/ToastContext.jsx';
 
 export function useSomeday() {
+  const auth = useContext(AuthContext);
+  const spaceId = auth?.space?.id;
   const { toast } = useToast();
-  const [categories, setCategories] = useState([]);
-  const [items, setItems] = useState([]);
-  const [allItemsForStats, setAllItemsForStats] = useState([]);
+
   const [categoryIdFilter, setCategoryIdFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
-
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
 
@@ -26,84 +27,100 @@ export function useSomeday() {
     }
   }, [successMessage]);
 
-  // Load all categories
-  const loadCategories = useCallback(async () => {
-    try {
-      const data = await somedayApi.getCategories();
-      setCategories(data);
-      return data;
-    } catch (err) {
-      const parsed = parseApiError(err);
-      setError(parsed.message);
-      return [];
-    }
-  }, []);
+  // 1. Categories Query (5-minute stale time)
+  const {
+    data: categories = [],
+    isLoading: isLoadingCategories
+  } = useQuery(
+    {
+      queryKey: queryKeys.someday.categories(spaceId),
+      queryFn: async () => {
+        try {
+          return await somedayApi.getCategories();
+        } catch (err) {
+          const parsed = parseApiError(err);
+          setError(parsed.message);
+          return [];
+        }
+      },
+      staleTime: 5 * 60 * 1000
+    },
+    queryClient
+  );
 
-  // Load items based on active filters
-  const loadItems = useCallback(async (catFilter = categoryIdFilter, statFilter = statusFilter) => {
-    try {
-      const filterParams = {};
-      if (catFilter !== 'ALL') filterParams.categoryId = catFilter;
-      if (statFilter !== 'ALL') filterParams.status = statFilter;
+  // 2. All Items Query (for overall Space statistics computation)
+  const {
+    data: allItemsForStats = [],
+    isLoading: isLoadingAllItems
+  } = useQuery(
+    {
+      queryKey: queryKeys.someday.allItems(spaceId),
+      queryFn: async () => {
+        try {
+          return await somedayApi.getItems({});
+        } catch {
+          return [];
+        }
+      },
+      staleTime: 60 * 1000
+    },
+    queryClient
+  );
 
-      const [filteredData, allData] = await Promise.all([
-        somedayApi.getItems(filterParams),
-        somedayApi.getItems({}) // Unfiltered to compute exact overall Space statistics
-      ]);
-
-      setItems(filteredData);
-      setAllItemsForStats(allData);
-    } catch (err) {
-      const parsed = parseApiError(err);
-      setError(parsed.message);
-    }
+  // Derived filter parameters for active item list
+  const activeFilters = useMemo(() => {
+    const p = {};
+    if (categoryIdFilter !== 'ALL') p.categoryId = categoryIdFilter;
+    if (statusFilter !== 'ALL') p.status = statusFilter;
+    return p;
   }, [categoryIdFilter, statusFilter]);
 
-  // Initial load
-  const loadInitialData = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      await Promise.all([loadCategories(), loadItems('ALL', 'ALL')]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [loadCategories, loadItems]);
+  // 3. Filtered Items Query (1-minute stale time)
+  const {
+    data: items = [],
+    isLoading: isLoadingItems,
+    isFetching: isFetchingItems
+  } = useQuery(
+    {
+      queryKey: queryKeys.someday.items(spaceId, activeFilters),
+      queryFn: async () => {
+        try {
+          return await somedayApi.getItems(activeFilters);
+        } catch (err) {
+          const parsed = parseApiError(err);
+          setError(parsed.message);
+          return [];
+        }
+      },
+      staleTime: 60 * 1000
+    },
+    queryClient
+  );
 
-  useEffect(() => {
-    loadInitialData();
-  }, [loadInitialData]);
+  const isLoading = isLoadingCategories || isLoadingItems || isLoadingAllItems;
+  const isRefreshing = isFetchingItems;
 
-  // When filters change, reload items
+  // Filter change handlers
   const handleCategoryFilterChange = useCallback((newCatId) => {
     setCategoryIdFilter(newCatId);
-    setIsRefreshing(true);
-    loadItems(newCatId, statusFilter).finally(() => setIsRefreshing(false));
-  }, [loadItems, statusFilter]);
+  }, []);
 
   const handleStatusFilterChange = useCallback((newStatus) => {
     setStatusFilter(newStatus);
-    setIsRefreshing(true);
-    loadItems(categoryIdFilter, newStatus).finally(() => setIsRefreshing(false));
-  }, [loadItems, categoryIdFilter]);
+  }, []);
 
-  // Refresh all data
-  const refreshAll = useCallback(async () => {
-    setIsRefreshing(true);
-    try {
-      await Promise.all([loadCategories(), loadItems(categoryIdFilter, statusFilter)]);
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, [loadCategories, loadItems, categoryIdFilter, statusFilter]);
-
-  // Calculate real statistics from all items in Space
+  // Compute exact statistics from all items in Space
   const stats = useMemo(() => {
     const total = allItemsForStats.length;
     const planned = allItemsForStats.filter((item) => item.status === 'PLANNED').length;
     const purchased = allItemsForStats.filter((item) => item.status === 'PURCHASED').length;
     return { total, planned, purchased };
   }, [allItemsForStats]);
+
+  // Refresh all Someday data manually
+  const refreshAll = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: queryKeys.someday.all(spaceId) });
+  }, [spaceId]);
 
   // --- Item Actions ---
 
@@ -166,9 +183,10 @@ export function useSomeday() {
         }
       }
       const updated = await somedayApi.updateItem(itemId, payload);
-      const msg = newStatus === 'PURCHASED'
-        ? `Marked "${updated.name}" as Purchased.`
-        : `Moved "${updated.name}" back to Planned.`;
+      const msg =
+        newStatus === 'PURCHASED'
+          ? `Marked "${updated.name}" as Purchased.`
+          : `Moved "${updated.name}" back to Planned.`;
       setSuccessMessage(msg);
       toast?.success?.(msg);
       await refreshAll();
@@ -223,7 +241,6 @@ export function useSomeday() {
       const msg = `Category "${categoryName}" deleted. ${moved} item${moved === 1 ? '' : 's'} moved to Other.`;
       setSuccessMessage(msg);
       toast?.success?.(msg);
-      // If active filter was the deleted category, reset to ALL
       if (categoryIdFilter === categoryId) {
         setCategoryIdFilter('ALL');
       }
@@ -261,4 +278,3 @@ export function useSomeday() {
     deleteCategory
   };
 }
-

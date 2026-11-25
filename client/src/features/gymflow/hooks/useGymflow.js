@@ -1,9 +1,17 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useMemo, useContext } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { gymflowApi } from '../services/gymflow.api.js';
+import { queryClient } from '../../../lib/queryClient.js';
+import { queryKeys } from '../../../lib/queryKeys.js';
+import { AuthContext } from '../../auth/context/AuthContext.jsx';
 import { useToast } from '../../../context/ToastContext.jsx';
 
 export function useGymflow() {
+  const auth = useContext(AuthContext);
+  const spaceId = auth?.space?.id;
   const lastSaveTimestampRef = useRef(0);
+  const { showToast } = useToast();
+
   const [currentDate] = useState(() => {
     const now = new Date();
     const pad = (n) => String(n).padStart(2, '0');
@@ -11,98 +19,96 @@ export function useGymflow() {
   });
 
   const [selectedDate, setSelectedDate] = useState(currentDate);
-  const [session, setSession] = useState(null);
-  const [dayAssignment, setDayAssignment] = useState(null);
-  const [templates, setTemplates] = useState([]);
-  const [weeklySchedule, setWeeklySchedule] = useState(null);
-  const [comparisons, setComparisons] = useState({});
   const [analytics, setAnalytics] = useState(null);
 
-  const [isLoadingSession, setIsLoadingSession] = useState(true);
-  const [isLoadingTemplates, setIsLoadingTemplates] = useState(true);
-  const [error, setError] = useState(null);
+  // 1. Templates Query (5-minute stale time)
+  const {
+    data: templates = [],
+    isLoading: isLoadingTemplates
+  } = useQuery(
+    {
+      queryKey: queryKeys.gymflow.templates(spaceId),
+      queryFn: () => gymflowApi.getTemplates(),
+      staleTime: 5 * 60 * 1000
+    },
+    queryClient
+  );
 
-  const { showToast } = useToast();
+  // 2. Weekly Schedule Query (5-minute stale time)
+  const {
+    data: weeklySchedule = null
+  } = useQuery(
+    {
+      queryKey: queryKeys.gymflow.schedule(spaceId),
+      queryFn: () => gymflowApi.getWeeklySchedule(),
+      staleTime: 5 * 60 * 1000
+    },
+    queryClient
+  );
 
-  const fetchSession = useCallback(async (date) => {
-    setIsLoadingSession(true);
-    setError(null);
-    try {
-      const data = await gymflowApi.getSession(date);
-      setSession(data.session || null);
-      setDayAssignment(data.dayAssignment || null);
+  // 3. Daily Workout Session Query (30-second stale time)
+  const {
+    data: sessionData = null,
+    isLoading: isLoadingSession,
+    error: sessionQueryError
+  } = useQuery(
+    {
+      queryKey: queryKeys.gymflow.session(spaceId, selectedDate),
+      queryFn: () => gymflowApi.getSession(selectedDate),
+      staleTime: 30 * 1000
+    },
+    queryClient
+  );
 
-      if (data.session && !data.session.isRestDay && data.session.bodyParts?.length > 0) {
-        // Collect all exercises to fetch comparisons
-        const exercises = [];
-        data.session.bodyParts.forEach((bp) => {
-          (bp.exercises || []).forEach((ex) => {
-            exercises.push({
-              _id: ex._id,
-              originalExerciseId: ex.originalExerciseId,
-              name: ex.name
-            });
-          });
+  const session = sessionData?.session || null;
+  const dayAssignment = sessionData?.dayAssignment || null;
+
+  // Extract exercise list to query previous comparisons
+  const exercisesForComparisons = useMemo(() => {
+    if (!session || session.isRestDay || !Array.isArray(session.bodyParts)) return [];
+    const list = [];
+    session.bodyParts.forEach((bp) => {
+      (bp.exercises || []).forEach((ex) => {
+        list.push({
+          _id: ex._id,
+          originalExerciseId: ex.originalExerciseId,
+          name: ex.name
         });
+      });
+    });
+    return list;
+  }, [session]);
 
-        if (exercises.length > 0) {
-          const compData = await gymflowApi.getComparisons(date, exercises);
-          setComparisons(compData || {});
-        } else {
-          setComparisons({});
-        }
-      } else {
-        setComparisons({});
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Failed to load workout session');
-    } finally {
-      setIsLoadingSession(false);
-    }
-  }, []);
+  // 4. Comparisons Query
+  const {
+    data: comparisons = {}
+  } = useQuery(
+    {
+      queryKey: queryKeys.gymflow.comparisons(spaceId, selectedDate),
+      queryFn: () => gymflowApi.getComparisons(selectedDate, exercisesForComparisons),
+      enabled: Boolean(selectedDate && exercisesForComparisons.length > 0),
+      staleTime: 60 * 1000
+    },
+    queryClient
+  );
 
-  const fetchTemplates = useCallback(async () => {
-    setIsLoadingTemplates(true);
-    try {
-      const list = await gymflowApi.getTemplates();
-      setTemplates(list || []);
-    } catch (err) {
-      console.error('Failed to load gym templates', err);
-    } finally {
-      setIsLoadingTemplates(false);
-    }
-  }, []);
-
-  const fetchWeeklySchedule = useCallback(async () => {
-    try {
-      const sched = await gymflowApi.getWeeklySchedule();
-      setWeeklySchedule(sched || null);
-    } catch (err) {
-      console.error('Failed to load weekly schedule', err);
-    }
-  }, []);
-
+  // 5. Analytics Fetcher with TanStack Cache (2-minute stale time)
   const fetchAnalytics = useCallback(async (params = {}) => {
     try {
-      const data = await gymflowApi.getAnalytics(params);
+      const data = await queryClient.fetchQuery({
+        queryKey: queryKeys.gymflow.analytics(spaceId, params),
+        queryFn: () => gymflowApi.getAnalytics(params),
+        staleTime: 2 * 60 * 1000
+      });
       setAnalytics(data || null);
       return data;
     } catch (err) {
       console.error('Failed to load gym analytics', err);
       return null;
     }
-  }, []);
+  }, [spaceId]);
 
-  useEffect(() => {
-    fetchSession(selectedDate);
-  }, [selectedDate, fetchSession]);
-
-  useEffect(() => {
-    fetchTemplates();
-    fetchWeeklySchedule();
-  }, [fetchTemplates, fetchWeeklySchedule]);
-
-  // Actions
+  // Date navigation
   const goToDate = (date) => setSelectedDate(date);
   const goToToday = () => setSelectedDate(currentDate);
   const goToPreviousDay = () => {
@@ -118,12 +124,18 @@ export function useGymflow() {
     setSelectedDate(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`);
   };
 
+  // --- Mutations ---
+
   const startWorkout = async (templateId) => {
     try {
       const res = await gymflowApi.startSession({ date: selectedDate, templateId });
-      setSession(res);
+      queryClient.setQueryData(queryKeys.gymflow.session(spaceId, selectedDate), (old) => ({
+        ...(old || {}),
+        session: res
+      }));
+      queryClient.invalidateQueries({ queryKey: queryKeys.gymflow.session(spaceId, selectedDate) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.gymflow.analytics(spaceId) });
       showToast('Workout session started!', 'success');
-      await fetchSession(selectedDate);
       return res;
     } catch (err) {
       const msg = err.response?.data?.message || 'Failed to start workout';
@@ -137,10 +149,13 @@ export function useGymflow() {
     lastSaveTimestampRef.current = saveTimestamp;
     try {
       const res = await gymflowApi.updateSession(selectedDate, { bodyParts, treadmill });
-      // Only commit if this was the latest save request initiated
       if (lastSaveTimestampRef.current === saveTimestamp) {
-        setSession(res);
+        queryClient.setQueryData(queryKeys.gymflow.session(spaceId, selectedDate), (old) => ({
+          ...(old || {}),
+          session: res
+        }));
       }
+      queryClient.invalidateQueries({ queryKey: queryKeys.gymflow.analytics(spaceId) });
       return res;
     } catch (err) {
       const msg = err.response?.data?.message || 'Failed to save workout';
@@ -152,7 +167,12 @@ export function useGymflow() {
   const finishWorkout = async (isFinished = true) => {
     try {
       const res = await gymflowApi.finishSession(selectedDate, isFinished);
-      setSession(res);
+      queryClient.setQueryData(queryKeys.gymflow.session(spaceId, selectedDate), (old) => ({
+        ...(old || {}),
+        session: res
+      }));
+      queryClient.invalidateQueries({ queryKey: queryKeys.gymflow.session(spaceId, selectedDate) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.gymflow.analytics(spaceId) });
       showToast(isFinished ? 'Workout finished and logged!' : 'Workout reopened for editing', 'success');
       return res;
     } catch (err) {
@@ -165,8 +185,13 @@ export function useGymflow() {
   const discardWorkout = async () => {
     try {
       await gymflowApi.discardSession(selectedDate);
-      setSession(null);
-      setComparisons({});
+      queryClient.setQueryData(queryKeys.gymflow.session(spaceId, selectedDate), (old) => ({
+        ...(old || {}),
+        session: null
+      }));
+      queryClient.invalidateQueries({ queryKey: queryKeys.gymflow.session(spaceId, selectedDate) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.gymflow.comparisons(spaceId, selectedDate) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.gymflow.analytics(spaceId) });
       showToast('Workout session discarded', 'success');
       return true;
     } catch (err) {
@@ -179,7 +204,12 @@ export function useGymflow() {
   const markRestDay = async (reason) => {
     try {
       const res = await gymflowApi.setRestDay(selectedDate, reason);
-      setSession(res);
+      queryClient.setQueryData(queryKeys.gymflow.session(spaceId, selectedDate), (old) => ({
+        ...(old || {}),
+        session: res
+      }));
+      queryClient.invalidateQueries({ queryKey: queryKeys.gymflow.session(spaceId, selectedDate) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.gymflow.analytics(spaceId) });
       showToast('Rest day logged', 'success');
       return res;
     } catch (err) {
@@ -192,7 +222,12 @@ export function useGymflow() {
   const removeRestDay = async () => {
     try {
       const res = await gymflowApi.removeRestDay(selectedDate);
-      setSession(res);
+      queryClient.setQueryData(queryKeys.gymflow.session(spaceId, selectedDate), (old) => ({
+        ...(old || {}),
+        session: res
+      }));
+      queryClient.invalidateQueries({ queryKey: queryKeys.gymflow.session(spaceId, selectedDate) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.gymflow.analytics(spaceId) });
       showToast('Rest day removed', 'success');
       return res;
     } catch (err) {
@@ -212,7 +247,7 @@ export function useGymflow() {
         res = await gymflowApi.createTemplate(templateData);
         showToast('Template created successfully', 'success');
       }
-      await fetchTemplates();
+      queryClient.invalidateQueries({ queryKey: queryKeys.gymflow.templates(spaceId) });
       return res;
     } catch (err) {
       throw err;
@@ -222,7 +257,7 @@ export function useGymflow() {
   const deleteTemplate = async (templateId, templateName) => {
     try {
       await gymflowApi.deleteTemplate(templateId);
-      setTemplates((prev) => prev.filter((t) => (t._id || t.id) !== templateId));
+      queryClient.invalidateQueries({ queryKey: queryKeys.gymflow.templates(spaceId) });
       showToast(`Template "${templateName}" deleted`, 'success');
     } catch (err) {
       const msg = err.response?.data?.message || 'Failed to delete template';
@@ -234,7 +269,8 @@ export function useGymflow() {
   const updateWeeklyScheduleDays = async (days) => {
     try {
       const res = await gymflowApi.updateWeeklySchedule(days);
-      setWeeklySchedule(res);
+      queryClient.setQueryData(queryKeys.gymflow.schedule(spaceId), res);
+      queryClient.invalidateQueries({ queryKey: queryKeys.gymflow.schedule(spaceId) });
       showToast('Weekly workout schedule updated', 'success');
       return res;
     } catch (err) {
@@ -243,6 +279,8 @@ export function useGymflow() {
       throw err;
     }
   };
+
+  const error = sessionQueryError?.response?.data?.message || sessionQueryError?.message || null;
 
   return {
     currentDate,
@@ -270,6 +308,6 @@ export function useGymflow() {
     deleteTemplate,
     updateWeeklyScheduleDays,
     fetchAnalytics,
-    refreshSession: () => fetchSession(selectedDate)
+    refreshSession: () => queryClient.invalidateQueries({ queryKey: queryKeys.gymflow.session(spaceId, selectedDate) })
   };
 }

@@ -1,6 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../auth/hooks/useAuth.js';
 import { somedayApi } from '../../someday/services/someday.api.js';
+import { queryClient } from '../../../lib/queryClient.js';
+import { queryKeys } from '../../../lib/queryKeys.js';
 
 function getTimeBasedGreeting() {
   const hour = new Date().getHours();
@@ -11,33 +14,32 @@ function getTimeBasedGreeting() {
 
 export function Dashboard() {
   const { user, space } = useAuth();
-  const [stats, setStats] = useState({ total: 0, planned: 0, purchased: 0 });
-  const [isLoadingStats, setIsLoadingStats] = useState(true);
+  const spaceId = space?.id;
 
-  // Fetch Someday items to populate the stats row
-  useEffect(() => {
-    let isMounted = true;
-    async function loadStats() {
-      try {
-        const items = await somedayApi.getItems();
-        if (isMounted && Array.isArray(items)) {
-          const total = items.length;
-          const planned = items.filter((i) => i.status === 'PLANNED').length;
-          const purchased = items.filter((i) => i.status === 'PURCHASED').length;
-          setStats({ total, planned, purchased });
+  // Cached Someday items query to compute overview stats instantly
+  const { data: items = [], isLoading: isLoadingStats } = useQuery(
+    {
+      queryKey: queryKeys.someday.allItems(spaceId),
+      queryFn: async () => {
+        try {
+          const res = await somedayApi.getItems();
+          return Array.isArray(res) ? res : [];
+        } catch {
+          return [];
         }
-      } catch {
-        // Fallback gracefully on stats error
-      } finally {
-        if (isMounted) setIsLoadingStats(false);
-      }
-    }
+      },
+      staleTime: 60 * 1000,
+      enabled: Boolean(spaceId)
+    },
+    queryClient
+  );
 
-    loadStats();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const stats = useMemo(() => {
+    const total = items.length;
+    const planned = items.filter((i) => i.status === 'PLANNED').length;
+    const purchased = items.filter((i) => i.status === 'PURCHASED').length;
+    return { total, planned, purchased };
+  }, [items]);
 
   const greeting = getTimeBasedGreeting();
   const formattedDate = user?.createdAt

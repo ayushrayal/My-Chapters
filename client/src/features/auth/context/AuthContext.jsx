@@ -1,6 +1,7 @@
 import { createContext, useState, useEffect, useCallback } from 'react';
 import { authApi } from '../services/auth.api.js';
 import { parseApiError } from '../../../utils/error-handler.js';
+import { clearUserQueries } from '../../../lib/queryClient.js';
 
 export const AuthContext = createContext(null);
 
@@ -108,6 +109,7 @@ export function AuthProvider({ children }) {
       setUser(null);
       setSpace(null);
       setIsAuthenticated(false);
+      clearUserQueries();
     }
 
     if (logoutWarning) {
