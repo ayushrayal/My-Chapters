@@ -157,7 +157,7 @@ describe('Dayflow Page Component', () => {
     fireEvent.click(analyticsTab);
 
     expect(screen.getByText(/no performance data yet/i)).toBeDefined();
-    expect(screen.getByText(/0%/)).toBeDefined();
+    expect(screen.getAllByText(/0%/)[0]).toBeDefined();
   });
 
   it('triggers task status completion when Complete button is clicked', async () => {
@@ -228,5 +228,38 @@ describe('Dayflow Page Component', () => {
       expect(callArg.tasks[0].title).toBe('First Task');
       expect(callArg.tasks[1].title).toBe('Second Task');
     });
+  });
+
+  it('opens custom RestDayModal instead of native window.confirm when Mark Rest Day is clicked', async () => {
+    const confirmSpy = vi.spyOn(window, 'confirm');
+    render(<Dayflow />);
+
+    const markRestDayButtons = screen.getAllByRole('button', { name: /mark rest day/i });
+    expect(markRestDayButtons.length).toBeGreaterThan(0);
+    fireEvent.click(markRestDayButtons[0]);
+
+    // Native window.confirm must NOT be called
+    expect(confirmSpy).not.toHaveBeenCalled();
+
+    // Custom RestDayModal is rendered
+    expect(screen.getByRole('heading', { name: /mark this day as rest day\?/i })).toBeDefined();
+    expect(screen.getByText(/marking this date as a rest day will clear all existing blocks and tasks for this date/i)).toBeDefined();
+
+    // Check acknowledgment checkbox and submit
+    const checkbox = screen.getByLabelText(/i understand that existing blocks and tasks will be cleared/i);
+    fireEvent.click(checkbox);
+
+    const confirmBtn = screen.getByRole('button', { name: /confirm rest day/i });
+    fireEvent.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(defaultHookReturn.setRestDay).toHaveBeenCalledWith({
+        date: '2026-11-24',
+        isRestDay: true,
+        overwrite: true
+      });
+    });
+
+    confirmSpy.mockRestore();
   });
 });

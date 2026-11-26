@@ -59,7 +59,7 @@ export class GymAnalyticsService {
 
     // Fetch matching workout sessions with targeted projections (avoids loading set notes, subdocument IDs)
     const sessions = await GymWorkoutSession.find(query)
-      .select('date templateName templateId isFinished scoreBreakdown.totalScore treadmill bodyParts.name bodyParts.exercises.name bodyParts.exercises.sets.status bodyParts.exercises.sets.weightKg bodyParts.exercises.sets.reps')
+      .select('date templateName templateId isFinished scoreBreakdown.totalScore treadmill bodyParts.name bodyParts.exercises.name bodyParts.exercises.measurementType bodyParts.exercises.sets.status bodyParts.exercises.sets.weightKg bodyParts.exercises.sets.reps bodyParts.exercises.sets.extraWeightKg bodyParts.exercises.sets.durationMinutes')
       .sort({ date: 1 })
       .lean();
 
@@ -133,23 +133,39 @@ export class GymAnalyticsService {
           const exMatches = !filterEx || exName.toLowerCase() === filterEx;
           if (!exMatches) continue;
 
+          const mType = ex.measurementType || 'WEIGHT_REPS';
           let exVol = 0;
           let exReps = 0;
           let exMaxWeight = 0;
+          let exDuration = 0;
+          let exExtraWeight = 0;
           let exCompletedSets = 0;
 
-          // Only eligible COMPLETED sets contribute to volume and reps
+          // Only eligible COMPLETED sets contribute based on measurement type
           for (const s of ex.sets || []) {
             if (s.status === GYM_SET_STATUS.COMPLETED) {
-              const weight = Math.max(0, Number(s.weightKg) || 0);
-              const reps = Math.max(0, Number(s.reps) || 0);
-              const setVol = weight * reps;
+              if (mType === 'WEIGHT_REPS') {
+                const weight = Math.max(0, Number(s.weightKg) || 0);
+                const reps = Math.max(0, Number(s.reps) || 0);
+                const setVol = weight * reps;
 
-              exVol += setVol;
-              exReps += reps;
-              if (weight > exMaxWeight) {
-                exMaxWeight = weight;
+                exVol += setVol;
+                exReps += reps;
+                if (weight > exMaxWeight) {
+                  exMaxWeight = weight;
+                }
+              } else if (mType === 'BODYWEIGHT_REPS') {
+                const reps = Math.max(0, Number(s.reps) || 0);
+                const extraWeight = Math.max(0, Number(s.extraWeightKg) || 0);
+                exReps += reps;
+                if (extraWeight > exExtraWeight) {
+                  exExtraWeight = extraWeight;
+                }
+              } else if (mType === 'DURATION') {
+                const duration = Math.max(0, Number(s.durationMinutes) || 0);
+                exDuration += duration;
               }
+
               exCompletedSets += 1;
             }
           }
@@ -185,14 +201,18 @@ export class GymAnalyticsService {
             exercisePerformanceMap.set(eKey, {
               name: eKey,
               targetBodyPart: bpName,
+              measurementType: mType,
               history: []
             });
           }
           exercisePerformanceMap.get(eKey).history.push({
             date: session.date,
+            measurementType: mType,
             volume: exVol,
             maxWeight: exMaxWeight,
             reps: exReps,
+            durationMinutes: exDuration,
+            extraWeightKg: exExtraWeight,
             completedSets: exCompletedSets
           });
         }
@@ -370,21 +390,24 @@ export class GymAnalyticsService {
       allExercises: Array.from(allExercisesSet).sort()
     };
 
+    const overall = {
+      totalWorkouts: matchingFinishedWorkouts,
+      totalCompletedExercises,
+      totalCompletedSets,
+      totalReps,
+      totalVolume,
+      averageScore,
+      restDaysCount
+    };
+
     return {
-      overall: {
-        totalWorkouts: matchingFinishedWorkouts,
-        totalCompletedExercises,
-        totalCompletedSets,
-        totalReps,
-        totalVolume,
-        averageScore,
-        restDaysCount
-      },
+      overall,
+      summary: overall,
       treadmill: {
         totalSessions: treadmillSessionsCount,
-        totalMinutes: treadmillTotalMinutes,
-        averageDuration: averageTreadmillDuration,
-        caloriesBurned: treadmillCaloriesBurned,
+        totalMinutes: Number(treadmillTotalMinutes.toFixed(1)),
+        averageDuration: Number(averageTreadmillDuration.toFixed(1)),
+        caloriesBurned: Number(treadmillCaloriesBurned.toFixed(1)),
         completedCount: treadmillCompletedCount,
         partialCount: treadmillPartialCount,
         skippedCount: treadmillSkippedCount,
@@ -398,7 +421,42 @@ export class GymAnalyticsService {
           averageScore: t.sessionsCount > 0 ? Math.round(t.scoreSum / t.sessionsCount) : 0
         })),
       bodyPartsBreakdown: Array.from(bodyPartPerformanceMap.values()).filter((bp) => bp.setsCount > 0 || bp.totalVolume > 0),
-      exercisesBreakdown: Array.from(exercisePerformanceMap.values()).filter((ex) => ex.history.some((h) => h.completedSets > 0 || h.volume > 0)),
+      exercisesBreakdown: Array.from(exercisePerformanceMap.values())
+        .filter((ex) => ex.history.some((h) => h.completedSets > 0 || h.volume > 0 || h.durationMinutes > 0 || h.reps > 0))
+        .map((ex) => {
+          let totalVol = 0;
+          let maxWt = 0;
+          let maxRps = 0;
+          let maxExWt = 0;
+          let totalDur = 0;
+          let maxDur = 0;
+          let totalRps = 0;
+          let totalSets = 0;
+
+          ex.history.forEach((h) => {
+            totalVol += h.volume || 0;
+            if ((h.maxWeight || 0) > maxWt) maxWt = h.maxWeight;
+            if ((h.reps || 0) > maxRps) maxRps = h.reps;
+            if ((h.extraWeightKg || 0) > maxExWt) maxExWt = h.extraWeightKg;
+            totalDur += h.durationMinutes || 0;
+            if ((h.durationMinutes || 0) > maxDur) maxDur = h.durationMinutes;
+            totalRps += h.reps || 0;
+            totalSets += h.completedSets || 0;
+          });
+
+          return {
+            ...ex,
+            totalVolume: totalVol,
+            maxWeight: maxWt,
+            maxReps: maxRps,
+            maxExtraWeight: maxExWt,
+            totalDurationMinutes: Number(totalDur.toFixed(1)),
+            maxDurationMinutes: Number(maxDur.toFixed(1)),
+            totalReps: totalRps,
+            totalSets: totalSets,
+            sessionsCount: ex.history.filter((h) => h.completedSets > 0).length
+          };
+        }),
       filterOptions
     };
   }

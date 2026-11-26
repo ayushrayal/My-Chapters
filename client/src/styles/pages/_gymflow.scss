@@ -1683,6 +1683,9 @@
   cursor: pointer;
   transition: all 0.15s ease;
   box-sizing: border-box;
+  gap: 12px;
+  width: 100%;
+  overflow: hidden;
 
   &:hover {
     border-color: rgba(58, 78, 251, 0.3);
@@ -1697,7 +1700,9 @@
   &__left {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
+    min-width: 0;
+    flex-shrink: 0;
   }
 
   &__day-tile {
@@ -1706,12 +1711,14 @@
     justify-content: center;
     width: 38px;
     height: 38px;
+    min-width: 38px;
     border-radius: 10px;
     background-color: #F4F5FA;
     font-family: $font-family-heading;
     font-size: 13px;
     font-weight: 800;
     color: $color-deep-navy;
+    flex-shrink: 0;
   }
 
   &__day-name {
@@ -1719,13 +1726,125 @@
     font-size: 15px;
     font-weight: 700;
     color: $color-deep-navy;
+    white-space: nowrap;
   }
 
   &__status {
     display: inline-flex;
     align-items: center;
+    justify-content: flex-end;
     gap: 8px;
+    min-width: 0;
+    max-width: 58%;
+    flex-shrink: 1;
+
+    .chip {
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      display: inline-block;
+      vertical-align: middle;
+    }
   }
+
+  @media (max-width: 480px) {
+    padding: 10px 12px;
+    gap: 8px;
+
+    &__status {
+      max-width: 52%;
+
+      .chip {
+        font-size: 11.5px;
+        padding: 3px 8px;
+      }
+    }
+  }
+}
+
+// Workout Action Buttons (Header and Bottom responsive layouts)
+.gymflow-workout-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+
+  @media (max-width: 600px) {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+
+    .btn {
+      flex: 1 1 0%;
+      min-width: 0;
+      font-size: 13px;
+      padding: 0 10px;
+      height: 42px;
+      white-space: nowrap;
+      justify-content: center;
+    }
+  }
+}
+
+.gymflow-active-workout-bottom-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 0 32px;
+  width: 100%;
+  box-sizing: border-box;
+
+  .gymflow-btn-discard {
+    background-color: transparent !important;
+    color: #D32F2F !important;
+    border: 1.5px solid #FFCDD2 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    min-height: 44px;
+    padding: 0 18px;
+    font-weight: 700;
+    border-radius: 10px;
+    transition: all 0.15s ease;
+
+    &:hover {
+      background-color: #FFF5F5 !important;
+      border-color: #EF9A9A !important;
+    }
+  }
+
+  .gymflow-btn-finish {
+    min-height: 44px;
+    padding: 0 24px;
+    font-weight: 700;
+    border-radius: 10px;
+    margin-left: auto;
+  }
+
+  @media (max-width: 500px) {
+    flex-direction: column-reverse;
+    gap: 10px;
+
+    .gymflow-btn-discard,
+    .gymflow-btn-finish {
+      width: 100% !important;
+      margin-left: 0 !important;
+      justify-content: center !important;
+      height: 46px !important;
+    }
+  }
+}
+
+.gymflow-skip-reason-wrap {
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
+  white-space: normal !important;
+  max-width: 100% !important;
+  font-size: 13px !important;
+  line-height: 1.4 !important;
 }
 
 // --- ANALYTICS TAB ---
@@ -1735,7 +1854,7 @@
   gap: 14px;
   width: 100%;
 
-  @media (min-width: 1024px) {
+  @media (min-width: 768px) {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
@@ -1755,7 +1874,7 @@
   &__range {
     width: 100%;
 
-    @media (min-width: 1024px) {
+    @media (min-width: 768px) {
       width: auto;
     }
   }

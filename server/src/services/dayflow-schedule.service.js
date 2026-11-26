@@ -27,7 +27,11 @@ function formatBlock(b, idx) {
  * An unfinished task whose scheduled time has passed becomes PENDING (never automatically skipped).
  */
 function resolveTaskStatus(task, block, scheduleDate, clientDateStr, clientTimeMinutes) {
-  if (task.status === DAYFLOW_TASK_STATUS.COMPLETED || task.status === DAYFLOW_TASK_STATUS.SKIPPED) {
+  if (
+    task.status === DAYFLOW_TASK_STATUS.COMPLETED ||
+    task.status === DAYFLOW_TASK_STATUS.SKIPPED ||
+    task.status === DAYFLOW_TASK_STATUS.PENDING
+  ) {
     return task.status;
   }
 
@@ -509,15 +513,31 @@ export class DayflowScheduleService {
         return formatSchedule(existing, clientTime, clientDate);
       }
 
-      const created = await DayflowSchedule.create({
-        spaceId: spaceObjectId,
-        date,
-        isRestDay: true,
-        isFinished: false,
-        blocks: [],
-        tasks: []
-      });
-      return formatSchedule(created, clientTime, clientDate);
+      try {
+        const created = await DayflowSchedule.create({
+          spaceId: spaceObjectId,
+          date,
+          isRestDay: true,
+          isFinished: false,
+          blocks: [],
+          tasks: []
+        });
+        return formatSchedule(created, clientTime, clientDate);
+      } catch (err) {
+        if (err.code === 11000) {
+          const doc = await DayflowSchedule.findOne({ spaceId: spaceObjectId, date });
+          if (doc) {
+            doc.isRestDay = true;
+            doc.blocks = [];
+            doc.tasks = [];
+            doc.templateId = null;
+            doc.templateName = null;
+            await doc.save();
+            return formatSchedule(doc, clientTime, clientDate);
+          }
+        }
+        throw err;
+      }
     }
 
     // If clearing rest day
@@ -758,23 +778,102 @@ export class DayflowScheduleService {
 
     const dailyTrend = [];
     const templatePerformanceMap = new Map();
+    const weeklyPerformanceMap = new Map();
+    const monthlyPerformanceMap = new Map();
+
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    function getWeekInfo(dateStr) {
+      const [year, month, day] = dateStr.split('-').map(Number);
+      const d = new Date(Date.UTC(year, month - 1, day));
+      const dayOfWeek = d.getUTCDay(); // 0 is Sun
+      const diffToMonday = (dayOfWeek === 0 ? -6 : 1) - dayOfWeek;
+      const monday = new Date(d);
+      monday.setUTCDate(d.getUTCDate() + diffToMonday);
+      const sunday = new Date(monday);
+      sunday.setUTCDate(monday.getUTCDate() + 6);
+      const startStr = monday.toISOString().split('T')[0];
+      const endStr = sunday.toISOString().split('T')[0];
+      const startParts = startStr.split('-');
+      const endParts = endStr.split('-');
+      const weekLabel = `${monthNames[Number(startParts[1]) - 1]} ${Number(startParts[2])} - ${monthNames[Number(endParts[1]) - 1]} ${Number(endParts[2])}`;
+      return {
+        weekKey: startStr,
+        startDate: startStr,
+        endDate: endStr,
+        weekLabel
+      };
+    }
+
+    function getMonthInfo(dateStr) {
+      const [year, month] = dateStr.split('-');
+      const monthLabel = `${monthNames[Number(month) - 1]} ${year}`;
+      return {
+        monthKey: `${year}-${month}`,
+        monthLabel
+      };
+    }
 
     for (const s of schedules) {
+      const weekInfo = getWeekInfo(s.date);
+      if (!weeklyPerformanceMap.has(weekInfo.weekKey)) {
+        weeklyPerformanceMap.set(weekInfo.weekKey, {
+          weekKey: weekInfo.weekKey,
+          startDate: weekInfo.startDate,
+          endDate: weekInfo.endDate,
+          weekLabel: weekInfo.weekLabel,
+          scheduledDays: 0,
+          finishedDays: 0,
+          restDays: 0,
+          totalTasks: 0,
+          completedTasks: 0,
+          skippedTasks: 0,
+          pendingTasks: 0
+        });
+      }
+      const weekRecord = weeklyPerformanceMap.get(weekInfo.weekKey);
+
+      const monthInfo = getMonthInfo(s.date);
+      if (!monthlyPerformanceMap.has(monthInfo.monthKey)) {
+        monthlyPerformanceMap.set(monthInfo.monthKey, {
+          monthKey: monthInfo.monthKey,
+          monthLabel: monthInfo.monthLabel,
+          scheduledDays: 0,
+          finishedDays: 0,
+          restDays: 0,
+          totalTasks: 0,
+          completedTasks: 0,
+          skippedTasks: 0,
+          pendingTasks: 0
+        });
+      }
+      const monthRecord = monthlyPerformanceMap.get(monthInfo.monthKey);
+
       if (s.isRestDay) {
         restDaysCount++;
+        weekRecord.restDays++;
+        monthRecord.restDays++;
         dailyTrend.push({
           date: s.date,
           status: DAYFLOW_SCHEDULE_STATUS.REST_DAY,
           completionRate: null,
           totalTasks: 0,
           completedTasks: 0,
-          skippedTasks: 0
+          skippedTasks: 0,
+          pendingTasks: 0
         });
         continue;
       }
 
       scheduledDaysCount++;
-      if (s.isFinished) finishedDaysCount++;
+      weekRecord.scheduledDays++;
+      monthRecord.scheduledDays++;
+
+      if (s.isFinished) {
+        finishedDaysCount++;
+        weekRecord.finishedDays++;
+        monthRecord.finishedDays++;
+      }
 
       const dayTotal = s.tasks ? s.tasks.length : 0;
       const dayCompleted = s.tasks
@@ -783,10 +882,21 @@ export class DayflowScheduleService {
       const daySkipped = s.tasks
         ? s.tasks.filter((t) => t.status === DAYFLOW_TASK_STATUS.SKIPPED).length
         : 0;
+      const dayPending = Math.max(0, dayTotal - dayCompleted - daySkipped);
 
       totalTasks += dayTotal;
       completedTasks += dayCompleted;
       skippedTasks += daySkipped;
+
+      weekRecord.totalTasks += dayTotal;
+      weekRecord.completedTasks += dayCompleted;
+      weekRecord.skippedTasks += daySkipped;
+      weekRecord.pendingTasks += dayPending;
+
+      monthRecord.totalTasks += dayTotal;
+      monthRecord.completedTasks += dayCompleted;
+      monthRecord.skippedTasks += daySkipped;
+      monthRecord.pendingTasks += dayPending;
 
       const dayRate = dayTotal > 0 ? Number(((dayCompleted / dayTotal) * 100).toFixed(2)) : 0;
 
@@ -796,7 +906,8 @@ export class DayflowScheduleService {
         completionRate: dayRate,
         totalTasks: dayTotal,
         completedTasks: dayCompleted,
-        skippedTasks: daySkipped
+        skippedTasks: daySkipped,
+        pendingTasks: dayPending
       });
 
       // Template attribution (snapshot name)
@@ -819,8 +930,25 @@ export class DayflowScheduleService {
       }
     }
 
+    const pendingTasks = Math.max(0, totalTasks - completedTasks - skippedTasks);
     const overallCompletionRate =
       totalTasks > 0 ? Number(((completedTasks / totalTasks) * 100).toFixed(2)) : 0;
+    const finishRate =
+      scheduledDaysCount > 0 ? Number(((finishedDaysCount / scheduledDaysCount) * 100).toFixed(2)) : 0;
+
+    // Weekly performance array
+    const weeklyPerformance = Array.from(weeklyPerformanceMap.values()).map((w) => ({
+      ...w,
+      completionRate: w.totalTasks > 0 ? Number(((w.completedTasks / w.totalTasks) * 100).toFixed(2)) : 0,
+      finishRate: w.scheduledDays > 0 ? Number(((w.finishedDays / w.scheduledDays) * 100).toFixed(2)) : 0
+    }));
+
+    // Monthly performance array
+    const monthlyPerformance = Array.from(monthlyPerformanceMap.values()).map((m) => ({
+      ...m,
+      completionRate: m.totalTasks > 0 ? Number(((m.completedTasks / m.totalTasks) * 100).toFixed(2)) : 0,
+      finishRate: m.scheduledDays > 0 ? Number(((m.finishedDays / m.scheduledDays) * 100).toFixed(2)) : 0
+    }));
 
     // Template Breakdown
     const templateBreakdown = Array.from(templatePerformanceMap.values()).map((t) => ({
@@ -892,12 +1020,26 @@ export class DayflowScheduleService {
         totalTasks,
         completedTasks,
         skippedTasks,
+        pendingTasks,
         overallCompletionRate,
+        completionPercentage: overallCompletionRate,
         scheduledDaysCount,
+        totalSchedules: scheduledDaysCount,
         restDaysCount,
-        finishedDaysCount
+        restDays: restDaysCount,
+        finishedDaysCount,
+        finishedDays: finishedDaysCount,
+        finishRate
+      },
+      consistency: {
+        scheduledDays: scheduledDaysCount,
+        finishedDays: finishedDaysCount,
+        restDays: restDaysCount,
+        finishRate
       },
       dailyTrend,
+      weeklyPerformance,
+      monthlyPerformance,
       templateBreakdown,
       timeBasedPerformance
     };

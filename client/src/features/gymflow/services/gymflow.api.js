@@ -39,6 +39,13 @@ export const gymflowApi = {
   },
 
   // --- Daily Workout Session ---
+  async getCalendarOverview(startDate, endDate) {
+    const res = await api.get('/gymflow/workout/calendar/overview', {
+      params: { startDate, endDate }
+    });
+    return res.data?.data?.days || [];
+  },
+
   async getSession(date) {
     const res = await api.get(`/gymflow/workout/${date}`);
     return res.data?.data;

@@ -1,9 +1,16 @@
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../auth/hooks/useAuth.js';
-import { somedayApi } from '../../someday/services/someday.api.js';
+import { dashboardApi } from '../services/dashboard.api.js';
 import { queryClient } from '../../../lib/queryClient.js';
 import { queryKeys } from '../../../lib/queryKeys.js';
+import {
+  CalendarIcon,
+  CheckIcon,
+  DumbbellIcon,
+  MoonIcon,
+  BarChartIcon
+} from '../../../components/common/Icons.jsx';
 
 function getTimeBasedGreeting() {
   const hour = new Date().getHours();
@@ -16,36 +23,28 @@ export function Dashboard() {
   const { user, space } = useAuth();
   const spaceId = space?.id;
 
-  // Cached Someday items/stats query to compute overview stats with zero lag
-  const { data: rawStats = null, isLoading: isLoadingStats } = useQuery(
+  // Date range filter state
+  const [selectedRange, setSelectedRange] = useState('30d'); // '7d' | '30d' | '90d' | 'month' | 'custom'
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
+
+  const queryParams = useMemo(() => {
+    if (selectedRange === 'custom' && customStartDate && customEndDate) {
+      return { range: 'custom', startDate: customStartDate, endDate: customEndDate };
+    }
+    return { range: selectedRange };
+  }, [selectedRange, customStartDate, customEndDate]);
+
+  // Consolidated dashboard query
+  const { data: dashboardData, isLoading, isFetching } = useQuery(
     {
-      queryKey: queryKeys.someday.allItems(spaceId),
-      queryFn: async () => {
-        try {
-          return await somedayApi.getStats();
-        } catch {
-          return { total: 0, planned: 0, purchased: 0 };
-        }
-      },
+      queryKey: queryKeys.dashboard.overview(spaceId, queryParams),
+      queryFn: () => dashboardApi.getOverview(queryParams),
       staleTime: 60 * 1000,
       enabled: Boolean(spaceId)
     },
     queryClient
   );
-
-  const stats = useMemo(() => {
-    if (Array.isArray(rawStats)) {
-      const total = rawStats.length;
-      const planned = rawStats.filter((i) => i.status === 'PLANNED').length;
-      const purchased = rawStats.filter((i) => i.status === 'PURCHASED').length;
-      return { total, planned, purchased };
-    }
-    return {
-      total: Number(rawStats?.total) || 0,
-      planned: Number(rawStats?.planned) || 0,
-      purchased: Number(rawStats?.purchased) || 0
-    };
-  }, [rawStats]);
 
   const greeting = getTimeBasedGreeting();
   const formattedDate = user?.createdAt
@@ -56,9 +55,57 @@ export function Dashboard() {
       })
     : 'N/A';
 
+  const overall = dashboardData?.overall || {
+    dayflowCompletionRate: 0,
+    gymWorkoutCount: 0,
+    gymConsistency: 0,
+    somedayTotal: 0,
+    somedayPlanned: 0,
+    somedayPurchased: 0
+  };
+
+  const dayflow = dashboardData?.dayflow || {
+    totalScheduledDays: 0,
+    completedDays: 0,
+    restDays: 0,
+    dayCompletionRate: 0,
+    taskCompletionRate: 0,
+    totalTasks: 0,
+    completedTasks: 0,
+    skippedTasks: 0,
+    pendingTasks: 0,
+    weeklyTrend: []
+  };
+
+  const gymflow = dashboardData?.gymflow || {
+    totalWorkoutSessions: 0,
+    completedWorkouts: 0,
+    restDays: 0,
+    totalVolume: 0,
+    totalSets: 0,
+    totalReps: 0,
+    totalDurationMinutes: 0,
+    activeWorkoutDays: 0,
+    weeklyWorkoutFrequency: 0,
+    workoutConsistency: 0,
+    recentActivity: [],
+    performanceTrend: []
+  };
+
+  const someday = dashboardData?.someday || {
+    totalItems: 0,
+    plannedItems: 0,
+    purchasedItems: 0,
+    archivedItems: 0,
+    statusDistribution: { planned: 0, purchased: 0, archived: 0 },
+    recentAdditions: []
+  };
+
+  const combinedActivity = dashboardData?.combinedActivity || [];
+
   return (
-    <div className="dashboard-page">
-      {/* 1. Hero Card in Primary Gradient with Time-Based Greeting and Subtle Pattern */}
+    <div className="dashboard-page" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      {/* 1. Hero Card */}
       <section className="dashboard-hero" aria-labelledby="welcome-heading">
         <div className="dashboard-hero__pattern" aria-hidden="true">
           <svg className="dashboard-hero__svg" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
@@ -88,15 +135,162 @@ export function Dashboard() {
           </h1>
 
           <p className="dashboard-hero__subtitle">
-            Your personal life documentation platform is active. Document decisions, milestones, and memories.
+            Comprehensive personal performance overview across Dayflow, GymFlow, and Someday.
           </p>
         </div>
       </section>
 
-      {/* 2. Stats Row with Quick Cards & Lime Accents */}
-      <section className="dashboard-stats" aria-label="Someday Overview Statistics">
-        <a href="/someday" className="stat-card">
+      {/* 2. Date Range Filter Bar */}
+      <section
+        className="dashboard-filter-bar"
+        aria-label="Dashboard Date Range Selector"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '12px',
+          backgroundColor: '#FFFFFF',
+          padding: '12px 16px',
+          borderRadius: '14px',
+          border: '1px solid #E6E9F2'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '13px', fontWeight: 800, color: '#252943', marginRight: '4px' }}>
+            Period:
+          </span>
+          {[
+            { id: '7d', label: 'Last 7 days' },
+            { id: '30d', label: 'Last 30 days' },
+            { id: '90d', label: 'Last 90 days' },
+            { id: 'month', label: 'This month' },
+            { id: 'custom', label: 'Custom range' }
+          ].map((r) => {
+            const active = selectedRange === r.id;
+            return (
+              <button
+                key={r.id}
+                type="button"
+                onClick={() => setSelectedRange(r.id)}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: '20px',
+                  fontSize: '13px',
+                  fontWeight: active ? 800 : 600,
+                  backgroundColor: active ? '#252943' : '#F0F2F7',
+                  color: active ? '#E3FF3B' : '#252943',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                {r.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {selectedRange === 'custom' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <input
+              type="date"
+              value={customStartDate}
+              onChange={(e) => setCustomStartDate(e.target.value)}
+              style={{
+                padding: '6px 10px',
+                borderRadius: '8px',
+                border: '1px solid #DEE0ED',
+                fontSize: '13px'
+              }}
+              aria-label="Start Date"
+            />
+            <span style={{ fontSize: '13px', color: 'rgba(37,41,67,0.6)' }}>to</span>
+            <input
+              type="date"
+              value={customEndDate}
+              onChange={(e) => setCustomEndDate(e.target.value)}
+              style={{
+                padding: '6px 10px',
+                borderRadius: '8px',
+                border: '1px solid #DEE0ED',
+                fontSize: '13px'
+              }}
+              aria-label="End Date"
+            />
+          </div>
+        )}
+
+        {isFetching && !isLoading && (
+          <span style={{ fontSize: '12px', color: 'rgba(37,41,67,0.6)' }}>Updating...</span>
+        )}
+      </section>
+
+      {/* 3. Overall KPI Highlights Cards */}
+      <section
+        className="dashboard-kpi-grid"
+        aria-label="Overall Performance KPI Highlights"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gap: '16px'
+        }}
+      >
+        {/* Dayflow Completion */}
+        <a
+          href="/dayflow"
+          className="stat-card"
+          style={{ textDecoration: 'none', color: 'inherit' }}
+        >
           <div className="stat-card__icon-wrap stat-card__icon-wrap--primary" aria-hidden="true">
+            <CheckIcon size={22} />
+          </div>
+          <div className="stat-card__content">
+            <span className="stat-card__label">Dayflow Task Completion</span>
+            <div className="stat-card__value-row">
+              <span className="stat-card__value">
+                {isLoading ? '-' : `${overall.dayflowCompletionRate}%`}
+              </span>
+              <span className="stat-card__accent-dot" title="Active feature" />
+            </div>
+            <span style={{ fontSize: '11px', color: 'rgba(37,41,67,0.6)', marginTop: '2px' }}>
+              {dayflow.completedTasks} of {dayflow.totalTasks} tasks done
+            </span>
+          </div>
+        </a>
+
+        {/* GymFlow Workouts */}
+        <a
+          href="/gymflow"
+          className="stat-card"
+          style={{ textDecoration: 'none', color: 'inherit' }}
+        >
+          <div className="stat-card__icon-wrap stat-card__icon-wrap--planned" aria-hidden="true">
+            <DumbbellIcon size={22} />
+          </div>
+          <div className="stat-card__content">
+            <span className="stat-card__label">GymFlow Workouts</span>
+            <div className="stat-card__value-row">
+              <span className="stat-card__value">
+                {isLoading ? '-' : overall.gymWorkoutCount}
+              </span>
+              <span className="stat-card__status-chip stat-card__status-chip--planned">
+                {overall.gymConsistency}% Consistency
+              </span>
+            </div>
+            <span style={{ fontSize: '11px', color: 'rgba(37,41,67,0.6)', marginTop: '2px' }}>
+              {gymflow.totalVolume > 0 ? `${gymflow.totalVolume.toLocaleString()} kg volume` : `${gymflow.totalSets} sets`}
+            </span>
+          </div>
+        </a>
+
+        {/* Someday Total & Planned */}
+        <a
+          href="/someday"
+          className="stat-card"
+          style={{ textDecoration: 'none', color: 'inherit' }}
+        >
+          <div className="stat-card__icon-wrap stat-card__icon-wrap--purchased" aria-hidden="true">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
               <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
@@ -104,48 +298,365 @@ export function Dashboard() {
             </svg>
           </div>
           <div className="stat-card__content">
-            <span className="stat-card__label">Total Someday Items</span>
+            <span className="stat-card__label">Someday Items</span>
             <div className="stat-card__value-row">
-              <span className="stat-card__value">{isLoadingStats ? '-' : stats.total}</span>
-              <span className="stat-card__accent-dot" title="Active feature" />
+              <span className="stat-card__value">
+                {isLoading ? '-' : overall.somedayTotal}
+              </span>
+              <span className="stat-card__status-chip stat-card__status-chip--purchased">
+                {overall.somedayPurchased} Purchased
+              </span>
             </div>
-          </div>
-        </a>
-
-        <a href="/someday" className="stat-card">
-          <div className="stat-card__icon-wrap stat-card__icon-wrap--planned" aria-hidden="true">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" />
-              <polyline points="12 6 12 12 14 14" />
-            </svg>
-          </div>
-          <div className="stat-card__content">
-            <span className="stat-card__label">Planned Items</span>
-            <div className="stat-card__value-row">
-              <span className="stat-card__value">{isLoadingStats ? '-' : stats.planned}</span>
-              <span className="stat-card__status-chip stat-card__status-chip--planned">Planned</span>
-            </div>
-          </div>
-        </a>
-
-        <a href="/someday" className="stat-card">
-          <div className="stat-card__icon-wrap stat-card__icon-wrap--purchased" aria-hidden="true">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-              <polyline points="22 4 12 14.01 9 11.01" />
-            </svg>
-          </div>
-          <div className="stat-card__content">
-            <span className="stat-card__label">Purchased Items</span>
-            <div className="stat-card__value-row">
-              <span className="stat-card__value">{isLoadingStats ? '-' : stats.purchased}</span>
-              <span className="stat-card__status-chip stat-card__status-chip--purchased">Purchased</span>
-            </div>
+            <span style={{ fontSize: '11px', color: 'rgba(37,41,67,0.6)', marginTop: '2px' }}>
+              {overall.somedayPlanned} currently planned
+            </span>
           </div>
         </a>
       </section>
 
-      {/* 3. Account & Space Overview: Compact Info Grid with Icons & Lime Role Chip */}
+      {/* 4. Dayflow Performance Section */}
+      <section
+        className="dashboard-section-card"
+        style={{
+          backgroundColor: '#FFFFFF',
+          borderRadius: '16px',
+          padding: '24px',
+          border: '1px solid #E6E9F2',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px'
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+          <div>
+            <h2 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: '#252943' }}>
+              Dayflow Execution
+            </h2>
+            <p style={{ fontSize: '13px', color: 'rgba(37,41,67,0.65)', margin: '2px 0 0' }}>
+              Daily routine consistency and task accomplishment.
+            </p>
+          </div>
+          <a href="/dayflow" style={{ fontSize: '13px', fontWeight: 700, color: '#4F46E5', textDecoration: 'none' }}>
+            Open Dayflow &rarr;
+          </a>
+        </div>
+
+        {/* 4 Metrics Cards */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+            gap: '12px'
+          }}
+        >
+          <div style={{ backgroundColor: '#F8FAFD', borderRadius: '12px', padding: '14px', border: '1px solid #E6E9F2' }}>
+            <span style={{ fontSize: '12px', color: 'rgba(37,41,67,0.6)', fontWeight: 700 }}>SCHEDULED DAYS</span>
+            <span style={{ display: 'block', fontSize: '22px', fontWeight: 900, color: '#252943', marginTop: '4px' }}>
+              {dayflow.totalScheduledDays}
+            </span>
+          </div>
+
+          <div style={{ backgroundColor: '#F8FAFD', borderRadius: '12px', padding: '14px', border: '1px solid #E6E9F2' }}>
+            <span style={{ fontSize: '12px', color: 'rgba(37,41,67,0.6)', fontWeight: 700 }}>COMPLETED DAYS</span>
+            <span style={{ display: 'block', fontSize: '22px', fontWeight: 900, color: '#16A34A', marginTop: '4px' }}>
+              {dayflow.completedDays}
+            </span>
+          </div>
+
+          <div style={{ backgroundColor: '#F8FAFD', borderRadius: '12px', padding: '14px', border: '1px solid #E6E9F2' }}>
+            <span style={{ fontSize: '12px', color: 'rgba(37,41,67,0.6)', fontWeight: 700 }}>REST DAYS</span>
+            <span style={{ display: 'block', fontSize: '22px', fontWeight: 900, color: '#2563EB', marginTop: '4px' }}>
+              {dayflow.restDays}
+            </span>
+          </div>
+
+          <div style={{ backgroundColor: '#F8FAFD', borderRadius: '12px', padding: '14px', border: '1px solid #E6E9F2' }}>
+            <span style={{ fontSize: '12px', color: 'rgba(37,41,67,0.6)', fontWeight: 700 }}>TASK RATE</span>
+            <span style={{ display: 'block', fontSize: '22px', fontWeight: 900, color: '#4F46E5', marginTop: '4px' }}>
+              {dayflow.taskCompletionRate}%
+            </span>
+          </div>
+        </div>
+
+        {/* Task Counts Summary Pills */}
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <span style={{ backgroundColor: 'rgba(22, 163, 74, 0.1)', color: '#15803D', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: 700 }}>
+            ✓ {dayflow.completedTasks} Completed Tasks
+          </span>
+          <span style={{ backgroundColor: 'rgba(220, 38, 38, 0.08)', color: '#DC2626', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: 700 }}>
+            ✕ {dayflow.skippedTasks} Skipped Tasks
+          </span>
+          <span style={{ backgroundColor: '#F0F2F7', color: '#252943', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: 700 }}>
+            ⏳ {dayflow.pendingTasks} Pending Tasks
+          </span>
+        </div>
+
+        {/* Rest Day Integrity Note */}
+        <p style={{ margin: 0, fontSize: '12px', color: 'rgba(37,41,67,0.55)', fontStyle: 'italic' }}>
+          * Rest days are intentionally excluded from completion percentages and working day metrics.
+        </p>
+      </section>
+
+      {/* 5. GymFlow Performance Section */}
+      <section
+        className="dashboard-section-card"
+        style={{
+          backgroundColor: '#FFFFFF',
+          borderRadius: '16px',
+          padding: '24px',
+          border: '1px solid #E6E9F2',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px'
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+          <div>
+            <h2 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: '#252943' }}>
+              GymFlow Workouts & Performance
+            </h2>
+            <p style={{ fontSize: '13px', color: 'rgba(37,41,67,0.65)', margin: '2px 0 0' }}>
+              Workout volume, set execution, and exercise consistency.
+            </p>
+          </div>
+          <a href="/gymflow" style={{ fontSize: '13px', fontWeight: 700, color: '#4F46E5', textDecoration: 'none' }}>
+            Open GymFlow &rarr;
+          </a>
+        </div>
+
+        {/* 4 Workout KPI cards */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+            gap: '12px'
+          }}
+        >
+          <div style={{ backgroundColor: '#F8FAFD', borderRadius: '12px', padding: '14px', border: '1px solid #E6E9F2' }}>
+            <span style={{ fontSize: '12px', color: 'rgba(37,41,67,0.6)', fontWeight: 700 }}>WORKOUTS DONE</span>
+            <span style={{ display: 'block', fontSize: '22px', fontWeight: 900, color: '#252943', marginTop: '4px' }}>
+              {gymflow.completedWorkouts}
+            </span>
+          </div>
+
+          <div style={{ backgroundColor: '#F8FAFD', borderRadius: '12px', padding: '14px', border: '1px solid #E6E9F2' }}>
+            <span style={{ fontSize: '12px', color: 'rgba(37,41,67,0.6)', fontWeight: 700 }}>TOTAL VOLUME</span>
+            <span style={{ display: 'block', fontSize: '22px', fontWeight: 900, color: '#4F46E5', marginTop: '4px' }}>
+              {gymflow.totalVolume.toLocaleString()} <span style={{ fontSize: '14px', fontWeight: 600 }}>kg</span>
+            </span>
+          </div>
+
+          <div style={{ backgroundColor: '#F8FAFD', borderRadius: '12px', padding: '14px', border: '1px solid #E6E9F2' }}>
+            <span style={{ fontSize: '12px', color: 'rgba(37,41,67,0.6)', fontWeight: 700 }}>SETS & REPS</span>
+            <span style={{ display: 'block', fontSize: '22px', fontWeight: 900, color: '#252943', marginTop: '4px' }}>
+              {gymflow.totalSets} <span style={{ fontSize: '14px', fontWeight: 600 }}>sets</span> · {gymflow.totalReps} <span style={{ fontSize: '14px', fontWeight: 600 }}>reps</span>
+            </span>
+          </div>
+
+          <div style={{ backgroundColor: '#F8FAFD', borderRadius: '12px', padding: '14px', border: '1px solid #E6E9F2' }}>
+            <span style={{ fontSize: '12px', color: 'rgba(37,41,67,0.6)', fontWeight: 700 }}>FREQUENCY / WK</span>
+            <span style={{ display: 'block', fontSize: '22px', fontWeight: 900, color: '#16A34A', marginTop: '4px' }}>
+              {gymflow.weeklyWorkoutFrequency} <span style={{ fontSize: '14px', fontWeight: 600 }}>/ wk</span>
+            </span>
+          </div>
+        </div>
+
+        {/* Recent Workouts List */}
+        {gymflow.recentActivity && gymflow.recentActivity.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 800, color: '#252943' }}>
+              Recent Workouts:
+            </span>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px' }}>
+              {gymflow.recentActivity.map((r, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    backgroundColor: '#F8FAFD',
+                    borderRadius: '8px',
+                    padding: '10px 12px',
+                    border: '1px solid #E6E9F2',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}
+                >
+                  <div>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#252943', display: 'block' }}>
+                      {r.templateName}
+                    </span>
+                    <span style={{ fontSize: '11px', color: 'rgba(37,41,67,0.6)' }}>
+                      {r.date}
+                    </span>
+                  </div>
+                  <span style={{ fontSize: '14px', fontWeight: 800, color: '#4F46E5' }}>
+                    {r.score}%
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* 6. Someday Overview Section */}
+      <section
+        className="dashboard-section-card"
+        style={{
+          backgroundColor: '#FFFFFF',
+          borderRadius: '16px',
+          padding: '24px',
+          border: '1px solid #E6E9F2',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px'
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+          <div>
+            <h2 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: '#252943' }}>
+              Someday Tracker
+            </h2>
+            <p style={{ fontSize: '13px', color: 'rgba(37,41,67,0.65)', margin: '2px 0 0' }}>
+              Life goals, aspirational purchases, and wishlist items.
+            </p>
+          </div>
+          <a href="/someday" style={{ fontSize: '13px', fontWeight: 700, color: '#4F46E5', textDecoration: 'none' }}>
+            Open Someday &rarr;
+          </a>
+        </div>
+
+        {/* Someday 3 Counts */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
+          <div style={{ backgroundColor: '#F8FAFD', borderRadius: '12px', padding: '14px', border: '1px solid #E6E9F2' }}>
+            <span style={{ fontSize: '12px', color: 'rgba(37,41,67,0.6)', fontWeight: 700 }}>TOTAL ITEMS</span>
+            <span style={{ display: 'block', fontSize: '22px', fontWeight: 900, color: '#252943', marginTop: '4px' }}>
+              {someday.totalItems}
+            </span>
+          </div>
+
+          <div style={{ backgroundColor: '#F8FAFD', borderRadius: '12px', padding: '14px', border: '1px solid #E6E9F2' }}>
+            <span style={{ fontSize: '12px', color: 'rgba(37,41,67,0.6)', fontWeight: 700 }}>PLANNED</span>
+            <span style={{ display: 'block', fontSize: '22px', fontWeight: 900, color: '#2563EB', marginTop: '4px' }}>
+              {someday.plannedItems}
+            </span>
+          </div>
+
+          <div style={{ backgroundColor: '#F8FAFD', borderRadius: '12px', padding: '14px', border: '1px solid #E6E9F2' }}>
+            <span style={{ fontSize: '12px', color: 'rgba(37,41,67,0.6)', fontWeight: 700 }}>PURCHASED</span>
+            <span style={{ display: 'block', fontSize: '22px', fontWeight: 900, color: '#16A34A', marginTop: '4px' }}>
+              {someday.purchasedItems}
+            </span>
+          </div>
+        </div>
+
+        {/* Recent Additions */}
+        {someday.recentAdditions && someday.recentAdditions.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 800, color: '#252943' }}>
+              Recent Someday Items:
+            </span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {someday.recentAdditions.map((item) => (
+                <div
+                  key={item.id}
+                  style={{
+                    backgroundColor: '#F8FAFD',
+                    borderRadius: '8px',
+                    padding: '8px 12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    border: '1px solid #E6E9F2'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#252943' }}>
+                      {item.title}
+                    </span>
+                    <span style={{ fontSize: '11px', color: 'rgba(37,41,67,0.6)', backgroundColor: '#DEE0ED', padding: '1px 6px', borderRadius: '4px' }}>
+                      {item.categoryName}
+                    </span>
+                  </div>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      color: item.status === 'PURCHASED' ? '#16A34A' : '#2563EB'
+                    }}
+                  >
+                    {item.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* 7. Combined Activity Stream */}
+      {combinedActivity.length > 0 && (
+        <section
+          className="dashboard-section-card"
+          style={{
+            backgroundColor: '#FFFFFF',
+            borderRadius: '16px',
+            padding: '24px',
+            border: '1px solid #E6E9F2',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '14px'
+          }}
+        >
+          <h2 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: '#252943' }}>
+            Combined Activity Stream
+          </h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {combinedActivity.map((act, i) => (
+              <div
+                key={i}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  backgroundColor: '#F8FAFD',
+                  borderRadius: '10px',
+                  padding: '10px 14px',
+                  border: '1px solid #E6E9F2'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      padding: '3px 7px',
+                      borderRadius: '6px',
+                      backgroundColor: act.type === 'GYMFLOW' ? 'rgba(79, 70, 229, 0.1)' : 'rgba(22, 163, 74, 0.1)',
+                      color: act.type === 'GYMFLOW' ? '#4F46E5' : '#15803D'
+                    }}
+                  >
+                    {act.type}
+                  </span>
+                  <div>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#252943', display: 'block' }}>
+                      {act.title}
+                    </span>
+                    <span style={{ fontSize: '11px', color: 'rgba(37,41,67,0.6)' }}>
+                      {act.detail}
+                    </span>
+                  </div>
+                </div>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: 'rgba(37,41,67,0.6)' }}>
+                  {act.date}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* 8. Account & Space Overview (Preserved for compatibility and user information) */}
       <section className="account-card" aria-labelledby="account-details-heading">
         <header className="account-card__header">
           <div className="account-card__header-left">
@@ -246,37 +757,6 @@ export function Dashboard() {
           </div>
         </div>
       </section>
-
-      {/* 4. Tasteful Empty / "Recent Activity" Section Placeholder */}
-      <section className="dashboard-activity" aria-labelledby="activity-heading">
-        <div className="activity-card">
-          <div className="activity-card__header">
-            <h2 id="activity-heading" className="activity-card__title">
-              Recent Activity
-            </h2>
-            <a href="/someday" className="activity-card__view-link">
-              View Collection &rarr;
-            </a>
-          </div>
-
-          <div className="activity-card__placeholder">
-            <div className="activity-card__placeholder-icon" aria-hidden="true">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 8v4l3 3" />
-                <circle cx="12" cy="12" r="9" />
-              </svg>
-            </div>
-            <h3 className="activity-card__placeholder-title">Your personal chronicle is just beginning</h3>
-            <p className="activity-card__placeholder-desc">
-              As you document life chapters, record reflections, and track Someday milestones, your timeline will come to life right here.
-            </p>
-            <a href="/someday" className="activity-card__cta-btn">
-              Explore Someday Tracker
-            </a>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }
-

@@ -13,6 +13,7 @@ import { TaskModal } from '../components/TaskModal.jsx';
 import { SkipTaskModal } from '../components/SkipTaskModal.jsx';
 import { FinishDayModal } from '../components/FinishDayModal.jsx';
 import { MoveScheduleModal } from '../components/MoveScheduleModal.jsx';
+import { RestDayModal } from '../components/RestDayModal.jsx';
 import {
   CalendarIcon,
   LayoutTemplateIcon,
@@ -84,6 +85,7 @@ export function Dayflow() {
 
   const [isFinishModalOpen, setIsFinishModalOpen] = useState(false);
   const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
+  const [isRestDayModalOpen, setIsRestDayModalOpen] = useState(false);
 
   // Mobile overflow menu & bottom sheets
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -147,16 +149,22 @@ export function Dayflow() {
     await updateTaskStatus(taskId, 'COMPLETED');
   };
 
+  const handleRevertTaskToPending = async (taskId) => {
+    await updateTaskStatus(taskId, 'PENDING');
+  };
+
   const handleToggleRestDay = async () => {
     const isCurrentlyRest = schedule?.isRestDay;
     if (!isCurrentlyRest) {
-      const confirm = window.confirm(
-        'Mark this day as a Rest Day? Any existing blocks and tasks will be cleared for this date.'
-      );
-      if (!confirm) return;
+      setIsRestDayModalOpen(true);
+    } else {
+      await setRestDay({ date: selectedDate, isRestDay: false, overwrite: false });
     }
-    await setRestDay(!isCurrentlyRest);
     setIsMobileMenuOpen(false);
+  };
+
+  const handleConfirmRestDay = async (date) => {
+    await setRestDay({ date: date || selectedDate, isRestDay: true, overwrite: true });
   };
 
   const isToday = selectedDate === currentDate;
@@ -451,6 +459,7 @@ export function Dayflow() {
                   onOpenTaskModal={handleOpenTaskModal}
                   onOpenSkipModal={handleOpenSkipModal}
                   onCompleteTask={handleCompleteTask}
+                  onRevertTaskToPending={handleRevertTaskToPending}
                   onDeleteTask={deleteTask}
                   onCreateTaskQuick={handleQuickCreateTask}
                 />
@@ -681,6 +690,14 @@ export function Dayflow() {
           currentDate={selectedDate}
           onClose={() => setIsMoveModalOpen(false)}
           onConfirmMove={moveSchedule}
+        />
+
+        <RestDayModal
+          isOpen={isRestDayModalOpen}
+          date={selectedDate}
+          schedule={schedule}
+          onClose={() => setIsRestDayModalOpen(false)}
+          onConfirmRestDay={handleConfirmRestDay}
         />
       </div>
     </PageContainer>

@@ -49,6 +49,15 @@ export class GymWorkoutSessionController {
     return ApiResponse.success(res, 'Rest day removed', { session });
   }
 
+  static async getCalendarOverview(req, res) {
+    const { startDate, endDate } = req.query;
+    const result = await GymWorkoutSessionService.getCalendarOverview(GymWorkoutSessionController.getSpaceId(req), {
+      startDate,
+      endDate
+    });
+    return ApiResponse.success(res, 'Gym calendar overview retrieved', { days: result });
+  }
+
   static async getComparisons(req, res) {
     const { date } = req.params;
     const exercises = req.body.exercises || [];

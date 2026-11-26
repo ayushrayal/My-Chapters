@@ -7,6 +7,8 @@ import { GYM_SET_STATUS } from '../constants/gymflow.js';
 export function calculateWorkoutMetrics(session) {
   let totalVolume = 0;
   let totalReps = 0;
+  let totalDurationMinutes = 0;
+  let totalExtraWeightLoad = 0;
   let completedSetsCount = 0;
   let plannedSetsCount = 0;
   let skippedSetsCount = 0;
@@ -18,8 +20,11 @@ export function calculateWorkoutMetrics(session) {
   for (const bp of bodyParts) {
     for (const ex of bp.exercises || []) {
       const exId = ex.originalExerciseId?.toString() || ex._id?.toString() || ex.name;
+      const mType = ex.measurementType || 'WEIGHT_REPS';
       let exVol = 0;
       let exReps = 0;
+      let exDuration = 0;
+      let exExtraWeight = 0;
       let maxWeight = 0;
       let exCompletedSets = 0;
 
@@ -27,12 +32,24 @@ export function calculateWorkoutMetrics(session) {
 
       for (const s of ex.sets || []) {
         if (s.status === GYM_SET_STATUS.COMPLETED) {
-          const setVol = (Number(s.weightKg) || 0) * (Number(s.reps) || 0);
-          exVol += setVol;
-          exReps += Number(s.reps) || 0;
-          if ((Number(s.weightKg) || 0) > maxWeight) {
-            maxWeight = Number(s.weightKg) || 0;
+          if (mType === 'WEIGHT_REPS') {
+            const w = Math.max(0, Number(s.weightKg) || 0);
+            const r = Math.max(0, Number(s.reps) || 0);
+            const setVol = w * r;
+            exVol += setVol;
+            exReps += r;
+            if (w > maxWeight) maxWeight = w;
+          } else if (mType === 'BODYWEIGHT_REPS') {
+            const r = Math.max(0, Number(s.reps) || 0);
+            const extraW = Math.max(0, Number(s.extraWeightKg) || 0);
+            exReps += r;
+            if (extraW > exExtraWeight) exExtraWeight = extraW;
+            totalExtraWeightLoad += (extraW * r);
+          } else if (mType === 'DURATION') {
+            const d = Math.max(0, Number(s.durationMinutes) || 0);
+            exDuration += d;
           }
+
           exCompletedSets += 1;
           completedSetsCount += 1;
         } else if (s.status === GYM_SET_STATUS.SKIPPED) {
@@ -44,12 +61,16 @@ export function calculateWorkoutMetrics(session) {
 
       totalVolume += exVol;
       totalReps += exReps;
+      totalDurationMinutes += exDuration;
 
       exerciseMetricsMap.set(exId, {
         name: ex.name,
         targetBodyPart: ex.targetBodyPart,
+        measurementType: mType,
         volume: exVol,
         totalReps: exReps,
+        durationMinutes: exDuration,
+        extraWeightKg: exExtraWeight,
         maxWeight,
         completedSets: exCompletedSets,
         plannedSets: ex.plannedSets || (ex.sets?.length || 0)
@@ -63,6 +84,8 @@ export function calculateWorkoutMetrics(session) {
   return {
     totalVolume,
     totalReps,
+    totalDurationMinutes,
+    totalExtraWeightLoad,
     completedSetsCount,
     plannedSetsCount,
     skippedSetsCount,
@@ -106,9 +129,10 @@ export function calculateWorkoutScore(session, previousSession = null) {
     : 0;
   const plannedSetsPoints = Math.round(Math.min(1, plannedRatio) * 40);
 
-  // 3. Repetition effort: up to 20 points (scaled against 100 reps target)
+  // 3. Repetition / duration effort: up to 20 points (scaled against 100 reps target)
   const repThreshold = 100;
-  const repRatio = Math.min(1, currentMetrics.totalReps / repThreshold);
+  const effortUnits = currentMetrics.totalReps + (currentMetrics.totalDurationMinutes * 20);
+  const repRatio = Math.min(1, effortUnits / repThreshold);
   const repsPoints = Math.round(repRatio * 20);
 
   // 4. Progression vs previous session: up to 20 points
@@ -117,7 +141,7 @@ export function calculateWorkoutScore(session, previousSession = null) {
 
   if (previousSession && previousSession.isFinished) {
     const prevMetrics = calculateWorkoutMetrics(previousSession);
-    if (prevMetrics.totalVolume > 0) {
+    if (prevMetrics.totalVolume > 0 && currentMetrics.totalVolume > 0) {
       const volChange = (currentMetrics.totalVolume - prevMetrics.totalVolume) / prevMetrics.totalVolume;
       if (volChange >= -0.02) {
         // >= -2% volume (maintained or improved)

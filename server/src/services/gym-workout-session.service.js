@@ -50,6 +50,7 @@ export class GymWorkoutSessionService {
           name: bp.name,
           order: bp.order ?? bpIdx,
           exercises: (bp.exercises || []).map((ex, exIdx) => {
+            const measurementType = ex.measurementType || 'WEIGHT_REPS';
             const plannedSets = ex.plannedSets || 3;
             // Generate initial set records
             const sets = [];
@@ -58,6 +59,8 @@ export class GymWorkoutSessionService {
                 setNumber: i,
                 weightKg: 0,
                 reps: 0,
+                extraWeightKg: 0,
+                durationMinutes: measurementType === 'DURATION' ? 1 : 0,
                 status: GYM_SET_STATUS.INCOMPLETE,
                 notes: ''
               });
@@ -67,6 +70,7 @@ export class GymWorkoutSessionService {
               originalExerciseId: ex._id,
               name: ex.name,
               targetBodyPart: ex.targetBodyPart || bp.name,
+              measurementType,
               notes: ex.notes || '',
               order: ex.order ?? exIdx,
               plannedSets,
@@ -165,8 +169,27 @@ export class GymWorkoutSessionService {
 
     const updateFields = {};
 
+    if (data.templateName !== undefined) {
+      updateFields.templateName = data.templateName ? data.templateName.trim() : '';
+    }
+
     if (Array.isArray(data.bodyParts)) {
-      updateFields.bodyParts = data.bodyParts;
+      updateFields.bodyParts = data.bodyParts.map((bp, bpIdx) => ({
+        ...bp,
+        name: bp.name || 'General',
+        order: bp.order ?? bpIdx,
+        exercises: Array.isArray(bp.exercises)
+          ? bp.exercises.map((ex, exIdx) => ({
+              ...ex,
+              name: ex.name,
+              targetBodyPart: ex.targetBodyPart || bp.name || 'General',
+              plannedSets: ex.plannedSets || (Array.isArray(ex.sets) && ex.sets.length > 0 ? ex.sets.length : 3),
+              measurementType: ex.measurementType || 'WEIGHT_REPS',
+              order: ex.order ?? exIdx,
+              sets: Array.isArray(ex.sets) ? ex.sets : []
+            }))
+          : []
+      }));
     }
 
     if (data.treadmill) {
@@ -335,5 +358,53 @@ export class GymWorkoutSessionService {
     }
 
     return comparisons;
+  }
+
+  /**
+   * Returns a monthly overview of workout sessions for calendar visualization.
+   * Uses lean selective projection to avoid loading heavy workout details unnecessarily.
+   */
+  static async getCalendarOverview(spaceId, { startDate, endDate }) {
+    const query = { spaceId };
+    if (startDate && endDate) {
+      query.date = { $gte: startDate, $lte: endDate };
+    } else if (startDate) {
+      query.date = { $gte: startDate };
+    } else if (endDate) {
+      query.date = { $lte: endDate };
+    }
+
+    const sessions = await GymWorkoutSession.find(query)
+      .select('date isRestDay restDayReason isFinished templateName templateId scoreBreakdown.totalScore treadmill.status bodyParts.name bodyParts.exercises.name bodyParts.exercises.measurementType bodyParts.exercises.sets.status')
+      .sort({ date: 1 })
+      .lean();
+
+    return sessions.map((s) => {
+      let totalSets = 0;
+      let completedSets = 0;
+      (s.bodyParts || []).forEach((bp) => {
+        (bp.exercises || []).forEach((ex) => {
+          (ex.sets || []).forEach((set) => {
+            totalSets += 1;
+            if (set.status === 'COMPLETED') completedSets += 1;
+          });
+        });
+      });
+
+      return {
+        id: s._id.toString(),
+        date: s.date,
+        isRestDay: Boolean(s.isRestDay),
+        restDayReason: s.restDayReason || '',
+        isFinished: Boolean(s.isFinished),
+        templateName: s.templateName || (s.isRestDay ? 'Rest Day' : 'Custom Workout'),
+        totalScore: s.scoreBreakdown?.totalScore ?? (s.isFinished ? 100 : 0),
+        bodyPartsCount: s.bodyParts?.length || 0,
+        bodyPartNames: (s.bodyParts || []).map((bp) => bp.name),
+        totalSets,
+        completedSets,
+        treadmillStatus: s.treadmill?.status || null
+      };
+    });
   }
 }

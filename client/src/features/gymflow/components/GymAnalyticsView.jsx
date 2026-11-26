@@ -193,6 +193,34 @@ export function GymAnalyticsView({ analytics, templates = [], onRefresh }) {
     setSelectedExercise(val);
   };
 
+  const [exerciseModalityFilter, setExerciseModalityFilter] = useState('ALL');
+
+  // Segregate exercises by modality
+  const weightExercises = exercisesBreakdown.filter(
+    (ex) => !ex.measurementType || ex.measurementType === 'WEIGHT_REPS'
+  );
+  const bodyweightExercises = exercisesBreakdown.filter(
+    (ex) => ex.measurementType === 'BODYWEIGHT_REPS'
+  );
+  const durationExercises = exercisesBreakdown.filter(
+    (ex) => ex.measurementType === 'DURATION'
+  );
+
+  const displayedExercises =
+    exerciseModalityFilter === 'WEIGHT_REPS'
+      ? weightExercises
+      : exerciseModalityFilter === 'BODYWEIGHT_REPS'
+      ? bodyweightExercises
+      : exerciseModalityFilter === 'DURATION'
+      ? durationExercises
+      : exercisesBreakdown;
+
+  // Format decimal values sensibly (e.g., 115.6 instead of 115.60000000000001)
+  const formatDecimal = (val, maxDecimals = 1) => {
+    const num = Number(val) || 0;
+    return num.toLocaleString(undefined, { maximumFractionDigits: maxDecimals });
+  };
+
   return (
     <div className="gymflow-analytics-page" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {/* 1. Controls Row: Range Selector + FilterBar */}
@@ -497,7 +525,175 @@ export function GymAnalyticsView({ analytics, templates = [], onRefresh }) {
         </SectionCard>
       </div>
 
-      {/* 5. Treadmill & Cardio History (4-stat grid) */}
+      {/* 5. Exercise-Wise Progression (Dedicated Modality Tabs & Unit Separation) */}
+      <SectionCard
+        title="Exercise Progression & Performance"
+        subtitle="Individual progression separated by weight, bodyweight, and duration"
+      >
+        {/* Modality Selector Chips */}
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
+          {[
+            { id: 'ALL', label: `All Exercises (${exercisesBreakdown.length})` },
+            { id: 'WEIGHT_REPS', label: `Weight (${weightExercises.length})` },
+            { id: 'BODYWEIGHT_REPS', label: `Bodyweight (${bodyweightExercises.length})` },
+            { id: 'DURATION', label: `Duration (${durationExercises.length})` }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setExerciseModalityFilter(tab.id)}
+              style={{
+                padding: '6px 14px',
+                borderRadius: '8px',
+                fontSize: '13px',
+                fontWeight: 700,
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                backgroundColor: exerciseModalityFilter === tab.id ? '#3A4EFB' : '#EAEBF2',
+                color: exerciseModalityFilter === tab.id ? '#FFFFFF' : '#252943'
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {displayedExercises.length === 0 ? (
+          <EmptyState
+            icon={<DumbbellIcon size={32} />}
+            title="No Exercise Data Recorded"
+            description="Complete workout sets matching this modality to see progression trends and personal records."
+          />
+        ) : (
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '12px'
+            }}
+          >
+            {displayedExercises.map((ex) => {
+              const mType = ex.measurementType || 'WEIGHT_REPS';
+
+              return (
+                <div
+                  key={ex.name}
+                  style={{
+                    backgroundColor: '#F8FAFD',
+                    border: '1px solid #E6E9F2',
+                    borderRadius: '12px',
+                    padding: '14px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                    <div>
+                      <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#252943' }}>
+                        {ex.name}
+                      </h4>
+                      <span style={{ fontSize: '12px', color: 'rgba(37, 41, 67, 0.6)' }}>
+                        {ex.targetBodyPart || 'General'} · {ex.sessionsCount || ex.history?.length || 0} sessions
+                      </span>
+                    </div>
+
+                    <span
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        padding: '3px 7px',
+                        borderRadius: '6px',
+                        backgroundColor:
+                          mType === 'BODYWEIGHT_REPS'
+                            ? 'rgba(16, 185, 129, 0.12)'
+                            : mType === 'DURATION'
+                            ? 'rgba(245, 158, 11, 0.12)'
+                            : 'rgba(58, 78, 251, 0.1)',
+                        color:
+                          mType === 'BODYWEIGHT_REPS'
+                            ? '#059669'
+                            : mType === 'DURATION'
+                            ? '#D97706'
+                            : '#3A4EFB'
+                      }}
+                    >
+                      {mType === 'BODYWEIGHT_REPS' ? 'Bodyweight' : mType === 'DURATION' ? 'Duration' : 'Weight & Reps'}
+                    </span>
+                  </div>
+
+                  {/* Modality-specific metrics */}
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr',
+                      gap: '8px',
+                      backgroundColor: '#FFFFFF',
+                      padding: '10px 12px',
+                      borderRadius: '8px',
+                      border: '1px solid #EEF0F6'
+                    }}
+                  >
+                    {mType === 'WEIGHT_REPS' && (
+                      <>
+                        <div>
+                          <span style={{ fontSize: '11px', color: 'rgba(37,41,67,0.5)', display: 'block' }}>Max Weight</span>
+                          <span style={{ fontSize: '14px', fontWeight: 800, color: '#252943' }}>
+                            {formatDecimal(ex.maxWeight, 1)} kg
+                          </span>
+                        </div>
+                        <div>
+                          <span style={{ fontSize: '11px', color: 'rgba(37,41,67,0.5)', display: 'block' }}>Total Volume</span>
+                          <span style={{ fontSize: '14px', fontWeight: 800, color: '#3A4EFB' }}>
+                            {formatDecimal(ex.totalVolume, 0)} kg
+                          </span>
+                        </div>
+                      </>
+                    )}
+
+                    {mType === 'BODYWEIGHT_REPS' && (
+                      <>
+                        <div>
+                          <span style={{ fontSize: '11px', color: 'rgba(37,41,67,0.5)', display: 'block' }}>Max Reps / Set</span>
+                          <span style={{ fontSize: '14px', fontWeight: 800, color: '#252943' }}>
+                            {ex.maxReps || 0} reps
+                          </span>
+                        </div>
+                        <div>
+                          <span style={{ fontSize: '11px', color: 'rgba(37,41,67,0.5)', display: 'block' }}>Max Added Load</span>
+                          <span style={{ fontSize: '14px', fontWeight: 800, color: '#059669' }}>
+                            +{formatDecimal(ex.maxExtraWeight, 1)} kg
+                          </span>
+                        </div>
+                      </>
+                    )}
+
+                    {mType === 'DURATION' && (
+                      <>
+                        <div>
+                          <span style={{ fontSize: '11px', color: 'rgba(37,41,67,0.5)', display: 'block' }}>Best Duration</span>
+                          <span style={{ fontSize: '14px', fontWeight: 800, color: '#252943' }}>
+                            {formatDecimal(ex.maxDurationMinutes, 2)} mins
+                          </span>
+                        </div>
+                        <div>
+                          <span style={{ fontSize: '11px', color: 'rgba(37,41,67,0.5)', display: 'block' }}>Total Duration</span>
+                          <span style={{ fontSize: '14px', fontWeight: 800, color: '#D97706' }}>
+                            {formatDecimal(ex.totalDurationMinutes, 1)} mins
+                          </span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </SectionCard>
+
+      {/* 6. Treadmill & Cardio History (Clean 4-stat grid, properly formatted decimals) */}
       <SectionCard title="Treadmill & Cardio History" subtitle="Independent duration & calorie tracking">
         <div className="gymflow-treadmill-grid">
           <div className="gymflow-treadmill-grid__tile">
@@ -507,12 +703,12 @@ export function GymAnalyticsView({ analytics, templates = [], onRefresh }) {
 
           <div className="gymflow-treadmill-grid__tile">
             <span className="gymflow-treadmill-grid__label">Total Time</span>
-            <span className="gymflow-treadmill-grid__val">{treadmill.totalMinutes || 0} mins</span>
+            <span className="gymflow-treadmill-grid__val">{formatDecimal(treadmill.totalMinutes, 1)} mins</span>
           </div>
 
           <div className="gymflow-treadmill-grid__tile">
             <span className="gymflow-treadmill-grid__label">Calories Burned</span>
-            <span className="gymflow-treadmill-grid__val">{treadmill.caloriesBurned || 0} kcal</span>
+            <span className="gymflow-treadmill-grid__val">{formatDecimal(treadmill.caloriesBurned, 1)} kcal</span>
           </div>
 
           <div className="gymflow-treadmill-grid__tile">

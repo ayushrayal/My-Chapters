@@ -36,7 +36,12 @@ export function parseApiError(error) {
 
   // Determine user-friendly fallback message based on HTTP status
   let message = backendMessage;
-  if (!message) {
+  if (message === 'Validation failed' && rawErrors.length > 0) {
+    const errorDetails = rawErrors.map((e) => e.message).filter(Boolean).join('. ');
+    if (errorDetails) {
+      message = `Validation failed: ${errorDetails}`;
+    }
+  } else if (!message) {
     switch (status) {
       case 400:
         message = 'Please check the entered information and try again.';

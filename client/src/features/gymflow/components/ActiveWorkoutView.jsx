@@ -157,13 +157,15 @@ export function ActiveWorkoutView({ session, comparisons = {}, onSave, onFinish,
     const ex = updated[bpIdx].exercises[exIdx];
     const nextSetNum = (ex.sets?.length || 0) + 1;
     ex.sets = ex.sets || [];
-    const prevWeight = ex.sets.length > 0 ? ex.sets[ex.sets.length - 1].weightKg : 0;
-    const prevReps = ex.sets.length > 0 ? ex.sets[ex.sets.length - 1].reps : 0;
+    const prevSet = ex.sets.length > 0 ? ex.sets[ex.sets.length - 1] : null;
+    const mType = ex.measurementType || 'WEIGHT_REPS';
 
     ex.sets.push({
       setNumber: nextSetNum,
-      weightKg: prevWeight,
-      reps: prevReps,
+      weightKg: mType === 'WEIGHT_REPS' ? (prevSet?.weightKg || 0) : 0,
+      reps: mType === 'DURATION' ? 0 : (prevSet?.reps || 10),
+      extraWeightKg: mType === 'BODYWEIGHT_REPS' ? (prevSet?.extraWeightKg || 0) : 0,
+      durationMinutes: mType === 'DURATION' ? (prevSet?.durationMinutes || 1) : 0,
       status: 'INCOMPLETE',
       notes: ''
     });
@@ -199,20 +201,31 @@ export function ActiveWorkoutView({ session, comparisons = {}, onSave, onFinish,
   let completedSets = 0;
   let completedReps = 0;
   let totalVolume = 0;
+  let totalDuration = 0;
   for (const bp of bodyParts) {
     for (const ex of bp.exercises || []) {
+      const mType = ex.measurementType || 'WEIGHT_REPS';
       for (const s of ex.sets || []) {
         totalSets += 1;
         if (s.status === 'COMPLETED') {
           completedSets += 1;
-          completedReps += Number(s.actualReps || s.targetReps || 0);
-          totalVolume += Number(s.actualWeight || s.targetWeight || 0) * Number(s.actualReps || s.targetReps || 0);
+          if (mType === 'WEIGHT_REPS') {
+            const w = Number(s.weightKg || s.actualWeight || s.targetWeight || 0);
+            const r = Number(s.reps || s.actualReps || s.targetReps || 0);
+            completedReps += r;
+            totalVolume += w * r;
+          } else if (mType === 'BODYWEIGHT_REPS') {
+            const r = Number(s.reps || s.actualReps || s.targetReps || 0);
+            completedReps += r;
+          } else if (mType === 'DURATION') {
+            totalDuration += Number(s.durationMinutes || 0);
+          }
         }
       }
     }
   }
   const progressPct = totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0;
-  const routineName = session.templateId?.name || 'Active Workout';
+  const routineName = session.templateId?.name || session.templateName || 'Active Workout';
 
   return (
     <div className="gymflow-active-workout" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -421,12 +434,38 @@ export function ActiveWorkoutView({ session, comparisons = {}, onSave, onFinish,
               {(bp.exercises || []).map((ex, exIdx) => {
                 const compKey = ex._id?.toString() || ex.name;
                 const prev = comparisons[compKey];
+                const mType = ex.measurementType || 'WEIGHT_REPS';
 
                 return (
                   <div key={exIdx} className="gymflow-exercise-card">
                     <div className="gymflow-exercise-card__header">
                       <div>
-                        <h4 className="gymflow-exercise-card__title">{ex.name}</h4>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                          <h4 className="gymflow-exercise-card__title" style={{ margin: 0 }}>{ex.name}</h4>
+                          <span
+                            style={{
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              textTransform: 'uppercase',
+                              padding: '2px 7px',
+                              borderRadius: '6px',
+                              backgroundColor:
+                                mType === 'DURATION'
+                                  ? 'rgba(79, 70, 229, 0.1)'
+                                  : mType === 'BODYWEIGHT_REPS'
+                                  ? 'rgba(16, 185, 129, 0.1)'
+                                  : 'rgba(37, 41, 67, 0.08)',
+                              color:
+                                mType === 'DURATION'
+                                  ? '#4F46E5'
+                                  : mType === 'BODYWEIGHT_REPS'
+                                  ? '#059669'
+                                  : '#252943'
+                            }}
+                          >
+                            {mType === 'DURATION' ? 'Duration' : mType === 'BODYWEIGHT_REPS' ? 'Bodyweight' : 'Weight + Reps'}
+                          </span>
+                        </div>
                         {prev && (
                           <span
                             className="gymflow-exercise-card__prev-pill"
@@ -450,14 +489,36 @@ export function ActiveWorkoutView({ session, comparisons = {}, onSave, onFinish,
                       )}
                     </div>
 
-                    {/* Set Column Headers: SET | WEIGHT | REPS | DONE */}
-                    <div className="gymflow-sets-header" aria-hidden="true">
-                      <span className="gymflow-sets-header__item">SET</span>
-                      <span className="gymflow-sets-header__item gymflow-sets-header__item--left">WEIGHT</span>
-                      <span className="gymflow-sets-header__item gymflow-sets-header__item--left">REPS</span>
-                      <span className="gymflow-sets-header__item">DONE</span>
-                      <span className="gymflow-sets-header__item" style={{ display: 'none' }} />
-                    </div>
+                    {/* Set Column Headers: depends on measurement type */}
+                    {mType === 'WEIGHT_REPS' && (
+                      <div className="gymflow-sets-header" aria-hidden="true">
+                        <span className="gymflow-sets-header__item">SET</span>
+                        <span className="gymflow-sets-header__item gymflow-sets-header__item--left">WEIGHT</span>
+                        <span className="gymflow-sets-header__item gymflow-sets-header__item--left">REPS</span>
+                        <span className="gymflow-sets-header__item">DONE</span>
+                        <span className="gymflow-sets-header__item" style={{ display: 'none' }} />
+                      </div>
+                    )}
+
+                    {mType === 'BODYWEIGHT_REPS' && (
+                      <div className="gymflow-sets-header gymflow-sets-header--bodyweight" aria-hidden="true" style={{ display: 'grid', gridTemplateColumns: '32px 60px 1fr 1fr 44px 28px', gap: '8px' }}>
+                        <span className="gymflow-sets-header__item">SET</span>
+                        <span className="gymflow-sets-header__item">TYPE</span>
+                        <span className="gymflow-sets-header__item gymflow-sets-header__item--left">REPS</span>
+                        <span className="gymflow-sets-header__item gymflow-sets-header__item--left">EXTRA WT</span>
+                        <span className="gymflow-sets-header__item">DONE</span>
+                        <span className="gymflow-sets-header__item" style={{ display: 'none' }} />
+                      </div>
+                    )}
+
+                    {mType === 'DURATION' && (
+                      <div className="gymflow-sets-header gymflow-sets-header--duration" aria-hidden="true" style={{ display: 'grid', gridTemplateColumns: '32px 1fr 44px 28px', gap: '8px' }}>
+                        <span className="gymflow-sets-header__item">SET</span>
+                        <span className="gymflow-sets-header__item gymflow-sets-header__item--left">DURATION (MINS)</span>
+                        <span className="gymflow-sets-header__item">DONE</span>
+                        <span className="gymflow-sets-header__item" style={{ display: 'none' }} />
+                      </div>
+                    )}
 
                     {/* Set Rows Grid */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -471,61 +532,171 @@ export function ActiveWorkoutView({ session, comparisons = {}, onSave, onFinish,
                               ? 'gymflow-set-row--skipped'
                               : ''
                           }`}
+                          style={
+                            mType === 'BODYWEIGHT_REPS'
+                              ? { display: 'grid', gridTemplateColumns: '32px 60px 1fr 1fr 44px 28px', gap: '8px', alignItems: 'center' }
+                              : mType === 'DURATION'
+                              ? { display: 'grid', gridTemplateColumns: '32px 1fr 44px 28px', gap: '8px', alignItems: 'center' }
+                              : undefined
+                          }
                         >
                           <span className="gymflow-set-row__num">{s.setNumber}</span>
 
-                          {/* Weight Input with "kg" Suffix */}
-                          <div className="gymflow-set-row__input-cell">
-                            <input
-                              type="number"
-                              step="0.5"
-                              min="0"
-                              max="999"
-                              inputMode="decimal"
-                              className="gymflow-set-row__input"
-                              value={s.weightKg === 0 ? '' : s.weightKg}
-                              placeholder="0"
-                              onChange={(e) =>
-                                handleSetChange(
-                                  bpIdx,
-                                  exIdx,
-                                  sIdx,
-                                  'weightKg',
-                                  parseFloat(e.target.value) || 0
-                                )
-                              }
-                              onFocus={(e) => e.target.select()}
-                              disabled={isFinished}
-                              aria-label={`Set ${s.setNumber} Weight in kg`}
-                            />
-                            <span className="gymflow-set-row__suffix">kg</span>
-                          </div>
+                          {/* WEIGHT_REPS Inputs */}
+                          {mType === 'WEIGHT_REPS' && (
+                            <>
+                              <div className="gymflow-set-row__input-cell">
+                                <input
+                                  type="number"
+                                  step="0.5"
+                                  min="0"
+                                  max="999"
+                                  inputMode="decimal"
+                                  className="gymflow-set-row__input"
+                                  value={s.weightKg === 0 ? '' : s.weightKg}
+                                  placeholder="0"
+                                  onChange={(e) =>
+                                    handleSetChange(
+                                      bpIdx,
+                                      exIdx,
+                                      sIdx,
+                                      'weightKg',
+                                      parseFloat(e.target.value) || 0
+                                    )
+                                  }
+                                  onFocus={(e) => e.target.select()}
+                                  disabled={isFinished}
+                                  aria-label={`Set ${s.setNumber} Weight in kg`}
+                                />
+                                <span className="gymflow-set-row__suffix">kg</span>
+                              </div>
 
-                          {/* Reps Input with "reps" Suffix */}
-                          <div className="gymflow-set-row__input-cell">
-                            <input
-                              type="number"
-                              min="0"
-                              max="999"
-                              inputMode="numeric"
-                              className="gymflow-set-row__input"
-                              value={s.reps === 0 ? '' : s.reps}
-                              placeholder="0"
-                              onChange={(e) =>
-                                handleSetChange(
-                                  bpIdx,
-                                  exIdx,
-                                  sIdx,
-                                  'reps',
-                                  parseInt(e.target.value, 10) || 0
-                                )
-                              }
-                              onFocus={(e) => e.target.select()}
-                              disabled={isFinished}
-                              aria-label={`Set ${s.setNumber} Reps`}
-                            />
-                            <span className="gymflow-set-row__suffix">reps</span>
-                          </div>
+                              <div className="gymflow-set-row__input-cell">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max="999"
+                                  inputMode="numeric"
+                                  className="gymflow-set-row__input"
+                                  value={s.reps === 0 ? '' : s.reps}
+                                  placeholder="0"
+                                  onChange={(e) =>
+                                    handleSetChange(
+                                      bpIdx,
+                                      exIdx,
+                                      sIdx,
+                                      'reps',
+                                      parseInt(e.target.value, 10) || 0
+                                    )
+                                  }
+                                  onFocus={(e) => e.target.select()}
+                                  disabled={isFinished}
+                                  aria-label={`Set ${s.setNumber} Reps`}
+                                />
+                                <span className="gymflow-set-row__suffix">reps</span>
+                              </div>
+                            </>
+                          )}
+
+                          {/* BODYWEIGHT_REPS Inputs */}
+                          {mType === 'BODYWEIGHT_REPS' && (
+                            <>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <span
+                                  style={{
+                                    fontSize: '12px',
+                                    fontWeight: 800,
+                                    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                                    color: '#059669',
+                                    padding: '4px 8px',
+                                    borderRadius: '6px'
+                                  }}
+                                >
+                                  BW
+                                </span>
+                              </div>
+
+                              <div className="gymflow-set-row__input-cell">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max="999"
+                                  inputMode="numeric"
+                                  className="gymflow-set-row__input"
+                                  value={s.reps === 0 ? '' : s.reps}
+                                  placeholder="0"
+                                  onChange={(e) =>
+                                    handleSetChange(
+                                      bpIdx,
+                                      exIdx,
+                                      sIdx,
+                                      'reps',
+                                      parseInt(e.target.value, 10) || 0
+                                    )
+                                  }
+                                  onFocus={(e) => e.target.select()}
+                                  disabled={isFinished}
+                                  aria-label={`Set ${s.setNumber} Reps`}
+                                />
+                                <span className="gymflow-set-row__suffix">reps</span>
+                              </div>
+
+                              <div className="gymflow-set-row__input-cell">
+                                <input
+                                  type="number"
+                                  step="0.5"
+                                  min="0"
+                                  max="500"
+                                  inputMode="decimal"
+                                  className="gymflow-set-row__input"
+                                  value={s.extraWeightKg === 0 ? '' : s.extraWeightKg}
+                                  placeholder="+0"
+                                  onChange={(e) =>
+                                    handleSetChange(
+                                      bpIdx,
+                                      exIdx,
+                                      sIdx,
+                                      'extraWeightKg',
+                                      parseFloat(e.target.value) || 0
+                                    )
+                                  }
+                                  onFocus={(e) => e.target.select()}
+                                  disabled={isFinished}
+                                  aria-label={`Set ${s.setNumber} Extra Weight in kg`}
+                                />
+                                <span className="gymflow-set-row__suffix">+kg</span>
+                              </div>
+                            </>
+                          )}
+
+                          {/* DURATION Inputs */}
+                          {mType === 'DURATION' && (
+                            <div className="gymflow-set-row__input-cell" style={{ width: '100%' }}>
+                              <input
+                                type="number"
+                                step="0.25"
+                                min="0"
+                                max="1440"
+                                inputMode="decimal"
+                                className="gymflow-set-row__input"
+                                value={s.durationMinutes === 0 ? '' : s.durationMinutes}
+                                placeholder="1.0"
+                                onChange={(e) =>
+                                  handleSetChange(
+                                    bpIdx,
+                                    exIdx,
+                                    sIdx,
+                                    'durationMinutes',
+                                    parseFloat(e.target.value) || 0
+                                  )
+                                }
+                                onFocus={(e) => e.target.select()}
+                                disabled={isFinished}
+                                aria-label={`Set ${s.setNumber} Duration in minutes`}
+                              />
+                              <span className="gymflow-set-row__suffix">mins</span>
+                            </div>
+                          )}
 
                           {/* 44px Circular Check Toggle */}
                           <div style={{ display: 'flex', justifyContent: 'center' }}>
@@ -624,29 +795,13 @@ export function ActiveWorkoutView({ session, comparisons = {}, onSave, onFinish,
 
       {/* 5. Active Workout Actions (Finish & Discard) */}
       {!isFinished && (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '12px',
-            padding: '16px 0 24px',
-            flexWrap: 'wrap'
-          }}
-        >
+        <div className="gymflow-active-workout-bottom-actions">
           {onDiscard && (
             <button
               type="button"
-              className="btn btn--danger"
-              style={{
-                backgroundColor: 'transparent',
-                color: '#D32F2F',
-                borderColor: '#FFCDD2',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
+              className="btn btn--danger gymflow-btn-discard"
               onClick={onDiscard}
+              aria-label="Discard workout"
             >
               <TrashIcon size={15} />
               <span>Discard Workout</span>
@@ -655,9 +810,9 @@ export function ActiveWorkoutView({ session, comparisons = {}, onSave, onFinish,
 
           <button
             type="button"
-            className="btn btn--primary"
-            style={{ marginLeft: 'auto' }}
+            className="btn btn--primary gymflow-btn-finish"
             onClick={onFinish}
+            aria-label="Finish workout"
           >
             Finish Workout
           </button>

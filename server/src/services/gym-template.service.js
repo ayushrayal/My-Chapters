@@ -29,6 +29,7 @@ export class GymTemplateService {
       exercises: (bp.exercises || []).map((ex, exIdx) => ({
         name: ex.name.trim(),
         targetBodyPart: bp.name.trim(),
+        measurementType: ex.measurementType || 'WEIGHT_REPS',
         notes: ex.notes ? ex.notes.trim() : '',
         order: ex.order ?? exIdx,
         plannedSets: Number(ex.plannedSets) || GYM_DEFAULT_SETS_PER_EXERCISE
@@ -76,6 +77,7 @@ export class GymTemplateService {
           ...(ex._id ? { _id: ex._id } : {}),
           name: ex.name.trim(),
           targetBodyPart: bp.name.trim(),
+          measurementType: ex.measurementType || 'WEIGHT_REPS',
           notes: ex.notes ? ex.notes.trim() : '',
           order: ex.order ?? exIdx,
           plannedSets: Number(ex.plannedSets) || GYM_DEFAULT_SETS_PER_EXERCISE

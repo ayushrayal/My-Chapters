@@ -15,6 +15,9 @@ export const validateBody = (schema) => (req, _res, next) => {
         field: issue.path.join('.'),
         message: issue.message
       }));
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn(`[Validation] ${req.method} ${req.originalUrl} failed:`, formattedErrors);
+      }
       return next(new AppError('Validation failed', 400, formattedErrors));
     }
     return next(error);
@@ -45,6 +48,9 @@ export const validateQuery = (schema) => (req, _res, next) => {
         field: issue.path.join('.'),
         message: issue.message
       }));
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn(`[Validation] ${req.method} ${req.originalUrl} failed:`, formattedErrors);
+      }
       return next(new AppError('Validation failed', 400, formattedErrors));
     }
     return next(error);
@@ -70,6 +76,9 @@ export const validateParams = (schema) => (req, _res, next) => {
         field: issue.path.join('.'),
         message: issue.message
       }));
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn(`[Validation] ${req.method} ${req.originalUrl} failed:`, formattedErrors);
+      }
       return next(new AppError('Validation failed', 400, formattedErrors));
     }
     return next(error);

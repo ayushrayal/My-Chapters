@@ -350,21 +350,43 @@ export function useDayflow(initialDate = null) {
     }
   };
 
-  const toggleRestDay = async (date = selectedDate, isRestDay = true, overwrite = false) => {
+  const toggleRestDay = async (arg1, arg2, arg3) => {
     setError(null);
+    let targetDate = selectedDate;
+    let targetIsRestDay = true;
+    let targetOverwrite = true;
+
+    if (typeof arg1 === 'object' && arg1 !== null) {
+      targetDate = arg1.date || selectedDate;
+      targetIsRestDay = typeof arg1.isRestDay === 'boolean' ? arg1.isRestDay : true;
+      targetOverwrite = typeof arg1.overwrite === 'boolean' ? arg1.overwrite : true;
+    } else if (typeof arg1 === 'boolean') {
+      targetIsRestDay = arg1;
+      targetDate = selectedDate;
+      targetOverwrite = typeof arg2 === 'boolean' ? arg2 : true;
+    } else if (typeof arg1 === 'string') {
+      targetDate = arg1;
+      targetIsRestDay = typeof arg2 === 'boolean' ? arg2 : true;
+      targetOverwrite = typeof arg3 === 'boolean' ? arg3 : true;
+    }
+
     try {
       const result = await dayflowApi.setRestDay({
-        date,
-        isRestDay,
-        overwrite
+        date: targetDate,
+        isRestDay: targetIsRestDay,
+        overwrite: targetOverwrite
       });
       setSchedule(result);
-      queryClient.setQueryData(queryKeys.dayflow.schedule(spaceId, date), result);
-      toast?.success?.(isRestDay ? `Marked ${date} as a Rest Day.` : `Rest Day cleared.`);
-      loadCalendarOverview(date, true);
+      queryClient.setQueryData(queryKeys.dayflow.schedule(spaceId, targetDate), result);
+      queryClient.invalidateQueries({ queryKey: ['dayflow', spaceId, 'schedule', targetDate] });
+      queryClient.invalidateQueries({ queryKey: ['dayflow', spaceId, 'overview'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dayflow.analytics(spaceId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all(spaceId) });
+
+      toast?.success?.(targetIsRestDay ? `Marked ${targetDate} as a Rest Day.` : `Rest Day cleared.`);
+      loadCalendarOverview(targetDate, true);
       if (activeTab === 'analytics' || analytics) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.dayflow.analytics(spaceId) });
-        loadAnalytics(date);
+        loadAnalytics(targetDate);
       }
       return result;
     } catch (err) {

@@ -15,6 +15,7 @@ export const queryKeys = {
     template: (spaceId, id) => ['gymflow', spaceId || 'anonymous', 'template', id],
     schedule: (spaceId) => ['gymflow', spaceId || 'anonymous', 'schedule'],
     session: (spaceId, date) => ['gymflow', spaceId || 'anonymous', 'session', date],
+    overview: (spaceId, month) => ['gymflow', spaceId || 'anonymous', 'overview', month],
     comparisons: (spaceId, date) => ['gymflow', spaceId || 'anonymous', 'comparisons', date],
     analytics: (spaceId, params) => ['gymflow', spaceId || 'anonymous', 'analytics', params || {}]
   },
@@ -32,5 +33,10 @@ export const queryKeys = {
     schedule: (spaceId, date) => ['dayflow', spaceId || 'anonymous', 'schedule', date],
     overview: (spaceId, month) => ['dayflow', spaceId || 'anonymous', 'overview', month],
     analytics: (spaceId, filters) => ['dayflow', spaceId || 'anonymous', 'analytics', filters || {}]
+  },
+
+  dashboard: {
+    all: (spaceId) => ['dashboard', spaceId || 'anonymous'],
+    overview: (spaceId, params) => ['dashboard', spaceId || 'anonymous', 'overview', params || {}]
   }
 };

@@ -250,4 +250,89 @@ describe('Dayflow - Performance Analytics & Space Isolation Suite', () => {
     assert.equal(analyticsB.status, 200);
     assert.equal(analyticsB.body.data.summary.totalTasks, 0);
   });
+
+  test('Pending tasks, consistency, weekly performance, and monthly performance are accurately aggregated', async () => {
+    const blockId1 = '67431234567890abcdef6001';
+    const blockId2 = '67431234567890abcdef6002';
+
+    // Day 1: 3 tasks -> 1 completed, 1 skipped, 1 unfinished (pending). Day remains unfinished.
+    await request(app)
+      .post('/api/dayflow/schedule')
+      .set('Cookie', authCookie)
+      .send({
+        date: '2026-11-24',
+        blocks: [{ id: blockId1, name: 'Core Block', startTime: '09:00', endTime: '12:00' }],
+        tasks: [
+          { blockId: blockId1, title: 'Task 1', status: 'COMPLETED' },
+          { blockId: blockId1, title: 'Task 2', status: 'SKIPPED', skippedReason: 'Deferred' },
+          { blockId: blockId1, title: 'Task 3', status: 'PENDING' }
+        ]
+      });
+
+    // Day 2: 1 task completed and day is finished/locked
+    await request(app)
+      .post('/api/dayflow/schedule')
+      .set('Cookie', authCookie)
+      .send({
+        date: '2026-11-25',
+        blocks: [{ id: blockId2, name: 'Wrap Block', startTime: '14:00', endTime: '17:00' }],
+        tasks: [
+          { blockId: blockId2, title: 'Task 4', status: 'COMPLETED' }
+        ]
+      });
+
+    await request(app)
+      .post('/api/dayflow/schedule/finish')
+      .set('Cookie', authCookie)
+      .send({ date: '2026-11-25' });
+
+    // Day 3: Rest day (protected)
+    await request(app)
+      .post('/api/dayflow/schedule/rest-day')
+      .set('Cookie', authCookie)
+      .send({ date: '2026-11-26', isRestDay: true });
+
+    const analyticsRes = await request(app)
+      .get('/api/dayflow/analytics?startDate=2026-11-24&endDate=2026-11-26')
+      .set('Cookie', authCookie);
+
+    assert.equal(analyticsRes.status, 200);
+    const { summary, consistency, weeklyPerformance, monthlyPerformance } = analyticsRes.body.data;
+
+    // Total tasks: 4 (2 completed, 1 skipped, 1 pending)
+    assert.equal(summary.totalTasks, 4);
+    assert.equal(summary.completedTasks, 2);
+    assert.equal(summary.skippedTasks, 1);
+    assert.equal(summary.pendingTasks, 1);
+    assert.equal(summary.overallCompletionRate, 50);
+
+    // Consistency (2 scheduled days, 1 finished day, 1 rest day -> 50% finish rate)
+    assert.ok(consistency);
+    assert.equal(consistency.scheduledDays, 2);
+    assert.equal(consistency.finishedDays, 1);
+    assert.equal(consistency.restDays, 1);
+    assert.equal(consistency.finishRate, 50);
+
+    // Weekly performance
+    assert.ok(Array.isArray(weeklyPerformance));
+    assert.equal(weeklyPerformance.length, 1);
+    assert.equal(weeklyPerformance[0].scheduledDays, 2);
+    assert.equal(weeklyPerformance[0].finishedDays, 1);
+    assert.equal(weeklyPerformance[0].restDays, 1);
+    assert.equal(weeklyPerformance[0].totalTasks, 4);
+    assert.equal(weeklyPerformance[0].completedTasks, 2);
+    assert.equal(weeklyPerformance[0].pendingTasks, 1);
+    assert.equal(weeklyPerformance[0].completionRate, 50);
+
+    // Monthly performance
+    assert.ok(Array.isArray(monthlyPerformance));
+    assert.equal(monthlyPerformance.length, 1);
+    assert.equal(monthlyPerformance[0].scheduledDays, 2);
+    assert.equal(monthlyPerformance[0].finishedDays, 1);
+    assert.equal(monthlyPerformance[0].restDays, 1);
+    assert.equal(monthlyPerformance[0].totalTasks, 4);
+    assert.equal(monthlyPerformance[0].completedTasks, 2);
+    assert.equal(monthlyPerformance[0].pendingTasks, 1);
+    assert.equal(monthlyPerformance[0].completionRate, 50);
+  });
 });

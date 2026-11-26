@@ -35,6 +35,7 @@ function createInitialState(tpl) {
         _cid: ex._id ? String(ex._id) : generateClientId('ex'),
         name: ex.name || '',
         targetBodyPart: ex.targetBodyPart || bp.name || '',
+        measurementType: ex.measurementType || 'WEIGHT_REPS',
         plannedSets: Math.max(1, Math.min(20, Number(ex.plannedSets) || 3)),
         notes: ex.notes || '',
         order: ex.order ?? exIdx
@@ -153,6 +154,7 @@ export function GymTemplateModal({ isOpen, template, onClose, onSave }) {
       _cid: generateClientId('ex'),
       name: trimmed,
       targetBodyPart: targetBP.name,
+      measurementType: 'WEIGHT_REPS',
       plannedSets: 3,
       notes: '',
       order: targetBP.exercises.length
@@ -177,6 +179,19 @@ export function GymTemplateModal({ isOpen, template, onClose, onSave }) {
       const updatedExercises = bp.exercises.map((ex, j) => {
         if (j !== exIdx) return ex;
         return { ...ex, name: newName };
+      });
+      return { ...bp, exercises: updatedExercises };
+    });
+    setBodyParts(updated);
+  };
+
+  // Change exercise measurement type
+  const handleChangeMeasurementType = (bpIdx, exIdx, measurementType) => {
+    const updated = bodyParts.map((bp, i) => {
+      if (i !== bpIdx) return bp;
+      const updatedExercises = bp.exercises.map((ex, j) => {
+        if (j !== exIdx) return ex;
+        return { ...ex, measurementType };
       });
       return { ...bp, exercises: updatedExercises };
     });
@@ -321,6 +336,7 @@ export function GymTemplateModal({ isOpen, template, onClose, onSave }) {
           ...(ex._id ? { _id: ex._id } : {}),
           name: ex.name.trim(),
           targetBodyPart: bp.name.trim(),
+          measurementType: ex.measurementType || 'WEIGHT_REPS',
           plannedSets: Math.max(1, Math.min(20, Number(ex.plannedSets) || 3)),
           notes: ex.notes ? ex.notes.trim() : '',
           order: exIdx
@@ -663,6 +679,24 @@ export function GymTemplateModal({ isOpen, template, onClose, onSave }) {
                                   />
                                 </div>
                               )}
+
+                              {/* Measurement Type Dropdown */}
+                              <div style={{ maxWidth: '145px', minWidth: '125px' }}>
+                                <FilterSelect
+                                  value={ex.measurementType || 'WEIGHT_REPS'}
+                                  onChange={(val) =>
+                                    handleChangeMeasurementType(bpIdx, exIdx, val)
+                                  }
+                                  options={[
+                                    { value: 'WEIGHT_REPS', label: 'Weight + Reps' },
+                                    { value: 'BODYWEIGHT_REPS', label: 'Bodyweight' },
+                                    { value: 'DURATION', label: 'Duration' }
+                                  ]}
+                                  disabled={isSubmitting}
+                                  allowClear={false}
+                                  ariaLabel={`Measurement type for ${ex.name}`}
+                                />
+                              </div>
 
                               {/* Sets Stepper with separate label */}
                               <NumberStepperInput

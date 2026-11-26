@@ -6,6 +6,7 @@ import { asyncHandler } from '../utils/async-handler.js';
 const router = Router();
 router.use(requireAuth);
 
+router.get('/calendar/overview', asyncHandler(GymWorkoutSessionController.getCalendarOverview));
 router.get('/:date', asyncHandler(GymWorkoutSessionController.getSession));
 router.post('/start', asyncHandler(GymWorkoutSessionController.startSession));
 router.put('/:date', asyncHandler(GymWorkoutSessionController.updateSession));

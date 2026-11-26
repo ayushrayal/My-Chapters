@@ -1,5 +1,9 @@
 import mongoose from 'mongoose';
-import { GYM_DEFAULT_SETS_PER_EXERCISE } from '../constants/gymflow.js';
+import {
+  GYM_DEFAULT_SETS_PER_EXERCISE,
+  GYM_MEASUREMENT_TYPE,
+  GYM_MEASUREMENT_TYPE_VALUES
+} from '../constants/gymflow.js';
 
 const templateExerciseSchema = new mongoose.Schema(
   {
@@ -14,6 +18,11 @@ const templateExerciseSchema = new mongoose.Schema(
       required: [true, 'Target body part is required'],
       trim: true,
       maxlength: [60, 'Body part name cannot exceed 60 characters']
+    },
+    measurementType: {
+      type: String,
+      enum: GYM_MEASUREMENT_TYPE_VALUES,
+      default: GYM_MEASUREMENT_TYPE.WEIGHT_REPS
     },
     notes: {
       type: String,

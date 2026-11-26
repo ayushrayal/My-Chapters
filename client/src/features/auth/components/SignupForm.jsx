@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
 import { Input } from '../../../components/common/Input.jsx';
@@ -25,6 +25,15 @@ export function SignupForm() {
   const [serverError, setServerError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const redirectTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current) {
+        clearTimeout(redirectTimerRef.current);
+      }
+    };
+  }, []);
 
   const validateForm = () => {
     const newErrors = {};
@@ -108,7 +117,7 @@ export function SignupForm() {
       setSuccessMessage(result?.message || 'Registration successful! Redirecting to sign in...');
 
       // Redirect to signin page after short delay so user can read confirmation
-      setTimeout(() => {
+      redirectTimerRef.current = setTimeout(() => {
         navigate('/signin', {
           state: {
             message: 'Your Space and Admin account have been created. Please sign in.',

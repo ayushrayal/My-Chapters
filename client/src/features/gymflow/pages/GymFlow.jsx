@@ -9,6 +9,7 @@ import { WeeklyAssignmentModal } from '../components/WeeklyAssignmentModal.jsx';
 import { RestDayModal } from '../components/RestDayModal.jsx';
 import { FinishWorkoutModal } from '../components/FinishWorkoutModal.jsx';
 import { GymAnalyticsView } from '../components/GymAnalyticsView.jsx';
+import { GymMonthHistoryView } from '../components/GymMonthHistoryView.jsx';
 import { GymTabs } from '../components/common/GymTabs.jsx';
 import { DateNavigator } from '../components/common/DateNavigator.jsx';
 import { Chip } from '../components/common/Chip.jsx';
@@ -35,6 +36,7 @@ export function GymFlow() {
     weeklySchedule,
     comparisons,
     analytics,
+    spaceId,
     isLoadingSession,
     error,
     goToDate,
@@ -122,12 +124,13 @@ export function GymFlow() {
                       Re-open Workout
                     </button>
                   ) : (
-                    <div style={{ display: 'inline-flex', gap: '8px', alignItems: 'center' }}>
+                    <div className="gymflow-workout-header-actions">
                       <button
                         type="button"
                         className="btn btn--secondary"
                         style={{ color: '#D32F2F', borderColor: '#FFCDD2' }}
                         onClick={() => setIsDiscardModalOpen(true)}
+                        aria-label="Discard workout"
                       >
                         Discard Workout
                       </button>
@@ -135,6 +138,7 @@ export function GymFlow() {
                         type="button"
                         className="btn btn--primary"
                         onClick={() => setIsFinishModalOpen(true)}
+                        aria-label="Finish workout"
                       >
                         Finish Workout
                       </button>
@@ -268,6 +272,20 @@ export function GymFlow() {
                 isFinished={isFinished}
               />
             )}
+          </div>
+        )}
+
+        {/* MONTHLY HISTORY TAB */}
+        {activeTab === 'history' && (
+          <div className="gymflow-tab-content" id="gymflow-panel-history" role="tabpanel">
+            <GymMonthHistoryView
+              spaceId={spaceId}
+              currentDate={currentDate}
+              onSelectDateAndTab={(date, tab) => {
+                goToDate(date);
+                setActiveTab(tab);
+              }}
+            />
           </div>
         )}
 
@@ -417,6 +435,7 @@ export function GymFlow() {
                     role="button"
                     tabIndex={0}
                     aria-label={`Configure ${d.weekday}`}
+                    title={d.templateId ? `${d.weekday}: ${d.templateId.name}` : d.isRestDay ? `${d.weekday}: Rest Day` : `${d.weekday}: Not assigned`}
                   >
                     <div className="gymflow-schedule-card__left">
                       <span className="gymflow-schedule-card__day-tile">{shortDay}</span>
@@ -430,7 +449,7 @@ export function GymFlow() {
                           Rest Day
                         </Chip>
                       ) : d.templateId ? (
-                        <Chip variant="gradient-tint">
+                        <Chip variant="gradient-tint" title={d.templateId.name || 'Assigned Template'}>
                           {d.templateId.name || 'Assigned Template'}
                         </Chip>
                       ) : (

@@ -10,6 +10,7 @@ import { CalendarIcon, LayoutTemplateIcon, BarChartIcon, DumbbellIcon } from '..
 export function GymTabs({ activeTab, onChangeTab, templateCount = 0 }) {
   const tabs = [
     { id: 'workout', label: 'Workout', icon: <DumbbellIcon size={16} /> },
+    { id: 'history', label: 'History', icon: <CalendarIcon size={16} /> },
     { id: 'templates', label: 'Templates', icon: <LayoutTemplateIcon size={16} />, badge: templateCount },
     { id: 'schedule', label: 'Schedule', icon: <CalendarIcon size={16} /> },
     { id: 'analytics', label: 'Analytics', icon: <BarChartIcon size={16} /> }

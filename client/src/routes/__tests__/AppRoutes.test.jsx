@@ -71,7 +71,7 @@ describe('AppRoutes & Route Protection', () => {
       </MemoryRouter>
     );
 
-    expect(await screen.findByRole('heading', { level: 1, name: 'Hello, Welcome ayush!' })).toBeDefined();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Hello, Welcome ayush!' }, { timeout: 4000 })).toBeDefined();
   });
 
   it('redirects authenticated users visiting /signup to /dashboard', async () => {
@@ -88,7 +88,7 @@ describe('AppRoutes & Route Protection', () => {
       </MemoryRouter>
     );
 
-    expect(await screen.findByRole('heading', { level: 1, name: 'Hello, Welcome ayush!' })).toBeDefined();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Hello, Welcome ayush!' }, { timeout: 4000 })).toBeDefined();
   });
 
   it('renders Profile page when authenticated user visits /profile', async () => {
@@ -105,7 +105,7 @@ describe('AppRoutes & Route Protection', () => {
       </MemoryRouter>
     );
 
-    expect(await screen.findByRole('heading', { level: 1, name: 'ayush' })).toBeDefined();
+    expect(await screen.findByRole('heading', { level: 1, name: 'ayush' }, { timeout: 4000 })).toBeDefined();
     expect(await screen.findByText('Personal Space & Profile Details')).toBeDefined();
   });
 

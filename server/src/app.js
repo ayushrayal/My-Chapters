@@ -16,6 +16,7 @@ import gymTemplateRoutes from './routes/gym-template.routes.js';
 import gymWeeklyScheduleRoutes from './routes/gym-weekly-schedule.routes.js';
 import gymWorkoutSessionRoutes from './routes/gym-workout-session.routes.js';
 import gymAnalyticsRoutes from './routes/gym-analytics.routes.js';
+import dashboardRoutes from './routes/dashboard.routes.js';
 import { notFoundHandler } from './middleware/not-found.middleware.js';
 import { errorHandler } from './middleware/error.middleware.js';
 import { ApiResponse } from './utils/api-response.js';
@@ -115,7 +116,10 @@ app.use('/api/gymflow/schedule', gymWeeklyScheduleRoutes);
 app.use('/api/gymflow/workout', gymWorkoutSessionRoutes);
 app.use('/api/gymflow/analytics', gymAnalyticsRoutes);
 
-// 11. API 404 Catch-All: ensures unmatched /api routes always return a JSON 404 and never index.html
+// 11. Consolidated Dashboard Route
+app.use('/api/dashboard', dashboardRoutes);
+
+// 12. API 404 Catch-All: ensures unmatched /api routes always return a JSON 404 and never index.html
 app.use('/api', notFoundHandler);
 
 // 12. Serve Static Frontend Files from server/public directory

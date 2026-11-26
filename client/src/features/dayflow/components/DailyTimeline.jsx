@@ -15,6 +15,7 @@ export function DailyTimeline({
   onOpenTaskModal,
   onOpenSkipModal,
   onCompleteTask,
+  onRevertTaskToPending,
   onDeleteTask,
   onCreateTaskQuick
 }) {
@@ -273,19 +274,32 @@ export function DailyTimeline({
                           {/* Row 1: Circular complete toggle (24px) */}
                           <div className="task-row__col-toggle">
                             {isCompleted ? (
-                              <span className="task-row__check-circle" title="Completed">
-                                <CheckIcon size={13} />
-                              </span>
+                              <button
+                                type="button"
+                                className="task-row__toggle-btn task-row__toggle-btn--completed"
+                                onClick={() => {
+                                  if (!isFinished && onRevertTaskToPending) {
+                                    onRevertTaskToPending(taskId);
+                                  }
+                                }}
+                                disabled={isFinished}
+                                aria-label="Revert task to pending"
+                                title={isFinished ? 'Completed (day is locked)' : 'Completed (click to revert to Pending)'}
+                              >
+                                <span className="task-row__check-circle" title="Completed">
+                                  <CheckIcon size={13} />
+                                </span>
+                              </button>
                             ) : (
                               <button
                                 type="button"
                                 className="task-row__toggle-btn"
                                 onClick={() => {
-                                  if (!isFinished && !isCompleted && !isSkipped) {
+                                  if (!isFinished) {
                                     onCompleteTask(taskId);
                                   }
                                 }}
-                                disabled={isFinished || isCompleted || isSkipped}
+                                disabled={isFinished}
                                 aria-label="Toggle complete"
                                 title="Toggle complete"
                               >
@@ -309,6 +323,34 @@ export function DailyTimeline({
                             {/* Desktop ONLY tools */}
                             {!isFinished && (
                               <div className="task-row__desktop-tools">
+                                {isCompleted && (
+                                  <button
+                                    type="button"
+                                    className="btn-icon btn-icon--sm"
+                                    onClick={() => onRevertTaskToPending && onRevertTaskToPending(taskId)}
+                                    title="Revert to Pending"
+                                    aria-label={`Revert task ${task.title} to pending`}
+                                  >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <polyline points="1 4 1 10 7 10" />
+                                      <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+                                    </svg>
+                                  </button>
+                                )}
+                                {isSkipped && (
+                                  <button
+                                    type="button"
+                                    className="btn-icon btn-icon--sm"
+                                    onClick={() => onRevertTaskToPending && onRevertTaskToPending(taskId)}
+                                    title="Revert to Pending"
+                                    aria-label={`Revert task ${task.title} to pending`}
+                                  >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <polyline points="1 4 1 10 7 10" />
+                                      <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+                                    </svg>
+                                  </button>
+                                )}
                                 <button
                                   type="button"
                                   className="btn-icon btn-icon--sm"
@@ -345,6 +387,46 @@ export function DailyTimeline({
 
                                 {isMenuOpen && (
                                   <div className="task-row__dropdown-menu">
+                                    {(isCompleted || isSkipped) && (
+                                      <button
+                                        type="button"
+                                        className="task-row__dropdown-item"
+                                        onClick={() => {
+                                          setActiveMenuTaskId(null);
+                                          onRevertTaskToPending && onRevertTaskToPending(taskId);
+                                        }}
+                                      >
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                          <polyline points="1 4 1 10 7 10" />
+                                          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+                                        </svg>
+                                        <span>Revert to Pending</span>
+                                      </button>
+                                    )}
+                                    {isCompleted && (
+                                      <button
+                                        type="button"
+                                        className="task-row__dropdown-item"
+                                        onClick={() => {
+                                          setActiveMenuTaskId(null);
+                                          onOpenSkipModal(task);
+                                        }}
+                                      >
+                                        <CloseIcon size={14} /> <span>Change to Skipped</span>
+                                      </button>
+                                    )}
+                                    {isSkipped && (
+                                      <button
+                                        type="button"
+                                        className="task-row__dropdown-item"
+                                        onClick={() => {
+                                          setActiveMenuTaskId(null);
+                                          onCompleteTask(taskId);
+                                        }}
+                                      >
+                                        <CheckIcon size={14} /> <span>Mark as Completed</span>
+                                      </button>
+                                    )}
                                     <button
                                       type="button"
                                       className="task-row__dropdown-item"
@@ -390,7 +472,7 @@ export function DailyTimeline({
                             )}
                           </div>
 
-                          {/* Row 3 (Column 2 to 3, for current/upcoming tasks only): Complete & Skip equal buttons */}
+                          {/* Row 3 (Column 2 to 3): Action buttons based on task status */}
                           {!isFinished && !isCompleted && !isSkipped && (
                             <div className="task-row__col-buttons">
                               <button
@@ -409,6 +491,57 @@ export function DailyTimeline({
                                 aria-label={`Skip "${task.title}" with reason`}
                               >
                                 <span>Skip</span>
+                              </button>
+                            </div>
+                          )}
+
+                          {!isFinished && isCompleted && (
+                            <div className="task-row__col-buttons">
+                              <button
+                                type="button"
+                                className="btn btn--secondary task-row__revert-btn"
+                                onClick={() => onRevertTaskToPending && onRevertTaskToPending(taskId)}
+                                aria-label={`Undo complete and revert "${task.title}" to pending`}
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="1 4 1 10 7 10" />
+                                  <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+                                </svg>
+                                <span>Revert to Pending</span>
+                              </button>
+                              <button
+                                type="button"
+                                className="btn btn--outline task-row__skip-btn"
+                                onClick={() => onOpenSkipModal(task)}
+                                aria-label={`Change "${task.title}" to skipped`}
+                              >
+                                <span>Skip</span>
+                              </button>
+                            </div>
+                          )}
+
+                          {!isFinished && isSkipped && (
+                            <div className="task-row__col-buttons">
+                              <button
+                                type="button"
+                                className="btn btn--secondary task-row__revert-btn"
+                                onClick={() => onRevertTaskToPending && onRevertTaskToPending(taskId)}
+                                aria-label={`Revert skipped "${task.title}" to pending`}
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="1 4 1 10 7 10" />
+                                  <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+                                </svg>
+                                <span>Revert to Pending</span>
+                              </button>
+                              <button
+                                type="button"
+                                className="btn btn--primary task-row__complete-btn"
+                                onClick={() => onCompleteTask(taskId)}
+                                aria-label={`Mark "${task.title}" complete`}
+                              >
+                                <CheckIcon size={16} />
+                                <span>Complete</span>
                               </button>
                             </div>
                           )}

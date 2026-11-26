@@ -308,6 +308,7 @@ export function useGymflow() {
     deleteTemplate,
     updateWeeklyScheduleDays,
     fetchAnalytics,
+    spaceId,
     refreshSession: () => queryClient.invalidateQueries({ queryKey: queryKeys.gymflow.session(spaceId, selectedDate) })
   };
 }

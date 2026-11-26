@@ -5,7 +5,9 @@ import {
   GYM_TREADMILL_STATUS,
   GYM_TREADMILL_STATUS_VALUES,
   GYM_DEFAULT_TREADMILL_MINUTES,
-  GYM_MINIMUM_TREADMILL_MINUTES
+  GYM_MINIMUM_TREADMILL_MINUTES,
+  GYM_MEASUREMENT_TYPE,
+  GYM_MEASUREMENT_TYPE_VALUES
 } from '../constants/gymflow.js';
 
 const workoutSetSchema = new mongoose.Schema(
@@ -16,16 +18,30 @@ const workoutSetSchema = new mongoose.Schema(
     },
     weightKg: {
       type: Number,
-      required: true,
+      required: false,
       min: [0, 'Weight must be at least 0'],
       max: [1000, 'Weight cannot exceed 1000 kg'],
       default: 0
     },
     reps: {
       type: Number,
-      required: true,
+      required: false,
       min: [0, 'Reps must be at least 0'],
       max: [500, 'Reps cannot exceed 500'],
+      default: 0
+    },
+    extraWeightKg: {
+      type: Number,
+      required: false,
+      min: [0, 'Extra weight must be at least 0'],
+      max: [500, 'Extra weight cannot exceed 500 kg'],
+      default: 0
+    },
+    durationMinutes: {
+      type: Number,
+      required: false,
+      min: [0, 'Duration cannot be negative'],
+      max: [1440, 'Duration cannot exceed 1440 minutes'],
       default: 0
     },
     status: {
@@ -58,9 +74,15 @@ const sessionExerciseSchema = new mongoose.Schema(
     },
     targetBodyPart: {
       type: String,
-      required: [true, 'Target body part is required'],
+      required: false,
       trim: true,
-      maxlength: [60, 'Body part name cannot exceed 60 characters']
+      maxlength: [60, 'Body part name cannot exceed 60 characters'],
+      default: ''
+    },
+    measurementType: {
+      type: String,
+      enum: GYM_MEASUREMENT_TYPE_VALUES,
+      default: GYM_MEASUREMENT_TYPE.WEIGHT_REPS
     },
     notes: {
       type: String,
