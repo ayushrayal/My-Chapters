@@ -32,9 +32,9 @@ export function StatusSelect({ status, onChange, disabled = false }) {
       title={`Current: ${status}. Tap to cycle (Complete / Skipped / Incomplete)`}
     >
       {isCompleted ? (
-        <CheckIcon size={18} className="gymflow-set-status-toggle__check" />
+        <CheckIcon size={20} className="gymflow-set-status-toggle__check" />
       ) : isSkipped ? (
-        <SkipForwardIcon size={16} className="gymflow-set-status-toggle__skip" />
+        <SkipForwardIcon size={18} className="gymflow-set-status-toggle__skip" />
       ) : (
         <span className="gymflow-set-status-toggle__dot" />
       )}

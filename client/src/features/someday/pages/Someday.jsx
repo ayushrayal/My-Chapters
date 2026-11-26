@@ -8,7 +8,12 @@ import { CategoryManagementModal } from '../components/CategoryManagementModal.j
 import { StatusChangeModal } from '../components/StatusChangeModal.jsx';
 import { DeleteConfirmModal } from '../components/DeleteConfirmModal.jsx';
 import { Button } from '../../../components/common/Button.jsx';
-import { FilterSelect, FilterChips } from '../../../components/common/FilterControl/index.js';
+import { EmptyState } from '../../../components/common/EmptyState.jsx';
+import { PageContainer } from '../../../components/common/PageContainer.jsx';
+import { BottomSheet } from '../../../components/common/BottomSheet.jsx';
+import { FilterChips } from '../../../components/common/FilterControl/FilterChips.jsx';
+import { SegmentedFilter } from '../../../components/common/FilterControl/SegmentedFilter.jsx';
+import { FilterIcon, CloseIcon } from '../../../components/common/Icons.jsx';
 
 export function Someday() {
   const {
@@ -42,13 +47,39 @@ export function Someday() {
   const [purchasingItem, setPurchasingItem] = useState(null);
   const [deletingItem, setDeletingItem] = useState(null);
 
+  // Filter Sheet State
+  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
+  const [tempCategoryFilter, setTempCategoryFilter] = useState(categoryIdFilter);
+  const [tempStatusFilter, setTempStatusFilter] = useState(statusFilter);
+
+  const handleOpenFilterSheet = () => {
+    setTempCategoryFilter(categoryIdFilter);
+    setTempStatusFilter(statusFilter);
+    setIsFilterSheetOpen(true);
+  };
+
+  const handleApplySheetFilters = () => {
+    setCategoryIdFilter(tempCategoryFilter);
+    setStatusFilter(tempStatusFilter);
+    setIsFilterSheetOpen(false);
+  };
+
+  const handleClearSheetFilters = () => {
+    setTempCategoryFilter('ALL');
+    setTempStatusFilter('ALL');
+    setCategoryIdFilter('ALL');
+    setStatusFilter('ALL');
+    setIsFilterSheetOpen(false);
+  };
+
+  const activeFiltersCount = (categoryIdFilter !== 'ALL' ? 1 : 0) + (statusFilter !== 'ALL' ? 1 : 0);
+  const activeCategory = categories.find((c) => c.id === categoryIdFilter);
+
   // Status toggle handler
   const handleToggleStatus = (item) => {
     if (item.status === 'PLANNED') {
-      // Opening status change modal to prompt for purchase date (defaults to today)
       setPurchasingItem(item);
     } else {
-      // Revert to PLANNED directly (backend clears purchaseDate)
       changeStatus(item.id, 'PLANNED').catch((err) => {
         setError(err?.message || 'Failed to update item status');
       });
@@ -96,48 +127,55 @@ export function Someday() {
   const emptyState = getEmptyStateDetails();
 
   return (
-    <div className="someday-page">
-      {/* 1. Page Header with Title, Subtitle & Gradient Desktop Add Button */}
-      <header className="someday-header">
-        <div className="someday-header__content">
-          <h1 className="someday-header__title">Someday</h1>
-          <p className="someday-header__subtitle">
-            Things you want. Things you've got.
-          </p>
-        </div>
+    <PageContainer className="someday-page-container">
+      <div className="someday-page" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* 1. Page Header with Title, Subtitle & Add Item Button */}
+        <header className="someday-header">
+          <div className="someday-header__content">
+            <h1 className="someday-header__title">Someday</h1>
+            <p className="someday-header__subtitle">Things you want. Things you&apos;ve got.</p>
+          </div>
 
-        <div className="someday-header__actions">
+          {/* Desktop Add Item Button */}
+          <div className="someday-desktop-add">
+            <button
+              type="button"
+              className="btn btn--accent"
+              onClick={() => setIsAddModalOpen(true)}
+              aria-label="Add new item to Someday"
+            >
+              + Add Item
+            </button>
+          </div>
+
+          {/* Mobile Full-Width Add Item Button */}
           <button
             type="button"
-            className="someday-header__add-btn"
+            className="btn btn--accent btn--full someday-mobile-add"
             onClick={() => setIsAddModalOpen(true)}
             aria-label="Add new item to Someday"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            <span>Add Item</span>
+            + Add Item
           </button>
-        </div>
-      </header>
+        </header>
 
-      {/* 2. Stat Cards (Total, Planned, Purchased with Icons & Accent Bars) */}
-      <SomedayStats stats={stats} />
+        {/* 2. Stat Cards: 3 compact tiles in one row (Total, Planned, Purchased) */}
+        <SomedayStats stats={stats} />
 
-      {/* Global Alerts */}
-      {successMessage && (
-        <div className="someday-alert" role="status">
-          <div className="alert alert--success">
-            <p>{successMessage}</p>
+        {/* Global Alerts */}
+        {successMessage && (
+          <div className="alert alert--success" role="status">
+            <div className="alert__content">
+              <p>{successMessage}</p>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {error && (
-        <div className="someday-alert" role="alert">
-          <div className="alert alert--error">
-            <p>{error}</p>
+        {error && (
+          <div className="alert alert--error" role="alert">
+            <div className="alert__content">
+              <p>{error}</p>
+            </div>
             <button
               type="button"
               className="alert-dismiss-btn"
@@ -147,177 +185,137 @@ export function Someday() {
               &times;
             </button>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* 3. Filters Toolbar: Category & Segmented Status Controls */}
-      <section className="someday-controls" aria-label="Someday item filters">
-        {/* Desktop Category Dropdown & Manage */}
-        <div className="someday-controls__category-group">
-          <div className="someday-controls__desktop-category">
-            <label className="someday-controls__label">
-              Category
-            </label>
-            <div className="someday-controls__select-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ flex: 1, minWidth: '200px' }}>
-                <FilterSelect
-                  value={categoryIdFilter}
-                  onChange={setCategoryIdFilter}
-                  options={[
-                    { value: 'ALL', label: 'All Categories' },
-                    ...categories.map((cat) => ({
-                      value: cat.id,
-                      label: `${cat.name} ${cat.isSystem ? '(Default)' : ''} (${cat.itemCount || 0})`
-                    }))
-                  ]}
-                  placeholder="All Categories"
-                  allowClear={false}
-                  ariaLabel="Filter items by category"
-                />
-              </div>
-
-              <button
-                type="button"
-                className="someday-controls__manage-btn"
-                onClick={() => setIsCategoryModalOpen(true)}
-                title="Manage categories"
-                aria-label="Open category management"
-              >
-                Manage
-              </button>
+        {/* 3. Filters Section (Neo-Brutalist: Category Tabs + Manage on Row 1, Independent Status Row 2) */}
+        <div className="someday-filter-section">
+          {/* ROW 1: Category Filter Tabs (Horizontal Scrollable) + Manage Button */}
+          <div className="someday-filter-section__category-row">
+            <div className="someday-filter-section__chips-wrap">
+              <FilterChips
+                options={[
+                  { value: 'ALL', label: 'All' },
+                  ...categories.map((cat) => ({
+                    value: cat.id,
+                    label: cat.name,
+                    badge: cat.itemCount || 0
+                  }))
+                ]}
+                value={categoryIdFilter}
+                onChange={setCategoryIdFilter}
+                ariaLabel="Filter by category"
+              />
             </div>
-          </div>
 
-          {/* Mobile Horizontally Scrollable Chips */}
-          <div className="someday-controls__mobile-chips" role="tablist" aria-label="Category filter chips">
             <button
               type="button"
-              className={`category-chip ${categoryIdFilter === 'ALL' ? 'category-chip--active' : ''}`}
-              onClick={() => setCategoryIdFilter('ALL')}
-            >
-              All
-            </button>
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                type="button"
-                className={`category-chip ${categoryIdFilter === cat.id ? 'category-chip--active' : ''}`}
-                onClick={() => setCategoryIdFilter(cat.id)}
-              >
-                <span>{cat.name}</span>
-                <span className="category-chip__count">{cat.itemCount || 0}</span>
-              </button>
-            ))}
-            <button
-              type="button"
-              className="category-chip category-chip--manage"
+              className="btn btn--secondary btn--sm someday-filter-section__manage-btn"
               onClick={() => setIsCategoryModalOpen(true)}
               aria-label="Manage categories"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="3" />
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-              </svg>
-              <span>Manage</span>
+              Manage
             </button>
+          </div>
+
+          {/* ROW 2: Independent Status Filter Row */}
+          <div className="someday-filter-section__status-row">
+            <SegmentedFilter
+              options={[
+                { value: 'ALL', label: 'All' },
+                { value: 'PLANNED', label: `Planned (${stats.planned})` },
+                { value: 'PURCHASED', label: `Purchased (${stats.purchased})` }
+              ]}
+              value={statusFilter}
+              onChange={setStatusFilter}
+              ariaLabel="Filter items by purchase status"
+              className="someday-filter-section__status-segmented"
+            />
           </div>
         </div>
 
-        {/* Status Segmented Control with Counts in Small Badges */}
-        <div className="someday-controls__status-group">
-          <span className="someday-controls__label">Status</span>
-          <div className="status-segmented-control" role="radiogroup" aria-label="Status filter">
+        {/* MOBILE APPLIED FILTERS CHIPS (Wrap, left-aligned) */}
+        {activeFiltersCount > 0 && (
+          <div className="filter-applied-row">
+            {categoryIdFilter !== 'ALL' && (
+              <span className="filter-applied-chip">
+                <span>{activeCategory?.name || 'Category'}</span>
+                <button
+                  type="button"
+                  className="filter-applied-chip__remove"
+                  onClick={() => setCategoryIdFilter('ALL')}
+                  aria-label="Remove category filter"
+                >
+                  <CloseIcon size={12} />
+                </button>
+              </span>
+            )}
+            {statusFilter !== 'ALL' && (
+              <span className="filter-applied-chip">
+                <span>{statusFilter === 'PLANNED' ? 'Planned' : 'Purchased'}</span>
+                <button
+                  type="button"
+                  className="filter-applied-chip__remove"
+                  onClick={() => setStatusFilter('ALL')}
+                  aria-label="Remove status filter"
+                >
+                  <CloseIcon size={12} />
+                </button>
+              </span>
+            )}
             <button
               type="button"
-              className={`status-segmented-btn ${statusFilter === 'ALL' ? 'status-segmented-btn--active' : ''}`}
-              onClick={() => setStatusFilter('ALL')}
-              aria-checked={statusFilter === 'ALL'}
-              role="radio"
+              className="btn btn--ghost btn--sm"
+              onClick={() => {
+                setCategoryIdFilter('ALL');
+                setStatusFilter('ALL');
+              }}
+              style={{ fontSize: '11px', fontWeight: 800, padding: '2px 8px' }}
             >
-              <span>All</span>
-            </button>
-            <button
-              type="button"
-              className={`status-segmented-btn ${statusFilter === 'PLANNED' ? 'status-segmented-btn--active' : ''}`}
-              onClick={() => setStatusFilter('PLANNED')}
-              aria-checked={statusFilter === 'PLANNED'}
-              role="radio"
-            >
-              Planned ({stats.planned})
-            </button>
-            <button
-              type="button"
-              className={`status-segmented-btn ${statusFilter === 'PURCHASED' ? 'status-segmented-btn--active' : ''}`}
-              onClick={() => setStatusFilter('PURCHASED')}
-              aria-checked={statusFilter === 'PURCHASED'}
-              role="radio"
-            >
-              Purchased ({stats.purchased})
+              Clear all
             </button>
           </div>
-        </div>
-      </section>
+        )}
 
-      {/* 4. Main Collection Grid (1 col mobile, 2 tablet, 3 desktop) */}
+      {/* 4. Main Collection Grid: 1 col mobile, 2 tablet, 3 desktop */}
       <section className="someday-content" aria-label="Someday collection">
         {isLoading ? (
-          /* Skeleton Loader Placeholder Grid */
-          <div className="someday-skeleton-grid" aria-label="Loading someday items">
-            {[1, 2, 3, 4, 5, 6].map((key) => (
-              <div key={key} className="someday-skeleton-card">
-                <div className="someday-skeleton-header">
-                  <div className="skeleton-box skeleton-box--badge" />
-                  <div className="skeleton-box skeleton-box--badge" />
-                </div>
-                <div className="skeleton-box skeleton-box--title" />
-                <div className="skeleton-box skeleton-box--text" />
-                <div className="skeleton-box skeleton-box--text skeleton-box--short" />
-                <div className="someday-skeleton-actions">
-                  <div className="skeleton-box skeleton-box--btn" />
-                  <div className="skeleton-box skeleton-box--btn" />
-                  <div className="skeleton-box skeleton-box--btn" />
-                </div>
-              </div>
+          <div className="someday-skeleton-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+            {[1, 2, 3].map((key) => (
+              <div key={key} className="card" style={{ height: '180px' }} />
             ))}
           </div>
         ) : items.length === 0 ? (
-          /* 5. Designed Empty State with Illustration-Style Icon */
-          <div className="someday-empty-state">
-            <div className="someday-empty-state__icon-box" aria-hidden="true">
-              <svg
-                width="56"
-                height="56"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="someday-empty-state__svg"
-              >
+          <EmptyState
+            title={emptyState.title}
+            subtitle={emptyState.subtitle}
+            icon={
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#252943" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
                 <line x1="12" y1="8" x2="12" y2="12" />
                 <line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
-            </div>
-            <h3 className="someday-empty-state__title">{emptyState.title}</h3>
-            <p className="someday-empty-state__subtitle">{emptyState.subtitle}</p>
-            {emptyState.showAddAction && (
-              <button
-                type="button"
-                className="someday-empty-state__action-btn"
-                onClick={() => setIsAddModalOpen(true)}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                <span>Add Item to Someday</span>
-              </button>
-            )}
-          </div>
+            }
+            action={
+              emptyState.showAddAction ? (
+                <button
+                  type="button"
+                  className="btn btn--accent"
+                  onClick={() => setIsAddModalOpen(true)}
+                >
+                  + Add Item to Someday
+                </button>
+              ) : null
+            }
+          />
         ) : (
-          <div className={`someday-grid ${isRefreshing ? 'someday-grid--refreshing' : ''}`}>
+          <div
+            className={`someday-grid ${isRefreshing ? 'someday-grid--refreshing' : ''}`}
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: '20px'
+            }}
+          >
             {items.map((item) => (
               <ItemCard
                 key={item.id}
@@ -332,23 +330,7 @@ export function Someday() {
         )}
       </section>
 
-      {/* Mobile Floating Action Button (FAB) at Bottom-Right above the tab bar */}
-      <button
-        type="button"
-        className="someday-mobile-fab"
-        onClick={() => setIsAddModalOpen(true)}
-        aria-label="Add new item"
-        title="Add item"
-      >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <line x1="12" y1="5" x2="12" y2="19" />
-          <line x1="5" y1="12" x2="19" y2="12" />
-        </svg>
-      </button>
-
-      {/* --- Modals --- */}
-
-      {/* 1. Add Item Modal */}
+      {/* Modals */}
       <ItemFormModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
@@ -360,7 +342,6 @@ export function Someday() {
         }}
       />
 
-      {/* 2. Edit Item Modal */}
       <ItemFormModal
         isOpen={Boolean(editingItem)}
         onClose={() => setEditingItem(null)}
@@ -373,7 +354,6 @@ export function Someday() {
         }}
       />
 
-      {/* 3. Item Details Modal */}
       <ItemDetailsModal
         isOpen={Boolean(viewingItem)}
         item={viewingItem}
@@ -384,7 +364,6 @@ export function Someday() {
         }}
       />
 
-      {/* 4. Category Management Modal */}
       <CategoryManagementModal
         isOpen={isCategoryModalOpen}
         onClose={() => setIsCategoryModalOpen(false)}
@@ -394,7 +373,6 @@ export function Someday() {
         onDeleteCategory={deleteCategory}
       />
 
-      {/* 5. Status Change Modal (for Purchased with date picker) */}
       <StatusChangeModal
         isOpen={Boolean(purchasingItem)}
         item={purchasingItem}
@@ -402,7 +380,6 @@ export function Someday() {
         onConfirm={changeStatus}
       />
 
-      {/* 6. Delete Item Confirmation Modal */}
       <DeleteConfirmModal
         isOpen={Boolean(deletingItem)}
         title="Delete Item"
@@ -411,7 +388,91 @@ export function Someday() {
         onClose={() => setDeletingItem(null)}
         onConfirm={() => deleteItem(deletingItem.id, deletingItem.name)}
       />
-    </div>
-  );
-}
 
+      {/* 5. Mobile & Desktop Filter Overlay (BottomSheet on mobile, Window modal on desktop) */}
+      <BottomSheet
+        isOpen={isFilterSheetOpen}
+        onClose={() => setIsFilterSheetOpen(false)}
+        title="FILTERS"
+        className="modal-container--md"
+        footer={
+          <div className="filter-sheet__footer">
+            <button
+              type="button"
+              className="btn btn--secondary"
+              onClick={handleClearSheetFilters}
+            >
+              Clear
+            </button>
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={handleApplySheetFilters}
+            >
+              Apply Filters
+            </button>
+          </div>
+        }
+      >
+        <div className="filter-sheet">
+          {/* Section 1: Category */}
+          <div className="filter-sheet__section">
+            <p className="filter-sheet__label">CATEGORY</p>
+            <div className="filter-sheet__chips-wrap">
+              <button
+                type="button"
+                className={`filter-chip ${tempCategoryFilter === 'ALL' ? 'filter-chip--active' : ''}`}
+                onClick={() => setTempCategoryFilter('ALL')}
+              >
+                <span className="filter-chip__label">All</span>
+              </button>
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  className={`filter-chip ${tempCategoryFilter === cat.id ? 'filter-chip--active' : ''}`}
+                  onClick={() => setTempCategoryFilter(cat.id)}
+                >
+                  <span className="filter-chip__label">{cat.name}</span>
+                  {typeof cat.itemCount === 'number' && (
+                    <span className="filter-chip__badge">{cat.itemCount}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              className="btn btn--secondary btn--full"
+              onClick={() => {
+                setIsFilterSheetOpen(false);
+                setIsCategoryModalOpen(true);
+              }}
+              style={{ marginTop: '12px', height: '44px' }}
+            >
+              Manage categories
+            </button>
+          </div>
+
+          {/* Section 2: Status */}
+          <div className="filter-sheet__section" style={{ marginTop: '16px' }}>
+            <p className="filter-sheet__label">STATUS</p>
+            <div style={{ width: '100%' }}>
+              <SegmentedFilter
+                options={[
+                  { value: 'ALL', label: 'All' },
+                  { value: 'PLANNED', label: `Planned (${stats.planned})` },
+                  { value: 'PURCHASED', label: `Purchased (${stats.purchased})` }
+                ]}
+                value={tempStatusFilter}
+                onChange={setTempStatusFilter}
+                className="segmented-filter--full"
+              />
+            </div>
+          </div>
+        </div>
+      </BottomSheet>
+    </div>
+  </PageContainer>
+);
+}

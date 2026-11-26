@@ -260,13 +260,13 @@ export function PerformanceAnalytics({
 
             {/* Circular Ring */}
             <div className="kpi-card--hero__ring-wrap" aria-hidden="true">
-              <svg width="56" height="56" viewBox="0 0 64 64" className="kpi-card--hero__ring-svg">
+              <svg width="48" height="48" viewBox="0 0 64 64" className="kpi-card--hero__ring-svg">
                 <circle
                   cx="32"
                   cy="32"
                   r={ringRadius}
                   stroke="rgba(255, 255, 255, 0.22)"
-                  strokeWidth="5"
+                  strokeWidth="6"
                   fill="transparent"
                 />
                 <circle
@@ -274,7 +274,7 @@ export function PerformanceAnalytics({
                   cy="32"
                   r={ringRadius}
                   stroke="#E3FF3B"
-                  strokeWidth="5"
+                  strokeWidth="6"
                   strokeDasharray={ringCircumference}
                   strokeDashoffset={strokeDashoffset}
                   strokeLinecap="round"
@@ -588,30 +588,37 @@ export function PerformanceAnalytics({
               </svg>
 
               {/* Floating Tooltip */}
-              {hoveredPoint && (
-                <div
-                  className="chart-floating-tooltip"
-                  style={{
-                    left: `${(hoveredPoint.x / svgWidth) * 100}%`,
-                    top: `${(hoveredPoint.y / svgHeight) * 100}%`
-                  }}
-                >
-                  <p className="chart-floating-tooltip__date">
-                    {formatDateLabel(hoveredPoint.date)}
-                    {hoveredPoint.isBest && <span className="tooltip-best-tag">★ Best</span>}
-                  </p>
-                  {hoveredPoint.isRest ? (
-                    <p className="chart-floating-tooltip__detail">Rest Day (Protected from penalty)</p>
-                  ) : (
-                    <>
-                      <p className="chart-floating-tooltip__rate">{hoveredPoint.rate}% Completed</p>
-                      <p className="chart-floating-tooltip__detail">
-                        {hoveredPoint.completedTasks || 0} done &bull; {hoveredPoint.pendingTasks || 0} pending &bull; {hoveredPoint.skippedTasks || 0} skipped
-                      </p>
-                    </>
-                  )}
-                </div>
-              )}
+              {hoveredPoint && (() => {
+                const pctX = (hoveredPoint.x / svgWidth) * 100;
+                // Dynamically offset horizontally so rightmost candles never clip past card boundary
+                const translateX = pctX > 70 ? -85 : pctX < 30 ? -15 : -50;
+
+                return (
+                  <div
+                    className="chart-floating-tooltip"
+                    style={{
+                      left: `${pctX}%`,
+                      top: `${(hoveredPoint.y / svgHeight) * 100}%`,
+                      transform: `translate(${translateX}%, -100%) translateY(-14px)`
+                    }}
+                  >
+                    <p className="chart-floating-tooltip__date">
+                      {formatDateLabel(hoveredPoint.date)}
+                      {hoveredPoint.isBest && <span className="tooltip-best-tag">★ Best</span>}
+                    </p>
+                    {hoveredPoint.isRest ? (
+                      <p className="chart-floating-tooltip__detail">Rest Day (Protected from penalty)</p>
+                    ) : (
+                      <>
+                        <p className="chart-floating-tooltip__rate">{hoveredPoint.rate}% Completed</p>
+                        <p className="chart-floating-tooltip__detail">
+                          {hoveredPoint.completedTasks || 0} done · {hoveredPoint.pendingTasks || 0} pending · {hoveredPoint.skippedTasks || 0} skipped
+                        </p>
+                      </>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         )}
@@ -680,8 +687,8 @@ export function PerformanceAnalytics({
                       {wp.weekLabel}
                     </span>
                     <span className="template-performance-row__meta">
-                      {wp.scheduledDays} {wp.scheduledDays === 1 ? 'day scheduled' : 'days scheduled'} &bull; {wp.finishedDays} locked ({wp.finishRate}% locked) &bull; {wp.completedTasks} of {wp.totalTasks} tasks done
-                      {wp.restDays > 0 && ` &bull; ${wp.restDays} rest ${wp.restDays === 1 ? 'day' : 'days'}`}
+                      {wp.scheduledDays} {wp.scheduledDays === 1 ? 'day scheduled' : 'days scheduled'} · {wp.finishedDays} locked ({wp.finishRate}% locked) · {wp.completedTasks} of {wp.totalTasks} tasks done
+                      {wp.restDays > 0 && ` · ${wp.restDays} rest ${wp.restDays === 1 ? 'day' : 'days'}`}
                     </span>
                   </div>
 
@@ -724,8 +731,8 @@ export function PerformanceAnalytics({
                       {mp.monthLabel}
                     </span>
                     <span className="template-performance-row__meta">
-                      {mp.scheduledDays} {mp.scheduledDays === 1 ? 'day scheduled' : 'days scheduled'} &bull; {mp.finishedDays} locked ({mp.finishRate}% locked) &bull; {mp.completedTasks} of {mp.totalTasks} tasks done
-                      {mp.restDays > 0 && ` &bull; ${mp.restDays} rest ${mp.restDays === 1 ? 'day' : 'days'}`}
+                      {mp.scheduledDays} {mp.scheduledDays === 1 ? 'day scheduled' : 'days scheduled'} · {mp.finishedDays} locked ({mp.finishRate}% locked) · {mp.completedTasks} of {mp.totalTasks} tasks done
+                      {mp.restDays > 0 && ` · ${mp.restDays} rest ${mp.restDays === 1 ? 'day' : 'days'}`}
                     </span>
                   </div>
 

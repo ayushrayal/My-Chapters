@@ -5,11 +5,10 @@ import {
   EditIcon,
   TrashIcon,
   LockIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
   ClockIcon
 } from '../../../components/common/Icons.jsx';
 import { DeleteTemplateModal } from './DeleteTemplateModal.jsx';
+import { WindowCard } from '../../../components/common/WindowCard.jsx';
 
 function parseTimeToMinutes(timeStr) {
   if (!timeStr || typeof timeStr !== 'string') return 0;
@@ -51,36 +50,34 @@ export function TemplateList({
 
   if (isLoading) {
     return (
-      <div className="dayflow-skeleton-list">
-        <div className="dayflow-skeleton-card">
-          <div className="skeleton-bone skeleton-bone--title" />
-          <div className="skeleton-bone skeleton-bone--text" />
-          <div className="skeleton-bone skeleton-bone--btn" />
-        </div>
-        <div className="dayflow-skeleton-card">
-          <div className="skeleton-bone skeleton-bone--title" />
-          <div className="skeleton-bone skeleton-bone--text" />
-          <div className="skeleton-bone skeleton-bone--btn" />
-        </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+        {[1, 2].map((k) => (
+          <div key={k} className="card" style={{ height: '200px' }} />
+        ))}
       </div>
     );
   }
 
   return (
-    <div className="template-list-page">
+    <div className="template-list-page" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Header Row */}
-      <div className="template-list-header">
-        <div className="template-list-header__titles">
-          <h2 className="template-list-header__title">Day Templates</h2>
-          <p className="template-list-header__subtitle">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+        <div>
+          <h2 style={{ fontSize: '24px', fontWeight: 800, margin: 0, color: '#252943', letterSpacing: '-0.02em' }}>
+            Day Templates
+          </h2>
+          <p style={{ fontSize: '14px', color: 'rgba(37,41,67,0.7)', margin: '4px 0 0' }}>
             Create reusable templates for workdays, study routines, deep-focus sessions, and rest days.
           </p>
         </div>
+
+        {/* Full-width Create Template button on mobile */}
         <button
           type="button"
-          className="btn btn--primary template-list-header__create-btn"
+          className="btn btn--accent btn--full"
           onClick={onOpenCreateModal}
           aria-label="+ Create Template"
+          style={{ height: '48px', fontSize: '15px' }}
         >
           <PlusIcon size={16} /> Create Template
         </button>
@@ -88,193 +85,198 @@ export function TemplateList({
 
       {/* Empty State */}
       {templates.length === 0 ? (
-        <div className="dayflow-empty-state">
-          <div className="dayflow-empty-state__icon">
-            <LayoutTemplateIcon size={44} />
+        <div className="empty-state" style={{ padding: '36px 20px' }}>
+          <div className="empty-state__icon">
+            <LayoutTemplateIcon size={28} />
           </div>
-          <h3 className="dayflow-empty-state__title">No templates yet</h3>
-          <p className="dayflow-empty-state__description">
+          <h3 className="empty-state__title">No templates yet</h3>
+          <p className="empty-state__subtitle">
             Create your first day template with custom time blocks to organize your upcoming days easily.
           </p>
           <button
             type="button"
-            className="btn btn--primary"
+            className="btn btn--accent"
             onClick={onOpenCreateModal}
-            aria-label="+ Create Template"
           >
-            <PlusIcon size={16} /> Create your first template
+            <PlusIcon size={16} /> Create First Template
           </button>
         </div>
       ) : (
-        /* 1 col mobile, 2 col desktop grid */
-        <div className="template-grid">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
           {templates.map((tpl) => {
             const tplId = tpl._id || tpl.id;
-            const blocks = tpl.blocks || [];
-            const blockCount = blocks.length;
-            const mandatoryCount = blocks.filter((b) => b.tasksRequired).length;
             const isExpanded = Boolean(expandedTpls[tplId]);
+            const blocks = tpl.blocks || [];
+            const displayedBlocks = isExpanded ? blocks : blocks.slice(0, 4);
+            const hiddenCount = blocks.length - 4;
 
-            // Compute total minutes for the mini day timeline
             const totalMinutes = blocks.reduce(
               (acc, b) => acc + calculateBlockDuration(b.startTime, b.endTime),
               0
             );
-            const totalHoursFormatted = formatMinutes(totalMinutes);
-
-            const visibleBlocks = isExpanded ? blocks : blocks.slice(0, 4);
-            const remainingCount = blocks.length - 4;
 
             return (
-              <div key={tplId} className="template-card">
-                {/* Top Section: Title & Description */}
-                <div className="template-card__header">
-                  <div className="template-card__header-info">
-                    <h3 className="template-card__title">{tpl.name}</h3>
-                    {tpl.description && (
-                      <p className="template-card__desc" title={tpl.description}>
-                        {tpl.description}
-                      </p>
+              <WindowCard
+                key={tplId}
+                title={tpl.name}
+                headerBg="canvas"
+              >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {/* Description (2 lines clamp) */}
+                  {tpl.description && (
+                    <p
+                      style={{
+                        fontSize: '13px',
+                        color: 'rgba(37,41,67,0.7)',
+                        margin: 0,
+                        lineHeight: 1.4,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden'
+                      }}
+                    >
+                      {tpl.description}
+                    </p>
+                  )}
+
+                  {/* Chips: blocks count, mandatory status */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                    <span className="neo-tag neo-tag--canvas">
+                      {blocks.length} {blocks.length === 1 ? 'Block' : 'Blocks'}
+                    </span>
+                    {blocks.some((b) => b.tasksRequired) && (
+                      <span className="neo-tag neo-tag--lime" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <LockIcon size={12} />
+                        <span>Mandatory</span>
+                      </span>
                     )}
                   </div>
-                </div>
 
-                {/* Chips: block count & mandatory count (ink-outline style, no amber) */}
-                <div className="template-card__chips">
-                  <span className="template-chip">
-                    {blockCount} {blockCount === 1 ? 'block' : 'blocks'}
-                  </span>
-                  {mandatoryCount > 0 && (
-                    <span className="template-chip template-chip--mandatory" title={`${mandatoryCount} mandatory blocks`}>
-                      <LockIcon size={12} />
-                      {mandatoryCount} mandatory
-                    </span>
-                  )}
-                </div>
-
-                {/* Mini Day-Timeline Preview */}
-                {blocks.length > 0 && totalMinutes > 0 && (
-                  <div className="template-mini-timeline">
-                    <div className="template-mini-timeline__header">
-                      <span className="template-mini-timeline__label">
-                        <ClockIcon size={12} /> Schedule Preview
-                      </span>
-                      <span className="template-mini-timeline__total">
-                        {totalHoursFormatted} total
-                      </span>
-                    </div>
-
-                    <div className="template-mini-timeline__bar">
-                      {blocks.map((b, idx) => {
-                        const dur = calculateBlockDuration(b.startTime, b.endTime);
-                        if (dur <= 0) return null;
-                        const widthPct = Math.max(3, (dur / totalMinutes) * 100);
-                        const durText = formatMinutes(dur);
-
-                        return (
-                          <div
-                            key={idx}
-                            className={`template-mini-timeline__segment ${
-                              b.tasksRequired
-                                ? 'template-mini-timeline__segment--mandatory'
-                                : 'template-mini-timeline__segment--regular'
-                            }`}
-                            style={{ width: `${widthPct}%` }}
-                            title={`${b.name} (${b.startTime} - ${b.endTime}, ${durText})${
-                              b.tasksRequired ? ' [Mandatory]' : ''
-                            }`}
-                          />
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Block List (First 4 blocks + expander) */}
-                <div className="template-card__blocks">
-                  {visibleBlocks.map((block, idx) => (
-                    <div key={idx} className="template-card__block-item">
-                      <span className="template-card__block-time">
-                        {block.startTime} — {block.endTime}
-                      </span>
-                      <span className="template-card__block-name">
-                        {block.name}
-                      </span>
-                      {block.tasksRequired && (
-                        <span
-                          className="template-card__lime-dot"
-                          title="Mandatory (tasks required)"
-                          aria-label="Mandatory"
+                  {/* Schedule preview bar of flat segments with Navy separators & total hours */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <div
+                      style={{
+                        height: '14px',
+                        border: '2px solid #252943',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        overflow: 'hidden',
+                        backgroundColor: '#DEE0ED'
+                      }}
+                    >
+                      {blocks.map((b, idx) => (
+                        <div
+                          key={idx}
+                          style={{
+                            flex: calculateBlockDuration(b.startTime, b.endTime) || 1,
+                            backgroundColor: idx % 2 === 0 ? '#3A4EFB' : '#33A4FA',
+                            borderRight: idx < blocks.length - 1 ? '1px solid #252943' : 'none'
+                          }}
+                          title={`${b.name} (${b.startTime} - ${b.endTime})`}
                         />
-                      )}
+                      ))}
                     </div>
-                  ))}
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: 'rgba(37,41,67,0.7)', textAlign: 'right' }}>
+                      {formatMinutes(totalMinutes)} total
+                    </span>
+                  </div>
 
-                  {/* +X more expander */}
-                  {remainingCount > 0 && (
+                  {/* Blocks List: Time pill that never truncates + block name */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {displayedBlocks.map((b, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          padding: '6px 8px',
+                          border: '1.5px solid #252943',
+                          borderRadius: '4px',
+                          backgroundColor: '#F5F7FB'
+                        }}
+                      >
+                        <span
+                          className="neo-tag neo-tag--canvas"
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            whiteSpace: 'nowrap',
+                            flexShrink: 0
+                          }}
+                        >
+                          {b.startTime} – {b.endTime}
+                        </span>
+                        <span style={{ fontSize: '13px', fontWeight: 800, color: '#252943', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {b.name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* "+N more" toggle */}
+                  {hiddenCount > 0 && (
                     <button
                       type="button"
-                      className="template-card__expander-btn"
+                      className="btn btn--sm btn--ghost"
                       onClick={() => toggleExpand(tplId)}
+                      style={{ alignSelf: 'flex-start', height: '28px', minHeight: '28px', fontSize: '11px' }}
                     >
-                      {isExpanded ? (
-                        <>
-                          <ChevronUpIcon size={14} /> Show less
-                        </>
-                      ) : (
-                        <>
-                          <ChevronDownIcon size={14} /> +{remainingCount} more
-                        </>
-                      )}
+                      {isExpanded ? 'Show less' : `+${hiddenCount} more blocks`}
                     </button>
                   )}
-                </div>
 
-                {/* Bottom Actions Row */}
-                <div className="template-card__actions">
-                  <button
-                    type="button"
-                    className="btn btn--primary btn--sm template-card__apply-btn"
-                    onClick={() => onOpenApplyModal(tpl)}
-                  >
-                    Apply to Day
-                  </button>
-
-                  <div className="template-card__tools">
+                  {/* Actions: Apply to Day (primary), Edit (44px), Delete (44px Error Red) */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', paddingTop: '10px', borderTop: '2px solid #252943' }}>
                     <button
                       type="button"
-                      className="btn-icon btn-icon--sm"
+                      className="btn btn--primary"
+                      onClick={() => onOpenApplyModal(tpl)}
+                      style={{ flex: 1, height: '44px', minHeight: '44px' }}
+                    >
+                      Apply to Day
+                    </button>
+
+                    <button
+                      type="button"
+                      className="btn btn--secondary"
                       onClick={() => onOpenEditModal(tpl)}
-                      title="Edit template"
-                      aria-label="Edit template"
+                      aria-label={`Edit ${tpl.name}`}
+                      style={{ width: '44px', height: '44px', minHeight: '44px', padding: 0 }}
                     >
                       <EditIcon size={16} />
                     </button>
 
                     <button
                       type="button"
-                      className="btn-icon btn-icon--sm btn-icon--danger"
+                      className="btn btn--danger"
                       onClick={() => setTemplateToDelete(tpl)}
-                      title="Delete template"
-                      aria-label="Delete template"
+                      aria-label={`Delete ${tpl.name}`}
+                      style={{ width: '44px', height: '44px', minHeight: '44px', padding: 0 }}
                     >
                       <TrashIcon size={16} />
                     </button>
                   </div>
                 </div>
-              </div>
+              </WindowCard>
             );
           })}
         </div>
       )}
 
-      {/* Type-to-Confirm Deletion Modal */}
-      <DeleteTemplateModal
-        isOpen={Boolean(templateToDelete)}
-        template={templateToDelete}
-        onClose={() => setTemplateToDelete(null)}
-        onConfirmDelete={onDeleteTemplate}
-      />
+      {/* Delete Confirmation Modal */}
+      {templateToDelete && (
+        <DeleteTemplateModal
+          isOpen={Boolean(templateToDelete)}
+          templateName={templateToDelete.name}
+          onClose={() => setTemplateToDelete(null)}
+          onConfirm={() => {
+            onDeleteTemplate(templateToDelete._id || templateToDelete.id);
+            setTemplateToDelete(null);
+          }}
+        />
+      )}
     </div>
   );
 }

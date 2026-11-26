@@ -42,7 +42,7 @@ export function DateNavigator({
           <div className="gymflow-date-navigator__center">
             <h2 className="gymflow-date-navigator__text">{displayDate}</h2>
             {isToday ? (
-              <span className="gymflow-today-chip">Today</span>
+              <span className="neo-sticker neo-sticker--lime">Today</span>
             ) : (
               <button
                 type="button"
@@ -68,7 +68,7 @@ export function DateNavigator({
         </div>
       </div>
 
-      {/* Actions (Desktop right-aligned, Mobile integrated) */}
+      {/* Actions (Desktop right-aligned, Mobile on its own row) */}
       {(actions || secondaryActions) && (
         <div className="gymflow-date-navigator__actions">
           {actions}

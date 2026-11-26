@@ -1,71 +1,120 @@
 /**
  * ==============================================================================
  * MY CHAPTERS — MASTER DESIGN TOKENS & SYSTEM SPECIFICATION
- * Distinctive, polished, premium personal productivity system.
+ * NEO-BRUTALIST DESIGN SYSTEM
+ * Thick outlines, hard offset shadows, flat bold fills, high-contrast typography.
  * ==============================================================================
  */
 
 :root {
-  /* --- 1. COLOR PALETTE --- */
-  /* Exact Primary & Accent Palette */
-  --color-primary-gradient: linear-gradient(135deg, #3A4EFB 0%, #33A4FA 100%);
-  --color-primary-solid: #3A4EFB;
-  --color-secondary-blue: #33A4FA;
-  --color-accent-lime: #E3FF3B;
-  --color-ink-dark: #252943;
-  --color-soft-surface: #DEE0ED;
-  --color-bg-page: #F4F5FA;
+  /* --- 1. CORE BRAND PALETTE (STRICT) --- */
+  --color-white: #FFFFFF;
   --color-bg-white: #FFFFFF;
+  --color-canvas: #F5F7FB;
+  --color-bg-page: #F5F7FB;
+  
+  --color-primary-blue: #3A4EFB;
+  --color-primary-solid: #3A4EFB;
+  --color-primary-gradient: #3A4EFB; /* Flat fill: no gradients */
 
-  /* Derived Tints, Hover & Active States */
-  --color-primary-hover: #2F3ED6;
-  --color-primary-active: #2330B5;
-  --color-primary-subtle: rgba(58, 78, 251, 0.08);
-  --color-primary-glow: rgba(58, 78, 251, 0.25);
+  --color-secondary-blue: #33A4FA;
+  --color-fresh-green: #168B68;
+  --color-deep-navy: #252943;
+  --color-ink-dark: #252943;
+  
+  --color-subtle-border: #DEE0ED;
+  --color-soft-surface: #DEE0ED;
+  
+  --color-accent-lime: #E3FF3B;
+  --color-lime-accent: #E3FF3B;
+  --color-error-red: #DC2626;
 
-  --color-secondary-subtle: rgba(51, 164, 250, 0.12);
-  --color-secondary-hover: rgba(51, 164, 250, 0.2);
-
-  /* Accent Lime Usage: sparingly, highlights, active badges, small dots */
-  --color-accent-lime-hover: #D5F522;
-  --color-accent-lime-subtle: rgba(227, 255, 59, 0.18);
-  --color-accent-lime-text: #252943; /* WCAG AA: Never put lime text on white. Lime is only background with #252943 text */
-
-  /* Ink / Dark Surfaces & Text Hierarchy */
-  --color-ink-primary: #252943;
-  --color-ink-muted: rgba(37, 41, 67, 0.70);
-  --color-ink-subtle: rgba(37, 41, 67, 0.48);
-  --color-ink-disabled: rgba(37, 41, 67, 0.32);
-  --color-ink-on-dark: #FFFFFF;
-  --color-ink-on-dark-muted: rgba(255, 255, 255, 0.74);
-
-  /* Soft Surfaces & Dividers */
-  --color-surface-subtle: #F4F5FA;
-  --color-surface-card: #FFFFFF;
-  --color-surface-hover: #F8FAFD;
-  --color-border-subtle: #DEE0ED;
-  --color-border-hover: rgba(58, 78, 251, 0.35);
-
-  /* Functional Feedback States */
+  /* State & Feedback Colors */
   --color-error: #DC2626;
-  --color-error-bg: #FEF2F2;
-  --color-error-border: #FCA5A5;
-  --color-error-subtle: rgba(220, 38, 38, 0.08);
+  --color-error-bg: #FFFFFF;
+  --color-error-border: #252943;
+  --color-error-subtle: #FEF2F2;
 
   --color-success: #168B68;
-  --color-success-bg: #ECFDF5;
-  --color-success-border: #A7F3D0;
-  --color-success-subtle: rgba(22, 139, 104, 0.12);
+  --color-success-bg: #FFFFFF;
+  --color-success-border: #252943;
+  --color-success-subtle: #ECFDF5;
 
-  /* --- 2. TYPOGRAPHY --- */
+  /* Ink / Text Hierarchy */
+  --color-ink-primary: #252943;
+  --color-ink-muted: rgba(37, 41, 67, 0.70);
+  --color-ink-subtle: rgba(37, 41, 67, 0.50);
+  --color-ink-disabled: rgba(37, 41, 67, 0.40);
+  --color-ink-on-dark: #FFFFFF;
+  --color-ink-on-dark-muted: rgba(255, 255, 255, 0.74);
+  --color-accent-lime-text: #252943; /* Always Deep Navy text on Lime */
+
+  /* Surfaces */
+  --color-surface-card: #FFFFFF;
+  --color-surface-hover: #F5F7FB;
+  --color-surface-subtle: #F5F7FB;
+  --color-border-subtle: #DEE0ED;
+
+  /* --- 2. NEO-BRUTALIST BORDERS & OUTLINES --- */
+  --border-width-standard: 2px;
+  --border-width-thick: 3px;
+  --border-color: #252943;
+  --border-standard: 2px solid #252943;
+  --border-thick: 3px solid #252943;
+  --border-dashed: 2px dashed #252943;
+  --border-muted: 2px solid #DEE0ED;
+
+  /* --- 3. HARD OFFSET SHADOWS (ZERO BLUR) --- */
+  --shadow-none: 0 0 0 transparent;
+  --shadow-xs: 2px 2px 0 #252943;
+  --shadow-sm: 3px 3px 0 #252943;
+  --shadow-md: 4px 4px 0 #252943;
+  --shadow-lg: 6px 6px 0 #252943;
+  --shadow-card: 4px 4px 0 #252943;
+  --shadow-modal: 6px 6px 0 #252943;
+  --shadow-float: 4px 4px 0 #252943;
+  --shadow-nav: 0 0 0 transparent; /* Nav uses 3px border instead of shadow */
+
+  /* Mobile Hard Shadows */
+  --shadow-mobile-sm: 2px 2px 0 #252943;
+  --shadow-mobile-md: 3px 3px 0 #252943;
+  --shadow-mobile-lg: 4px 4px 0 #252943;
+
+  /* --- 4. RADIUS SCALE (TIGHT: 6px inputs/chips, 10px cards/modals/buttons) --- */
+  --radius-xs: 4px;
+  --radius-6: 6px;
+  --radius-8: 6px;
+  --radius-10: 10px;
+  --radius-12: 10px;
+  --radius-14: 10px;
+  --radius-16: 10px;
+  --radius-20: 10px;
+  --radius-24: 10px;
+  
+  --radius-input: 6px;
+  --radius-chip: 6px;
+  --radius-badge: 6px;
+  --radius-button: 10px;
+  --radius-card: 10px;
+  --radius-modal: 10px;
+  
+  /* Pill / Fully round strictly for user avatars and status dots */
+  --radius-pill: 9999px;
+  --radius-full: 9999px;
+
+  /* --- 5. TYPOGRAPHY --- */
   --font-heading: 'Plus Jakarta Sans', 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-body: 'Inter', 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  /* Type Scale: 12 / 14 / 16 / 20 / 28 / 40 / 56 */
+  /* Type Scale */
+  --font-size-11: 0.6875rem;
   --font-size-12: 0.75rem;   /* 12px - tags, labels, badges */
+  --font-size-13: 0.8125rem;
   --font-size-14: 0.875rem;  /* 14px - body small, buttons, inputs */
-  --font-size-16: 1rem;      /* 16px - body regular, card titles */
+  --font-size-15: 0.9375rem;
+  --font-size-16: 1rem;      /* 16px - body regular, card titles, mobile inputs */
+  --font-size-18: 1.125rem;
   --font-size-20: 1.25rem;   /* 20px - section headings, card hero */
   --font-size-28: 1.75rem;   /* 28px - page headings, modal titles */
   --font-size-40: 2.5rem;    /* 40px - hero stats, display numbers */
@@ -77,12 +126,12 @@
   --font-weight-bold: 700;
   --font-weight-extrabold: 800;
 
-  --line-height-tight: 1.2;
-  --line-height-snug: 1.35;
+  --line-height-tight: 1.15;
+  --line-height-snug: 1.3;
   --line-height-normal: 1.5;
-  --line-height-relaxed: 1.625;
+  --line-height-relaxed: 1.6;
 
-  /* --- 3. SPACING SCALE (4px base) --- */
+  /* --- 6. SPACING SCALE (4px base) --- */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -94,50 +143,17 @@
   --space-12: 48px;
   --space-16: 64px;
 
-  /* --- 4. RADIUS SCALE --- */
-  --radius-8: 8px;
-  --radius-12: 12px;
-  --radius-16: 16px;
-  --radius-24: 24px;
-  --radius-pill: 9999px;
-  --radius-full: 9999px;
+  /* --- 7. TRANSITION TIMING (Crisp 120ms) --- */
+  --transition-fast: 120ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --transition-normal: 150ms cubic-bezier(0.2, 0.8, 0.2, 1);
 
-  /* Component Default Radii */
-  --radius-button: var(--radius-12);
-  --radius-input: var(--radius-12);
-  --radius-card: var(--radius-16);
-  --radius-modal: var(--radius-24);
+  /* --- 8. FOCUS RING (3px Lime outline + 2px Navy offset ring) --- */
+  --focus-ring-color: #E3FF3B;
+  --focus-ring-navy: #252943;
+  --focus-ring: 0 0 0 2px #252943, 0 0 0 5px #E3FF3B;
 
-  /* --- 5. LAYERED SOFT SHADOWS (Tinted with #252943 at low opacity) --- */
-  --shadow-sm: 0 1px 3px rgba(37, 41, 67, 0.05), 0 1px 2px rgba(37, 41, 67, 0.04);
-  --shadow-md: 0 4px 16px -2px rgba(37, 41, 67, 0.08), 0 2px 6px -1px rgba(37, 41, 67, 0.04);
-  --shadow-lg: 0 12px 32px -4px rgba(37, 41, 67, 0.12), 0 4px 12px -2px rgba(37, 41, 67, 0.06);
-  --shadow-float: 0 8px 24px -2px rgba(37, 41, 67, 0.08), 0 2px 8px -1px rgba(37, 41, 67, 0.04);
-  --shadow-modal: 0 24px 48px -8px rgba(37, 41, 67, 0.18), 0 8px 20px -4px rgba(37, 41, 67, 0.08);
-
-  /* --- 6. TRANSITION TIMING (150-250ms ease-out) --- */
-  --transition-fast: 150ms cubic-bezier(0.16, 1, 0.3, 1);
-  --transition-normal: 250ms cubic-bezier(0.16, 1, 0.3, 1);
-
-  /* --- 7. FOCUS RING (2px #3A4EFB with offset) --- */
-  --focus-ring-color: #3A4EFB;
-  --focus-ring-offset: 2px;
-  --focus-ring: 0 0 0 2px var(--color-bg-page), 0 0 0 4px var(--focus-ring-color);
-
-  /* --- 8. EXTENDED SEMANTIC TOKENS --- */
-  --color-surface-tint: #F8F9FD;
-  --color-shimmer-base: #F0F2F8;
-  --color-shimmer-highlight: #E5E8F2;
-  --color-accent-lime-active: #C6E617;
-  --color-accent-lime-border-dark: #C8E500;
-  --color-accent-lime-border-light: #B7D900;
-  --color-accent-lime-accessible: #A3CF00;
-  --color-secondary-blue-dark: #0284C7;
-  --color-secondary-blue-deep: #0369A1;
-  --color-warning-amber: #D97706;
-  --color-warning-amber-dark: #B45309;
-  --color-success-hover: #127355;
-  --color-success-active: #0E5B43;
-  --color-error-hover: #B91C1C;
-  --color-error-active: #991B1B;
+  /* --- 9. CANVAS DOT-GRID PATTERN --- */
+  --dot-grid-pattern: radial-gradient(#252943 1px, transparent 1px);
+  --dot-grid-size: 20px 20px;
+  --dot-grid-opacity: 0.06;
 }

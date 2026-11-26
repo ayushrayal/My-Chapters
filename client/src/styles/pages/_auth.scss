@@ -1,13 +1,19 @@
 @use '../abstracts/variables' as *;
 @use '../abstracts/mixins' as *;
 
-// Main Auth Split Layout Container
+// ==============================================================================
+// AUTH SPLIT LAYOUT — NEO-BRUTALIST
+// Flat Primary Blue left panel, dot-grid canvas right panel, thick Navy borders, hard shadows
+// ==============================================================================
+
 .auth-split-layout {
   min-height: 100vh;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  background-color: $color-bg-page;
+  background-color: $color-canvas;
+  background-image: radial-gradient(rgba(37, 41, 67, 0.06) 1px, transparent 1px);
+  background-size: 20px 20px;
 
   @include respond-to('tablet') {
     flex-direction: row;
@@ -16,24 +22,26 @@
 }
 
 // -----------------------------------------------------------------------------
-// LEFT BRAND SHOWCASE PANEL
+// LEFT BRAND SHOWCASE PANEL (Desktop / Tablet) & Hero Header (Mobile)
 // -----------------------------------------------------------------------------
 .auth-brand-panel {
   position: relative;
-  overflow: hidden;
-  background: $color-primary-gradient;
+  background-color: $color-primary-blue;
   color: $color-white;
   padding: $spacing-xl $spacing-lg $spacing-2xl;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   flex: 0 0 auto;
+  border-bottom: $border-navy-thick;
 
   @include respond-to('tablet') {
-    flex: 0 0 42%;
+    flex: 0 0 44%;
     max-width: 520px;
     padding: $spacing-2xl $spacing-xl;
     min-height: 100vh;
+    border-bottom: none;
+    border-right: $border-navy-thick;
   }
 
   @include respond-to('desktop') {
@@ -43,68 +51,12 @@
   }
 }
 
-// Subtle decorative blurred shapes / glowing circles
+// Remove glowing blobs; clean solid presentation
 .auth-brand-shapes {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-  z-index: 1;
-
-  .auth-shape {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(50px);
-    opacity: 0.6;
-    will-change: transform;
-
-    &--one {
-      width: 280px;
-      height: 280px;
-      top: -60px;
-      left: -60px;
-      background: radial-gradient(circle, rgba(227, 255, 59, 0.35) 0%, rgba(51, 164, 250, 0.15) 60%, transparent 80%);
-      animation: floatShapeOne 14s ease-in-out infinite alternate;
-    }
-
-    &--two {
-      width: 340px;
-      height: 340px;
-      bottom: -80px;
-      right: -80px;
-      background: radial-gradient(circle, rgba(58, 78, 251, 0.6) 0%, rgba(51, 164, 250, 0.25) 70%, transparent 90%);
-      animation: floatShapeTwo 18s ease-in-out infinite alternate;
-    }
-
-    &--three {
-      width: 200px;
-      height: 200px;
-      top: 40%;
-      right: -20px;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, rgba(51, 164, 250, 0.1) 60%, transparent 80%);
-    }
-  }
+  display: none;
 }
 
-@keyframes floatShapeOne {
-  0% {
-    transform: translate(0, 0) scale(1);
-  }
-  100% {
-    transform: translate(30px, 40px) scale(1.08);
-  }
-}
-
-@keyframes floatShapeTwo {
-  0% {
-    transform: translate(0, 0) scale(1);
-  }
-  100% {
-    transform: translate(-35px, -25px) scale(1.05);
-  }
-}
-
-// Brand content over the shapes
+// Brand content
 .auth-brand-content {
   position: relative;
   z-index: 2;
@@ -114,22 +66,23 @@
   justify-content: space-between;
 }
 
-// Brand Pill / Accent element
+// Brand Sticker
 .auth-brand-pill {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 4px 12px;
-  background-color: $color-lime;
+  padding: 6px 14px;
+  background-color: $color-accent-lime;
   color: $color-deep-navy;
-  font-family: $font-family-body;
+  font-family: $font-family-heading;
   font-size: 11px;
-  font-weight: $font-weight-bold;
+  font-weight: $font-weight-extrabold;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  border-radius: $radius-full;
+  border: 2px solid $color-deep-navy;
+  border-radius: $radius-6;
   margin-bottom: $spacing-md;
-  box-shadow: 0 2px 8px rgba(37, 41, 67, 0.15);
+  box-shadow: $shadow-xs;
   align-self: flex-start;
 
   @media (max-width: 767px) {
@@ -141,7 +94,7 @@
     width: 6px;
     height: 6px;
     background-color: $color-deep-navy;
-    border-radius: 50%;
+    border-radius: 1px;
   }
 }
 
@@ -156,7 +109,7 @@
 
 .auth-brand-wordmark {
   font-family: $font-family-heading;
-  font-size: $font-size-2xl;
+  font-size: $font-size-28;
   font-weight: $font-weight-extrabold;
   letter-spacing: -0.035em;
   color: $color-white;
@@ -165,15 +118,15 @@
   line-height: 1.1;
 
   @include respond-to('tablet') {
-    font-size: $font-size-3xl;
+    font-size: $font-size-40;
   }
 }
 
 .auth-brand-tagline {
   font-family: $font-family-body;
   font-size: $font-size-14;
-  font-weight: $font-weight-medium;
-  color: rgba(255, 255, 255, 0.92);
+  font-weight: $font-weight-semibold;
+  color: rgba(255, 255, 255, 0.95);
   letter-spacing: -0.01em;
   margin: 0;
   line-height: 1.4;
@@ -190,30 +143,34 @@
   @include respond-to('tablet') {
     display: flex;
     flex-direction: column;
-    gap: $spacing-lg;
-    margin: $spacing-2xl 0;
+    gap: 14px;
+    margin: $spacing-xl 0;
   }
 }
 
 .auth-feature-item {
   display: flex;
-  align-items: flex-start;
-  gap: $spacing-md;
+  align-items: center;
+  gap: 14px;
+  background-color: $color-white;
+  border: $border-navy;
+  border-radius: $radius-card;
+  padding: 12px 16px;
+  box-shadow: $shadow-sm;
 }
 
 .auth-feature-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: $radius-10;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  width: 36px;
+  height: 36px;
+  border-radius: $radius-6;
+  background-color: $color-accent-lime;
+  border: $border-navy;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: $color-white;
+  color: $color-deep-navy;
   flex-shrink: 0;
+  box-shadow: 1px 1px 0 $color-deep-navy;
 }
 
 .auth-feature-text {
@@ -224,17 +181,18 @@
 
 .auth-feature-title {
   font-family: $font-family-heading;
-  font-size: 0.9375rem;
-  font-weight: $font-weight-bold;
-  color: $color-white;
-  letter-spacing: -0.01em;
+  font-size: 0.875rem;
+  font-weight: $font-weight-extrabold;
+  color: $color-deep-navy;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .auth-feature-desc {
   font-family: $font-family-body;
   font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.82);
-  line-height: 1.45;
+  color: rgba(37, 41, 67, 0.8);
+  line-height: 1.35;
   margin: 0;
 }
 
@@ -244,8 +202,8 @@
   @include respond-to('tablet') {
     display: block;
     font-size: $font-size-12;
-    color: rgba(255, 255, 255, 0.72);
-    letter-spacing: -0.01em;
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: $font-weight-medium;
   }
 }
 
@@ -258,7 +216,7 @@
   align-items: center;
   justify-content: center;
   padding: 0 $spacing-md $spacing-2xl;
-  background-color: $color-bg-page;
+  background-color: transparent;
 
   @include respond-to('tablet') {
     padding: $spacing-2xl $spacing-xl;
@@ -273,26 +231,24 @@
 }
 
 // -----------------------------------------------------------------------------
-// FORM CARD
+// FORM CARD — NEO-BRUTALIST WINDOW CARD OVERLAP
 // -----------------------------------------------------------------------------
 .auth-card {
   width: 100%;
   background-color: $color-white;
-  border: 1.5px solid $color-subtle-border;
-  border-radius: $radius-16;
+  border: $border-navy-thick;
+  border-radius: $radius-card;
   padding: $spacing-lg;
-  box-shadow: $shadow-card;
+  box-shadow: $shadow-lg;
   transition: transform $transition-fast, box-shadow $transition-fast;
-  animation: authSlideFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 
   // Mobile overlapping card effect
   @media (max-width: 767px) {
     margin-top: -24px;
     position: relative;
     z-index: 5;
-    border-radius: $radius-20 $radius-20 $radius-16 $radius-16;
-    box-shadow: $shadow-xl;
-    padding: $spacing-xl $spacing-md;
+    padding: $spacing-lg $spacing-md;
+    box-shadow: $shadow-md;
   }
 
   @include respond-to('tablet') {
@@ -301,6 +257,8 @@
 
   &__header {
     margin-bottom: $spacing-lg;
+    padding-bottom: $spacing-md;
+    border-bottom: $border-navy;
   }
 
   &__title {
@@ -309,6 +267,7 @@
     font-weight: $font-weight-extrabold;
     color: $color-deep-navy;
     margin: 0 0 $spacing-2xs;
+    text-transform: uppercase;
     letter-spacing: -0.025em;
     line-height: 1.2;
 
@@ -320,7 +279,7 @@
   &__subtitle {
     font-family: $font-family-body;
     font-size: $font-size-14;
-    color: $color-text-muted;
+    color: rgba(37, 41, 67, 0.7);
     margin: 0;
     line-height: $line-height-normal;
   }
@@ -328,31 +287,39 @@
   &__form {
     display: flex;
     flex-direction: column;
-    gap: $spacing-md;
+    gap: 14px;
   }
 
   &__footer {
     margin-top: $spacing-xl;
     padding-top: $spacing-md;
-    border-top: 1px solid $color-subtle-border;
+    border-top: $border-navy;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 8px;
     font-size: $font-size-14;
-    color: $color-text-muted;
+    font-weight: $font-weight-semibold;
+    color: rgba(37, 41, 67, 0.75);
 
     a,
     .auth-card__link {
       color: $color-primary-blue;
-      font-weight: $font-weight-semibold;
+      font-weight: $font-weight-extrabold;
       text-decoration: none;
-      transition: color $transition-fast;
+      padding: 4px 8px;
+      border: 1.5px solid $color-deep-navy;
+      border-radius: $radius-6;
+      background-color: $color-canvas;
+      box-shadow: 1px 1px 0 $color-deep-navy;
+      transition: transform $transition-fast, box-shadow $transition-fast;
 
       &:hover {
-        color: $color-action-primary-hover;
-        text-decoration: underline;
+        background-color: $color-accent-lime;
+        color: $color-deep-navy;
+        transform: translate(-1px, -1px);
+        box-shadow: 2px 2px 0 $color-deep-navy;
       }
 
       &:focus-visible {
@@ -362,30 +329,8 @@
   }
 }
 
-// Fade & Slide in animation
-@keyframes authSlideFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .auth-card {
-    animation: none !important;
-  }
-
-  .auth-brand-shapes .auth-shape {
-    animation: none !important;
-  }
-}
-
 // -----------------------------------------------------------------------------
-// PASSWORD STRENGTH METER & CHECKLIST (SIGNUP)
+// PASSWORD STRENGTH METER & CHECKLIST (SIGNUP) — NEO-BRUTALIST
 // -----------------------------------------------------------------------------
 .password-field-group {
   display: flex;
@@ -394,53 +339,57 @@
 }
 
 .password-strength {
-  background-color: $color-surface-tint;
-  border: 1px solid $color-subtle-border;
-  border-radius: $radius-10;
-  padding: $spacing-sm $spacing-md;
-  margin-top: 2px;
-  animation: authSlideFadeIn 0.2s ease-out;
+  background-color: $color-canvas;
+  border: $border-navy;
+  border-radius: $radius-card;
+  padding: 12px 14px;
+  margin-top: 4px;
+  box-shadow: $shadow-xs;
 
   &__header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     font-size: $font-size-12;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
   }
 
   &__title {
-    font-weight: $font-weight-medium;
+    font-weight: $font-weight-extrabold;
+    font-family: $font-family-heading;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
     color: $color-deep-navy;
   }
 
   &__rating {
-    font-weight: $font-weight-bold;
+    font-weight: $font-weight-extrabold;
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.04em;
     padding: 2px 8px;
-    border-radius: $radius-full;
-    background-color: $color-soft-surface;
+    border-radius: $radius-6;
+    border: 1.5px solid $color-deep-navy;
+    background-color: $color-white;
     color: $color-deep-navy;
 
     &--1 {
-      background-color: rgba(220, 38, 38, 0.12);
-      color: $color-error-red;
+      background-color: $color-error-red;
+      color: $color-white;
     }
 
     &--2 {
-      background-color: rgba(245, 158, 11, 0.15);
-      color: $color-warning-amber-dark;
+      background-color: #F59E0B;
+      color: $color-deep-navy;
     }
 
     &--3 {
-      background-color: rgba(58, 78, 251, 0.12);
-      color: $color-primary-blue;
+      background-color: $color-secondary-blue;
+      color: $color-deep-navy;
     }
 
     &--4 {
-      background-color: $color-lime;
+      background-color: $color-accent-lime;
       color: $color-deep-navy;
     }
   }
@@ -448,22 +397,23 @@
   &__bars {
     display: flex;
     gap: 6px;
-    margin-bottom: $spacing-sm;
+    margin-bottom: 10px;
   }
 
   &__bar {
     flex: 1;
-    height: 4px;
-    border-radius: 2px;
-    background-color: $color-subtle-border;
-    transition: background-color $transition-fast, transform $transition-fast;
+    height: 8px;
+    border: 1.5px solid $color-deep-navy;
+    border-radius: 3px;
+    background-color: $color-white;
+    transition: background-color $transition-fast;
 
     &--active {
       background-color: $color-primary-blue;
     }
 
     &--lime {
-      background-color: $color-lime-accessible; // Deep accessible lime tone for bar indicator
+      background-color: $color-accent-lime;
     }
   }
 }
@@ -486,43 +436,43 @@
   align-items: center;
   gap: 8px;
   font-size: 12px;
-  color: $color-text-subtle;
-  transition: color $transition-fast;
+  font-weight: $font-weight-medium;
+  color: rgba(37, 41, 67, 0.7);
 
   &__badge {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    border-radius: $radius-4;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 1.5px solid $color-subtle-border;
-    background-color: transparent;
+    border: 1.5px solid $color-deep-navy;
+    background-color: $color-white;
     color: $color-deep-navy;
     flex-shrink: 0;
-    transition: all $transition-fast;
 
     svg {
       display: block;
+      width: 12px;
+      height: 12px;
     }
   }
 
   &__bullet {
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background-color: $color-text-subtle;
+    width: 6px;
+    height: 6px;
+    border-radius: 1px;
+    background-color: $color-deep-navy;
   }
 
   &--met {
     color: $color-deep-navy;
-    font-weight: $font-weight-medium;
+    font-weight: $font-weight-bold;
 
     .password-requirement__badge {
-      background-color: $color-lime;
-      border-color: $color-lime-border-light;
-      color: $color-deep-navy;
-      box-shadow: 0 1px 3px rgba(37, 41, 67, 0.12);
+      background-color: $color-fresh-green;
+      border-color: $color-deep-navy;
+      color: $color-white;
     }
   }
 }

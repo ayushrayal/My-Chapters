@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { DesktopNavigation } from '../navigation/DesktopNavigation.jsx';
 import { MobileBottomNavigation } from '../navigation/MobileBottomNavigation.jsx';
-import { Avatar } from './Avatar.jsx';
+import { ProfileDropdown } from '../navigation/ProfileDropdown.jsx';
 
 export function AppShell({
   user,
@@ -13,7 +13,7 @@ export function AppShell({
 }) {
   return (
     <div className="dashboard-layout app-shell">
-      {/* Mobile Top Bar (Slim Header with Wordmark and Avatar) */}
+      {/* Mobile Top Bar (Slim Header with Wordmark and Profile Dropdown) */}
       <header className="mobile-top-bar" aria-label="Mobile Header">
         <Link to="/dashboard" className="mobile-top-bar__brand">
           <span className="mobile-top-bar__wordmark">MY CHAPTERS</span>
@@ -21,9 +21,14 @@ export function AppShell({
             <span className="mobile-top-bar__badge">{space.name}</span>
           )}
         </Link>
-        <Link to="/profile" className="mobile-top-bar__avatar-link" aria-label="View Profile">
-          <Avatar name={user?.username} size="sm" />
-        </Link>
+        <ProfileDropdown
+          user={user}
+          space={space}
+          isLoggingOut={isLoggingOut}
+          onLogout={onLogout}
+          className="mobile-top-bar__profile"
+          align="right"
+        />
       </header>
 
       {/* Desktop Sticky Glass Navigation */}

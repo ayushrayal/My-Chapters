@@ -2,8 +2,8 @@
 @use '../abstracts/mixins' as *;
 
 // ==============================================================================
-// FILTER CONTROL FAMILY (FilterChips, SegmentedFilter, FilterSelect, FilterBar)
-// Modern, accessible, premium design tokens
+// FILTER CONTROL FAMILY — NEO-BRUTALIST
+// Selected = Lime (#E3FF3B) + Deep Navy (#252943), 2px Navy border, 2px hard shadow
 // ==============================================================================
 
 // 1. FILTER CHIPS
@@ -23,23 +23,13 @@
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  padding: 2px 4px 6px 4px;
+  padding: 4px 2px 8px 2px;
   width: 100%;
   box-sizing: border-box;
 
   &::-webkit-scrollbar {
     display: none;
   }
-}
-
-.filter-chips__edge-fade {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 24px;
-  pointer-events: none;
-  background: linear-gradient(to right, rgba(244, 245, 250, 0), rgba(244, 245, 250, 0.95));
 }
 
 .filter-chip {
@@ -49,25 +39,30 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  height: 40px;
-  min-height: 40px;
-  padding: 0 16px;
-  border-radius: 20px;
-  border: 1px solid $color-subtle-border;
-  background-color: #ffffff;
+  height: 38px;
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: $radius-chip;
+  border: $border-navy;
+  background-color: $color-white;
   color: $color-deep-navy;
   font-family: $font-family-body;
-  font-size: 13.5px;
-  font-weight: 600;
+  font-size: $font-size-13;
+  font-weight: $font-weight-bold;
   cursor: pointer;
   white-space: nowrap;
   user-select: none;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-sizing: border-box;
+  box-shadow: $shadow-xs;
+  transition: transform $transition-fast, box-shadow $transition-fast, background-color $transition-fast;
 
   &:hover {
-    border-color: rgba(58, 78, 251, 0.4);
-    background-color: #F8FAFD;
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 $color-deep-navy;
+  }
+
+  &:active {
+    transform: translate(1px, 1px);
+    box-shadow: 0 0 0 transparent;
   }
 
   &:focus-visible {
@@ -75,18 +70,14 @@
   }
 
   &--active {
-    background: $color-primary-gradient;
-    border-color: transparent;
-    color: #ffffff;
-    box-shadow: 0 3px 12px rgba(58, 78, 251, 0.28);
+    background-color: $color-accent-lime;
+    color: $color-deep-navy;
+    border: $border-navy;
+    box-shadow: $shadow-xs;
 
     .filter-chip__badge {
-      background-color: rgba(255, 255, 255, 0.25);
-      color: #ffffff;
-    }
-
-    .filter-chip__check {
-      color: #ffffff;
+      background-color: $color-deep-navy;
+      color: $color-white;
     }
   }
 
@@ -104,104 +95,60 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 18px;
-    height: 18px;
-    padding: 0 6px;
-    border-radius: 9px;
     font-size: 11px;
-    font-weight: 700;
-    background-color: #E2E4EF;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background-color: $color-canvas;
     color: $color-deep-navy;
+    border: 1px solid $color-deep-navy;
     line-height: 1;
   }
 }
 
 // 2. SEGMENTED FILTER
 .segmented-filter {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(var(--segment-count, 3), 1fr);
-  background-color: #E2E4EF;
-  padding: 4px;
-  border-radius: 12px;
-  width: 100%;
-  box-sizing: border-box;
-  overflow: hidden;
-
-  @include respond-to('tablet') {
-    width: auto;
-    min-width: 280px;
-  }
-
-  &__pill-indicator {
-    position: absolute;
-    top: 4px;
-    bottom: 4px;
-    left: calc(4px + (100% - 8px) / var(--segment-count, 3) * var(--active-index, 0));
-    width: calc((100% - 8px) / var(--segment-count, 3));
-    background: $color-primary-gradient;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(58, 78, 251, 0.28);
-    transition: left 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    pointer-events: none;
-    z-index: 1;
-  }
+  display: inline-flex;
+  align-items: center;
+  background-color: $color-canvas;
+  border: $border-navy;
+  border-radius: $radius-chip;
+  padding: 3px;
+  gap: 4px;
+  box-shadow: $shadow-xs;
 
   &__btn {
-    position: relative;
-    z-index: 2;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
-    height: 38px;
-    min-height: 38px;
-    padding: 0 10px;
-    border: none;
+    padding: 6px 14px;
+    min-height: 34px;
+    border-radius: 4px;
+    font-size: $font-size-12;
+    font-weight: $font-weight-extrabold;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: $color-deep-navy;
     background: transparent;
-    border-radius: 8px;
-    font-family: $font-family-body;
-    font-size: 13px;
-    font-weight: 600;
-    color: rgba(37, 41, 67, 0.75);
+    border: none;
     cursor: pointer;
-    white-space: nowrap;
-    transition: color 0.2s ease;
-    user-select: none;
+    transition: background-color $transition-fast;
 
     &:hover:not(&--active) {
+      background-color: $color-subtle-border;
+    }
+
+    &--active {
+      background-color: $color-accent-lime;
       color: $color-deep-navy;
-    }
-
-    &:focus-visible {
-      @include focus-ring;
-    }
-
-    &--active {
-      color: #ffffff;
-      font-weight: 700;
-    }
-  }
-
-  &__badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1px 6px;
-    border-radius: 8px;
-    font-size: 11px;
-    font-weight: 700;
-    background-color: rgba(37, 41, 67, 0.12);
-    color: $color-deep-navy;
-
-    &--active {
-      background-color: rgba(255, 255, 255, 0.25);
-      color: #ffffff;
+      border: 1.5px solid $color-deep-navy;
+      box-shadow: 1px 1px 0 $color-deep-navy;
     }
   }
 }
 
-// 3. FILTER SELECT TRIGGER & DESKTOP POPOVER
+// 3. FILTER SELECT TRIGGER & OPTIONS PANEL (Neo-Brutalist)
 .filter-select {
   position: relative;
   width: 100%;
@@ -212,139 +159,126 @@
     height: 48px;
     min-height: 48px;
     padding: 0 14px;
-    border-radius: 12px;
-    border: 1px solid #DEE0ED;
-    background-color: #ffffff;
+    border-radius: $radius-6;
+    border: $border-navy;
+    background-color: $color-white;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
     cursor: pointer;
     box-sizing: border-box;
-    transition: all 0.15s ease;
+    box-shadow: 2px 2px 0 $color-deep-navy;
+    transition: transform $transition-fast, box-shadow $transition-fast;
 
     &:hover:not(:disabled) {
-      border-color: rgba(58, 78, 251, 0.4);
-      background-color: #F8FAFD;
+      transform: translate(-1px, -1px);
+      box-shadow: 3px 3px 0 $color-deep-navy;
     }
 
     &:focus-visible {
       @include focus-ring;
     }
-  }
 
-  &--open &__trigger {
-    border-color: $color-primary-blue;
-    box-shadow: 0 0 0 2px rgba(58, 78, 251, 0.15);
-  }
-
-  &--disabled &__trigger {
-    background-color: #F4F5FA;
-    cursor: not-allowed;
-    opacity: 0.65;
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
   }
 
   &__trigger-content {
     display: flex;
     align-items: center;
     gap: 6px;
-    min-width: 0;
-    flex: 1;
     overflow: hidden;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
   }
 
   &__label-prefix {
-    font-size: 12px;
-    font-weight: 700;
-    color: rgba(37, 41, 67, 0.6);
+    font-family: $font-family-heading;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: $color-deep-navy;
     flex-shrink: 0;
   }
 
-  &__placeholder {
-    font-size: 14px;
-    color: rgba(37, 41, 67, 0.45);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  &__value-chip {
-    display: inline-flex;
-    align-items: center;
-    font-size: 13px;
+  &__value-text {
+    font-size: 13.5px;
     font-weight: 700;
-    color: $color-primary-blue;
-    background-color: rgba(58, 78, 251, 0.08);
-    padding: 3px 8px;
-    border-radius: 6px;
-    white-space: nowrap;
+    color: $color-deep-navy;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &--placeholder {
+      color: rgba(37, 41, 67, 0.6);
+      font-weight: 600;
+    }
   }
 
   &__trigger-actions {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     flex-shrink: 0;
-  }
-
-  &__clear-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    color: rgba(37, 41, 67, 0.5);
-    cursor: pointer;
-
-    &:hover {
-      background-color: #E2E4EF;
-      color: $color-deep-navy;
-    }
   }
 
   &__chevron {
     display: inline-flex;
-    color: rgba(37, 41, 67, 0.5);
-    transition: transform 0.2s ease;
+    align-items: center;
+    justify-content: center;
+    color: $color-deep-navy;
+    transition: transform $transition-fast;
 
     &--open {
       transform: rotate(180deg);
     }
   }
 
-  // Desktop Popover Panel
-  &__popover {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    width: 100%;
-    min-width: 200px;
+  // OPTIONS PANEL: absolute popover on desktop, in-flow on mobile
+  &__panel {
+    background-color: $color-white;
+    border: $border-navy;
+    border-radius: $radius-6;
+    box-shadow: 4px 4px 0 $color-deep-navy;
     max-height: 280px;
-    background-color: #ffffff;
-    border: 1px solid #DEE0ED;
-    border-radius: 12px;
-    box-shadow: 0 12px 32px rgba(37, 41, 67, 0.12);
-    z-index: 60;
-    overflow: hidden;
+    overflow-y: auto;
+    z-index: 100;
     display: flex;
     flex-direction: column;
-    animation: filterPopoverSlide 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    box-sizing: border-box;
+
+    &--desktop {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      width: 100%;
+      min-width: 100%;
+      animation: fadeIn 0.15s ease-out;
+    }
+
+    &--mobile {
+      position: relative;
+      margin-top: 6px;
+      width: 100%;
+    }
   }
 
   &__search-box {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 12px;
-    border-bottom: 1px solid #E6E9F2;
-    background-color: #F8FAFD;
+    padding: 10px 14px;
+    background-color: $color-canvas;
+    border-bottom: $border-navy;
   }
 
   &__search-icon {
-    color: rgba(37, 41, 67, 0.45);
+    color: $color-deep-navy;
     flex-shrink: 0;
   }
 
@@ -352,189 +286,118 @@
     width: 100%;
     border: none;
     background: transparent;
-    font-size: 13px;
-    color: $color-deep-navy;
     outline: none;
+    font-size: 13px;
+    font-weight: 700;
+    color: $color-deep-navy;
+
+    &::placeholder {
+      color: rgba(37, 41, 67, 0.5);
+      font-weight: 500;
+    }
   }
 
   &__options-list {
     overflow-y: auto;
-    padding: 4px;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    width: 100%;
   }
 
   &__option {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 10px;
     width: 100%;
-    padding: 10px 12px;
-    border-radius: 8px;
+    min-height: 48px;
+    padding: 10px 14px;
     border: none;
-    background: transparent;
+    border-bottom: 2px solid $color-subtle-border;
+    background: $color-white;
     font-size: 13.5px;
-    font-weight: 500;
-    color: $color-deep-navy;
-    text-align: left;
-    cursor: pointer;
-    transition: background-color 0.12s ease;
-
-    &:hover {
-      background-color: #F4F5FA;
-    }
-
-    &--selected {
-      font-weight: 700;
-      color: $color-primary-blue;
-      background-color: rgba(58, 78, 251, 0.08);
-
-      &:hover {
-        background-color: rgba(58, 78, 251, 0.12);
-      }
-    }
-  }
-
-  &__option-check {
-    color: $color-primary-blue;
-    flex-shrink: 0;
-  }
-
-  &__empty-msg {
-    padding: 16px;
-    font-size: 13px;
-    color: rgba(37, 41, 67, 0.45);
-    text-align: center;
-    font-style: italic;
-  }
-}
-
-// 4. MOBILE BOTTOM SHEET MODAL (FilterSelect Sheet)
-.filter-select-sheet-backdrop {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(37, 41, 67, 0.55);
-  backdrop-filter: blur(4px);
-  z-index: 1000;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  animation: fadeIn 0.2s ease-out;
-
-  .filter-bar-container > & {
-    z-index: 950;
-  }
-}
-
-.filter-select-container .filter-select-sheet-backdrop {
-  z-index: 1050;
-}
-
-.filter-select-sheet {
-  width: 100%;
-  max-width: 500px;
-  max-height: 85vh;
-  background-color: #ffffff;
-  border-radius: 20px 20px 0 0;
-  box-shadow: 0 -8px 32px rgba(37, 41, 67, 0.2);
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-
-  &__handle-bar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 0 4px 0;
-  }
-
-  &__handle {
-    width: 36px;
-    height: 4px;
-    border-radius: 2px;
-    background-color: #D2D6E6;
-  }
-
-  &__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 18px 12px 18px;
-    border-bottom: 1px solid #E6E9F2;
-  }
-
-  &__title {
-    font-family: $font-family-heading;
-    font-size: 17px;
-    font-weight: 800;
-    color: $color-deep-navy;
-    margin: 0;
-  }
-
-  &__search {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 18px;
-    background-color: #F8FAFD;
-    border-bottom: 1px solid #E6E9F2;
-  }
-
-  &__list {
-    overflow-y: auto;
-    padding: 8px 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    flex: 1;
-    min-height: 180px;
-  }
-
-  &__row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    min-height: 48px; // 48px tall option row on mobile
-    height: 48px;
-    padding: 0 14px;
-    border-radius: 12px;
-    border: 1px solid transparent;
-    background-color: #F8FAFD;
-    font-size: 15px;
     font-weight: 600;
     color: $color-deep-navy;
     text-align: left;
     cursor: pointer;
     box-sizing: border-box;
-    transition: all 0.15s ease;
+    transition: background-color $transition-fast;
 
-    &:active {
-      background-color: #E2E4EF;
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover:not(:disabled) {
+      background-color: $color-subtle-border;
     }
 
     &--selected {
-      background-color: rgba(58, 78, 251, 0.08);
-      border-color: rgba(58, 78, 251, 0.3);
-      color: $color-primary-blue;
-      font-weight: 700;
+      background-color: $color-accent-lime !important;
+      color: $color-deep-navy !important;
+      font-weight: 800;
+
+      .filter-select__option-label {
+        font-weight: 800;
+      }
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
     }
   }
 
-  &__footer {
-    display: flex;
+  &__option-label {
+    flex: 1;
+    min-width: 0;
+    line-height: 1.35;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  &__option-check {
+    color: $color-deep-navy;
+    flex-shrink: 0;
+  }
+
+  &__checkbox {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    border: 2px solid $color-deep-navy;
+    border-radius: 4px;
+    display: inline-flex;
     align-items: center;
-    gap: 10px;
-    padding: 12px 18px;
-    border-top: 1px solid #E6E9F2;
-    background-color: #ffffff;
-    box-sizing: border-box;
+    justify-content: center;
+    background-color: $color-white;
+    flex-shrink: 0;
+    margin-right: 6px;
+
+    &--checked {
+      background-color: $color-fresh-green;
+      color: $color-white;
+    }
+  }
+
+  &__multi-footer {
+    padding: 8px 12px;
+    background-color: $color-canvas;
+    border-top: $border-navy;
+  }
+
+  &__empty-msg {
+    padding: 16px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(37, 41, 67, 0.6);
   }
 }
 
-// 5. FILTER BAR
+// 4. FILTER BAR CONTAINER & RESPONSIVE ROWS
 .filter-bar-container {
   display: flex;
   flex-direction: column;
@@ -554,19 +417,17 @@
   &__desktop-row {
     display: none;
 
-    @media (min-width: 640px) {
-      display: flex !important;
-      flex-direction: row !important;
-      align-items: center !important;
-      gap: 10px !important;
-      flex: 1 !important;
-      width: 100% !important;
-      flex-wrap: nowrap !important;
+    @include respond-to('tablet') {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      width: 100%;
+      flex-wrap: nowrap;
 
       .filter-select {
-        flex: 1 1 0% !important;
-        min-width: 0 !important;
-        width: auto !important;
+        flex: 1 1 0%;
+        min-width: 0;
       }
     }
   }
@@ -575,8 +436,8 @@
     display: block;
     width: 100%;
 
-    @media (min-width: 640px) {
-      display: none !important;
+    @include respond-to('tablet') {
+      display: none;
     }
   }
 
@@ -588,7 +449,19 @@
     justify-content: center;
     gap: 8px;
     font-size: 14px;
-    font-weight: 700;
+    font-weight: $font-weight-extrabold;
+    background-color: $color-white;
+    color: $color-deep-navy;
+    border: $border-navy;
+    border-radius: $radius-10;
+    box-shadow: $shadow-xs;
+    cursor: pointer;
+
+    &:hover {
+      background-color: $color-canvas;
+      transform: translate(-1px, -1px);
+      box-shadow: 2px 2px 0 $color-deep-navy;
+    }
   }
 
   &__active-badge {
@@ -597,9 +470,10 @@
     justify-content: center;
     min-width: 20px;
     height: 20px;
-    border-radius: 10px;
-    background-color: $color-primary-blue;
-    color: #ffffff;
+    border-radius: 4px;
+    background-color: $color-accent-lime;
+    color: $color-deep-navy;
+    border: 1.5px solid $color-deep-navy;
     font-size: 11px;
     font-weight: 800;
     padding: 0 6px;
@@ -611,16 +485,19 @@
     gap: 8px;
     flex-wrap: wrap;
     padding: 8px 12px;
-    background-color: #F8FAFD;
-    border: 1px solid #E6E9F2;
-    border-radius: 12px;
+    background-color: $color-white;
+    border: $border-navy;
+    border-radius: $radius-10;
+    box-shadow: $shadow-xs;
     box-sizing: border-box;
   }
 
   &__applied-label {
-    font-size: 12px;
-    font-weight: 700;
-    color: rgba(37, 41, 67, 0.6);
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgba(37, 41, 67, 0.65);
   }
 
   &__clear-all-btn {
@@ -628,60 +505,104 @@
     border: none;
     color: $color-primary-blue;
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 800;
     cursor: pointer;
     padding: 2px 6px;
-    border-radius: 6px;
+    border-radius: 4px;
 
     &:hover {
       background-color: rgba(58, 78, 251, 0.08);
+      text-decoration: underline;
     }
   }
 
   &__sheet-body {
-    padding: 16px;
+    padding: 12px 0;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 12px;
+    width: 100%;
     overflow-y: auto;
-    max-height: 60vh;
   }
 }
 
+// 5. APPLIED FILTER CHIP
 .filter-applied-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 4px 10px;
-  border-radius: 8px;
+  border-radius: $radius-6;
   font-size: 12px;
-  font-weight: 700;
-  background-color: rgba(58, 78, 251, 0.08);
-  color: $color-primary-blue;
-  border: 1px solid rgba(58, 78, 251, 0.2);
+  font-weight: $font-weight-bold;
+  background-color: $color-white;
+  color: $color-deep-navy;
+  border: $border-navy;
+  box-shadow: 1px 1px 0 $color-deep-navy;
+
+  &__text {
+    line-height: 1;
+  }
 
   &__remove {
     background: none;
     border: none;
     padding: 0;
-    color: $color-primary-blue;
+    color: $color-deep-navy;
     display: inline-flex;
     align-items: center;
     cursor: pointer;
 
     &:hover {
-      opacity: 0.7;
+      color: $color-error-red;
     }
   }
 }
 
-@keyframes filterPopoverSlide {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
+// 6. FILTER BOTTOM SHEET CONTENT
+.filter-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 4px 0;
+
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+  &__label {
+    font-family: $font-family-heading;
+    font-size: 12px;
+    font-weight: $font-weight-extrabold;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: $color-deep-navy;
+    text-align: start;
+    margin: 0;
+  }
+
+  &__chips-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding-top: 8px;
+
+    .btn {
+      flex: 1;
+      height: 48px;
+      font-size: 15px;
+      font-weight: $font-weight-extrabold;
+    }
   }
 }

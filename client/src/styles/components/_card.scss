@@ -2,43 +2,62 @@
 @use '../abstracts/mixins' as *;
 
 // ==============================================================================
-// CARD COMPONENT
-// Crisp white surface, radius 16px, layered soft shadow, subtle #DEE0ED border
+// CARD COMPONENT — NEO-BRUTALIST
+// Flat white or canvas surfaces, 2px/3px Deep Navy borders, hard zero-blur offset shadows
 // ==============================================================================
 
 .card {
   background-color: $color-white;
   color: $color-deep-navy;
-  border: 1px solid $color-subtle-border;
-  border-radius: $radius-16;
-  padding: $spacing-lg;
-  box-shadow: $shadow-sm;
-  transition: transform $transition-fast, box-shadow $transition-fast, border-color $transition-fast;
+  border: $border-navy;
+  border-radius: $radius-card;
+  padding: $spacing-md;
+  box-shadow: $shadow-card;
+  transition: transform $transition-fast, box-shadow $transition-fast;
+
+  @include respond-to('tablet') {
+    padding: $spacing-lg;
+  }
 
   &--subtle {
-    background-color: $color-bg-page;
+    background-color: $color-canvas;
   }
 
   &--elevated {
-    box-shadow: $shadow-md;
+    box-shadow: $shadow-lg;
+  }
+
+  &--hero {
+    border: $border-navy-thick;
+    box-shadow: $shadow-lg;
+    background-color: $color-white;
   }
 
   &--lg {
-    border-radius: $radius-24;
+    border-radius: $radius-card;
     padding: $spacing-xl;
   }
 
   &--hoverable {
     &:hover {
-      box-shadow: $shadow-md;
-      transform: translateY(-2px);
-      border-color: $color-border-light-hover;
+      box-shadow: 6px 6px 0 $color-deep-navy;
+      transform: translate(-2px, -2px);
     }
   }
 
   &--interactive {
     cursor: pointer;
     user-select: none;
+
+    &:hover {
+      box-shadow: 6px 6px 0 $color-deep-navy;
+      transform: translate(-2px, -2px);
+    }
+
+    &:active {
+      transform: translate(2px, 2px);
+      box-shadow: 0 0 0 transparent;
+    }
   }
 
   &__header {
@@ -46,7 +65,7 @@
     align-items: center;
     justify-content: space-between;
     padding-bottom: $spacing-md;
-    border-bottom: 1px solid $color-subtle-border;
+    border-bottom: $border-navy;
     margin-bottom: $spacing-md;
   }
 
@@ -60,15 +79,379 @@
     justify-content: flex-end;
     gap: $spacing-sm;
     padding-top: $spacing-md;
-    border-top: 1px solid $color-subtle-border;
+    border-top: $border-navy;
     margin-top: $spacing-md;
+  }
+}
+
+// ==============================================================================
+// WINDOW CARD (Neo-Brutalist retro window bar)
+// ==============================================================================
+.neo-window-card {
+  background-color: $color-white;
+  border: $border-navy;
+  border-radius: $radius-card;
+  box-shadow: $shadow-card;
+  overflow: hidden;
+
+  &--hero {
+    border: $border-navy-thick;
+    box-shadow: $shadow-lg;
+  }
+
+  &__header {
+    min-height: 40px;
+    height: auto;
+    padding: 4px 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: $border-navy;
+    background-color: $color-canvas;
+    user-select: none;
+
+    &--lime {
+      background-color: $color-accent-lime;
+    }
+
+    &--blue {
+      background-color: $color-primary-blue;
+      color: $color-white;
+      
+      .neo-window-card__dot {
+        background-color: $color-white;
+      }
+      .neo-window-card__title {
+        color: $color-white;
+      }
+    }
+
+    &--white {
+      background-color: $color-white;
+    }
+  }
+
+  &__dots {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  &__dot {
+    width: 8px;
+    height: 8px;
+    background-color: $color-deep-navy;
+    border-radius: 1px;
+    display: inline-block;
+  }
+
+  &__title {
+    font-family: $font-family-heading;
+    font-size: $font-size-12;
+    font-weight: $font-weight-extrabold;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: $color-deep-navy;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__action {
+    display: flex;
+    align-items: center;
+  }
+
+  &__body {
+    padding: $spacing-md;
+
+    @include respond-to('tablet') {
+      padding: $spacing-lg;
+    }
+  }
+}
+
+// ==============================================================================
+// FOLDER CARD (Neo-Brutalist tab on top)
+// ==============================================================================
+.neo-folder-card {
+  position: relative;
+  margin-top: 32px;
+  background-color: $color-white;
+  border: $border-navy;
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: $radius-card;
+  border-bottom-right-radius: $radius-card;
+  border-bottom-left-radius: $radius-card;
+  box-shadow: $shadow-card;
+  overflow: visible;
+
+  &__tab {
+    position: absolute;
+    bottom: calc(100% - 2px);
+    left: -2px;
+    height: 30px;
+    max-width: calc(100% - 24px);
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+    font-family: $font-family-heading;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: $color-deep-navy;
+    background-color: $color-secondary-blue;
+    border: $border-navy;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    z-index: 2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-sizing: border-box;
+
+    &--lime {
+      background-color: $color-accent-lime;
+      color: $color-deep-navy;
+    }
+
+    &--blue {
+      background-color: $color-secondary-blue;
+      color: $color-deep-navy;
+    }
+
+    &--navy {
+      background-color: $color-deep-navy;
+      color: $color-white;
+    }
+
+    &--white {
+      background-color: $color-white;
+      color: $color-deep-navy;
+    }
+  }
+
+  &__body {
+    padding: $spacing-md;
+
+    @include respond-to('tablet') {
+      padding: $spacing-lg;
+    }
+  }
+}
+
+// ==============================================================================
+// STAT CARD (KPI / Metric block)
+// ==============================================================================
+.neo-stat-card {
+  background-color: $color-white;
+  border: $border-navy;
+  border-radius: $radius-card;
+  padding: $spacing-md;
+  box-shadow: $shadow-sm;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform $transition-fast, box-shadow $transition-fast;
+
+  &--clickable {
+    cursor: pointer;
+
+    &:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: $shadow-md;
+    }
+
+    &:active {
+      transform: translate(2px, 2px);
+      box-shadow: 0 0 0 transparent;
+    }
+  }
+
+  &--primary {
+    border-top: 6px solid $color-primary-blue;
+  }
+
+  &--lime {
+    border-top: 6px solid $color-accent-lime;
+  }
+
+  &--green {
+    border-top: 6px solid $color-fresh-green;
+  }
+
+  &--navy {
+    border-top: 6px solid $color-deep-navy;
+  }
+
+  &__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  &__label {
+    font-family: $font-family-heading;
+    font-size: $font-size-12;
+    font-weight: $font-weight-extrabold;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgba(37, 41, 67, 0.7);
+  }
+
+  &__icon {
+    width: 28px;
+    height: 28px;
+    border-radius: $radius-6;
+    border: $border-navy;
+    background-color: $color-accent-lime;
+    color: $color-deep-navy;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 1px 1px 0 $color-deep-navy;
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  &__value-wrap {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  &__value {
+    font-family: $font-family-heading;
+    font-size: $font-size-28;
+    font-weight: $font-weight-extrabold;
+    color: $color-deep-navy;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+
+  &__badge {
+    display: inline-flex;
+  }
+
+  &__subvalue {
+    font-size: $font-size-12;
+    color: rgba(37, 41, 67, 0.7);
+    font-weight: $font-weight-medium;
+  }
+}
+
+// ==============================================================================
+// TICKER STRIP (Marquee)
+// ==============================================================================
+.neo-ticker {
+  background-color: $color-accent-lime;
+  border-top: $border-navy;
+  border-bottom: $border-navy;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 8px 0;
+  user-select: none;
+
+  &__inner {
+    display: inline-flex;
+    align-items: center;
+    animation: neoTickerLoop linear infinite;
+  }
+
+  &__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 18px;
+    font-family: $font-family-heading;
+    font-size: $font-size-12;
+    font-weight: $font-weight-extrabold;
+    color: $color-deep-navy;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  &__bullet {
+    font-size: 8px;
+  }
+}
+
+@keyframes neoTickerLoop {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+// ==============================================================================
+// EMPTY STATE (Neo-Brutalist Drop Zone)
+// ==============================================================================
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: $spacing-xl $spacing-lg;
+  border: $border-navy-dashed;
+  border-radius: $radius-card;
+  background-color: $color-canvas;
+  position: relative;
+
+  &__icon {
+    width: 56px;
+    height: 56px;
+    border: $border-navy;
+    border-radius: $radius-card;
+    background-color: $color-accent-lime;
+    color: $color-deep-navy;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: $spacing-md;
+    box-shadow: $shadow-xs;
+
+    svg {
+      width: 28px;
+      height: 28px;
+    }
+  }
+
+  &__title {
+    font-family: $font-family-heading;
+    font-size: $font-size-16;
+    font-weight: $font-weight-extrabold;
+    color: $color-deep-navy;
+    margin-bottom: $spacing-xs;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  &__subtitle {
+    font-size: $font-size-14;
+    color: rgba(37, 41, 67, 0.7);
+    max-width: 380px;
+    margin-bottom: $spacing-lg;
+    line-height: $line-height-normal;
+  }
+
+  &__action {
+    display: inline-flex;
   }
 }
 
 // ==============================================================================
 // PAGE & SECTION HEADERS
 // ==============================================================================
-
 .page-header {
   display: flex;
   align-items: center;
@@ -83,7 +466,7 @@
   }
 
   &__badge-wrapper {
-    margin-bottom: $spacing-2xs;
+    margin-bottom: 6px;
   }
 
   &__title {
@@ -93,13 +476,13 @@
     color: $color-deep-navy;
     margin: 0;
     line-height: $line-height-tight;
-    letter-spacing: -0.025em;
+    letter-spacing: -0.03em;
   }
 
   &__subtitle {
-    font-size: $font-size-16;
-    color: $color-text-muted;
-    margin: 4px 0 0 0;
+    font-size: $font-size-14;
+    color: rgba(37, 41, 67, 0.7);
+    margin-top: 4px;
     line-height: $line-height-normal;
   }
 
@@ -107,453 +490,6 @@
     display: flex;
     align-items: center;
     gap: $spacing-sm;
+    flex-wrap: wrap;
   }
-}
-
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: $spacing-sm;
-  margin-bottom: $spacing-md;
-
-  &__title-row {
-    display: flex;
-    align-items: center;
-    gap: $spacing-xs;
-  }
-
-  &__title {
-    font-family: $font-family-heading;
-    font-size: $font-size-20;
-    font-weight: $font-weight-bold;
-    color: $color-deep-navy;
-    letter-spacing: -0.015em;
-    margin: 0;
-  }
-
-  &__subtitle {
-    font-size: $font-size-14;
-    color: $color-text-muted;
-    margin: 2px 0 0 0;
-  }
-}
-
-// ==============================================================================
-// BADGE & CHIP COMPONENT
-// Rules: Lime background ALWAYS uses #252943 ink text (WCAG AA strict)
-// ==============================================================================
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
-  border-radius: $radius-pill;
-  font-size: $font-size-12;
-  font-weight: $font-weight-semibold;
-  letter-spacing: 0.02em;
-  line-height: 1;
-  white-space: nowrap;
-  user-select: none;
-  transition: all $transition-fast;
-
-  &__dot {
-    width: 6px;
-    height: 6px;
-    border-radius: $radius-full;
-    background-color: currentColor;
-  }
-
-  // Default / Subtle Chip
-  &--default,
-  &--subtle {
-    background-color: rgba(222, 224, 237, 0.45);
-    color: $color-deep-navy;
-    border: 1px solid $color-subtle-border;
-  }
-
-  // Lime Accent Badge: Used sparingly for active states, small dots, selected states
-  &--lime,
-  &--accent {
-    background-color: $color-accent-lime;
-    color: $color-deep-navy;
-    font-weight: $font-weight-bold;
-    border: 1px solid rgba(37, 41, 67, 0.08);
-
-    .badge__dot {
-      background-color: $color-deep-navy;
-    }
-  }
-
-  // Primary Blue Badge
-  &--primary {
-    background-color: rgba(58, 78, 251, 0.1);
-    color: $color-primary-blue;
-    border: 1px solid rgba(58, 78, 251, 0.25);
-  }
-
-  // Success Calm Green Badge
-  &--success {
-    background-color: rgba(22, 139, 104, 0.1);
-    color: $color-fresh-green;
-    border: 1px solid rgba(22, 139, 104, 0.25);
-  }
-
-  // Error Red Badge
-  &--error {
-    background-color: rgba(220, 38, 38, 0.1);
-    color: $color-error-red;
-    border: 1px solid rgba(220, 38, 38, 0.25);
-  }
-
-  &--sm {
-    padding: 2px 8px;
-    font-size: 11px;
-    gap: 4px;
-
-    .badge__dot {
-      width: 5px;
-      height: 5px;
-    }
-  }
-}
-
-// StatusBadge Specialized Component
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 3px 10px;
-  border-radius: $radius-pill;
-  font-size: 11px;
-  font-weight: $font-weight-bold;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  line-height: 1;
-
-  &__dot {
-    width: 6px;
-    height: 6px;
-    border-radius: $radius-full;
-  }
-
-  &--planned {
-    background-color: rgba(51, 164, 250, 0.1);
-    color: $color-secondary-blue;
-    border: 1px solid rgba(51, 164, 250, 0.28);
-
-    .status-badge__dot {
-      background-color: $color-secondary-blue;
-    }
-  }
-
-  &--purchased {
-    background-color: rgba(22, 139, 104, 0.1);
-    color: $color-fresh-green;
-    border: 1px solid rgba(22, 139, 104, 0.28);
-
-    .status-badge__dot {
-      background-color: $color-fresh-green;
-    }
-  }
-
-  &--sm {
-    padding: 2px 8px;
-    font-size: 10px;
-
-    .status-badge__dot {
-      width: 5px;
-      height: 5px;
-    }
-  }
-}
-
-// ==============================================================================
-// SEGMENTED TOGGLE
-// Soft surface container, white/accent selected tab with soft elevation
-// ==============================================================================
-
-.segmented-toggle {
-  display: inline-flex;
-  align-items: center;
-  background-color: rgba(222, 224, 237, 0.55);
-  border: 1px solid $color-subtle-border;
-  border-radius: $radius-pill;
-  padding: 4px;
-  gap: 4px;
-  user-select: none;
-
-  &__item {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 6px 16px;
-    border-radius: $radius-pill;
-    background: transparent;
-    border: none;
-    font-family: $font-family-body;
-    font-size: $font-size-14;
-    font-weight: $font-weight-medium;
-    color: $color-text-muted;
-    cursor: pointer;
-    transition: all $transition-fast;
-    white-space: nowrap;
-
-    &:hover:not(:disabled) {
-      color: $color-deep-navy;
-    }
-
-    &:focus-visible {
-      @include focus-ring;
-    }
-
-    &--active {
-      background-color: $color-white;
-      color: $color-primary-blue;
-      font-weight: $font-weight-bold;
-      box-shadow: $shadow-sm;
-
-      &:hover:not(:disabled) {
-        color: $color-primary-blue;
-      }
-    }
-
-    &:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-  }
-
-  &__badge {
-    font-size: 11px;
-    font-weight: $font-weight-bold;
-    padding: 1px 6px;
-    border-radius: $radius-pill;
-    background-color: rgba(58, 78, 251, 0.1);
-    color: $color-primary-blue;
-  }
-
-  &--sm {
-    padding: 3px;
-    gap: 2px;
-
-    .segmented-toggle__item {
-      padding: 4px 12px;
-      font-size: $font-size-12;
-    }
-  }
-}
-
-// ==============================================================================
-// EMPTY STATE
-// ==============================================================================
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: $spacing-2xl $spacing-md;
-  background-color: $color-white;
-  color: $color-deep-navy;
-  border-radius: $radius-16;
-  border: 1.5px dashed $color-subtle-border;
-  box-shadow: $shadow-sm;
-  width: 100%;
-
-  &__icon {
-    width: 60px;
-    height: 60px;
-    border-radius: $radius-full;
-    background-color: rgba(58, 78, 251, 0.08);
-    color: $color-primary-blue;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: $spacing-md;
-  }
-
-  &__title {
-    font-family: $font-family-heading;
-    font-size: $font-size-20;
-    font-weight: $font-weight-extrabold;
-    color: $color-deep-navy;
-    margin: 0 0 $spacing-xs 0;
-    letter-spacing: -0.015em;
-  }
-
-  &__subtitle {
-    font-size: $font-size-14;
-    color: $color-text-muted;
-    max-width: 440px;
-    margin: 0 0 $spacing-lg 0;
-    line-height: $line-height-relaxed;
-  }
-
-  &__action {
-    min-width: 160px;
-  }
-}
-
-// ==============================================================================
-// AVATAR
-// ==============================================================================
-
-.avatar {
-  border-radius: $radius-full;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: $color-primary-gradient;
-  color: $color-white;
-  font-weight: $font-weight-bold;
-  flex-shrink: 0;
-  user-select: none;
-  overflow: hidden;
-
-  &--sm {
-    width: 28px;
-    height: 28px;
-    font-size: 12px;
-  }
-
-  &--md {
-    width: 40px;
-    height: 40px;
-    font-size: 16px;
-  }
-
-  &--lg {
-    width: 64px;
-    height: 64px;
-    font-size: 26px;
-    box-shadow: 0 4px 14px rgba(58, 78, 251, 0.28);
-  }
-
-  &__image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-}
-
-// ==============================================================================
-// SKELETON LOADER
-// ==============================================================================
-
-.skeleton-group {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-xs;
-  width: 100%;
-}
-
-.skeleton {
-  background: linear-gradient(90deg, $color-shimmer-base 25%, $color-shimmer-highlight 37%, $color-shimmer-base 63%);
-  background-size: 400% 100%;
-  animation: shimmer 1.4s ease infinite;
-  border-radius: $radius-8;
-  display: block;
-
-  &--text {
-    height: 16px;
-    width: 100%;
-  }
-
-  &--title {
-    height: 28px;
-    width: 60%;
-  }
-
-  &--card {
-    height: 120px;
-    width: 100%;
-    border-radius: $radius-16;
-  }
-
-  &--circle {
-    border-radius: $radius-full;
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0 50%;
-  }
-}
-
-// ==============================================================================
-// TOAST NOTIFICATION
-// ==============================================================================
-
-.toast {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: $spacing-sm;
-  padding: $spacing-md;
-  background-color: $color-white;
-  border: 1px solid $color-subtle-border;
-  border-radius: $radius-12;
-  box-shadow: $shadow-lg;
-  color: $color-deep-navy;
-  min-width: 280px;
-  max-width: 420px;
-
-  &--success {
-    border-left: 4px solid $color-fresh-green;
-  }
-
-  &--error {
-    border-left: 4px solid $color-error-red;
-  }
-
-  &--info {
-    border-left: 4px solid $color-primary-blue;
-  }
-
-  &--lime {
-    border-left: 4px solid $color-accent-lime;
-  }
-
-  &__title {
-    display: block;
-    font-weight: $font-weight-semibold;
-    font-size: $font-size-14;
-    margin-bottom: 2px;
-  }
-
-  &__message {
-    font-size: $font-size-12;
-    color: $color-text-muted;
-    margin: 0;
-  }
-
-  &__close-btn {
-    color: $color-text-subtle;
-    font-size: 18px;
-    line-height: 1;
-    cursor: pointer;
-
-    &:hover {
-      color: $color-deep-navy;
-    }
-  }
-}
-
-// ==============================================================================
-// CONFIRM DIALOG
-// ==============================================================================
-
-.confirm-dialog__message {
-  font-size: $font-size-16;
-  color: $color-deep-navy;
-  line-height: $line-height-relaxed;
-  margin: 0;
 }

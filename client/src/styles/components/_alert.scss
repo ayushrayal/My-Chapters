@@ -1,47 +1,61 @@
 @use '../abstracts/variables' as *;
+@use '../abstracts/mixins' as *;
 
 .alert {
   display: flex;
   align-items: flex-start;
   gap: $spacing-sm;
-  padding: $spacing-md;
-  border-radius: $radius-md;
-  font-family: $font-family-base;
-  font-size: $font-size-sm;
+  padding: 12px 14px;
+  border-radius: $radius-card;
+  font-family: $font-family-body;
+  font-size: $font-size-13;
   line-height: $line-height-normal;
   width: 100%;
-  border: 1px solid transparent;
+  border: $border-navy;
+  box-shadow: $shadow-xs;
 
   // Error Alert
   &--error {
-    background-color: $color-alert-error-bg;
-    border-color: $color-alert-error-border;
-    color: $color-alert-error-text;
+    background-color: $color-white;
+    border-left: 6px solid $color-error-red;
+    color: $color-deep-navy;
 
     .alert__title {
-      color: $color-alert-error-accent;
+      color: $color-error-red;
+      font-weight: $font-weight-extrabold;
+      text-transform: uppercase;
+      font-size: $font-size-12;
+      letter-spacing: 0.04em;
     }
   }
 
   // Success Alert
   &--success {
-    background-color: $color-alert-success-bg;
-    border-color: $color-alert-success-border;
-    color: $color-alert-success-text;
+    background-color: $color-white;
+    border-left: 6px solid $color-fresh-green;
+    color: $color-deep-navy;
 
     .alert__title {
-      color: $color-alert-success-accent;
+      color: $color-fresh-green;
+      font-weight: $font-weight-extrabold;
+      text-transform: uppercase;
+      font-size: $font-size-12;
+      letter-spacing: 0.04em;
     }
   }
 
   // Warning / Notice Alert
   &--warning {
-    background-color: $color-alert-notice-bg;
-    border-color: $color-alert-notice-border;
-    color: $color-alert-notice-text;
+    background-color: $color-white;
+    border-left: 6px solid $color-primary-blue;
+    color: $color-deep-navy;
 
     .alert__title {
       color: $color-primary-blue;
+      font-weight: $font-weight-extrabold;
+      text-transform: uppercase;
+      font-size: $font-size-12;
+      letter-spacing: 0.04em;
     }
   }
 
@@ -50,13 +64,11 @@
   }
 
   &__title {
-    font-weight: $font-weight-semibold;
     margin-bottom: 2px;
-    letter-spacing: -0.01em;
   }
 
   &__list {
-    margin-top: $spacing-2xs;
+    margin-top: 4px;
     padding-left: $spacing-md;
     list-style: disc;
   }

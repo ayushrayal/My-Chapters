@@ -1,40 +1,47 @@
 // ==============================================================================
-// MY CHAPTERS — DESIGN SYSTEM VARIABLES & DESIGN TOKENS
+// MY CHAPTERS — NEO-BRUTALIST DESIGN SYSTEM SCSS VARIABLES
+// Thick outlines, hard offset shadows, flat bold fills, high-contrast typography.
 // ==============================================================================
 
-// 1. Core Brand Colors
-$color-primary-gradient: linear-gradient(135deg, #3A4EFB 0%, #33A4FA 100%);
-$gradient-primary: $color-primary-gradient;
+// 1. Core Brand Colors (STRICT PALETTE ONLY)
+$color-white: #FFFFFF;
+$color-canvas: #F5F7FB;
+$color-bg-page: #F5F7FB;
+$color-surface-secondary: #F5F7FB;
+$color-bg-app: #F5F7FB;
+
 $color-primary-blue: #3A4EFB;
+$color-primary-gradient: #3A4EFB; // Flat fill: no gradients
+$gradient-primary: #3A4EFB;
+
 $color-secondary-blue: #33A4FA;
+$color-fresh-green: #168B68;
+$color-deep-navy: #252943;
+$color-ink-dark: #252943;
+
+$color-subtle-border: #DEE0ED;
+$color-soft-surface: #DEE0ED;
+$color-soft-lavender: #DEE0ED;
+
 $color-accent-lime: #E3FF3B;
 $color-lime-accent: #E3FF3B;
 $color-lime: #E3FF3B;
-$color-deep-navy: #252943;
-$color-ink-dark: #252943;
-$color-soft-surface: #DEE0ED;
-$color-subtle-border: #DEE0ED;
-$color-soft-lavender: #DEE0ED;
-$color-bg-page: #F4F5FA;
-$color-surface-secondary: #F4F5FA;
-$color-white: #FFFFFF;
 $color-error-red: #DC2626;
-$color-fresh-green: #168B68;
 
-// Extended Brand & Surface Tints
-$color-surface-tint: #F8F9FD;
-$color-shimmer-base: #F0F2F8;
-$color-shimmer-highlight: #E5E8F2;
+// Extended Brand & Compatibility Tints
+$color-surface-tint: #F5F7FB;
+$color-shimmer-base: #DEE0ED;
+$color-shimmer-highlight: #FFFFFF;
 $color-accent-lime-hover: #D5F522;
 $color-lime-hover: #D5F522;
 $color-accent-lime-active: #C6E617;
 $color-lime-active: #C6E617;
-$color-accent-lime-border-dark: #C8E500;
-$color-lime-border-dark: #C8E500;
-$color-accent-lime-border-light: #B7D900;
-$color-lime-border-light: #B7D900;
-$color-accent-lime-accessible: #A3CF00;
-$color-lime-accessible: #A3CF00;
+$color-accent-lime-border-dark: #252943;
+$color-lime-border-dark: #252943;
+$color-accent-lime-border-light: #252943;
+$color-lime-border-light: #252943;
+$color-accent-lime-accessible: #E3FF3B;
+$color-lime-accessible: #E3FF3B;
 $color-secondary-blue-dark: #0284C7;
 $color-secondary-blue-deep: #0369A1;
 $color-warning-amber: #D97706;
@@ -45,22 +52,21 @@ $color-error-hover: #B91C1C;
 $color-error-active: #991B1B;
 
 // 2. Semantic Surfaces & Backgrounds
-$color-bg-app: #F4F5FA;
 $color-bg-surface: #FFFFFF;
 $color-bg-surface-elevated: #FFFFFF;
-$color-bg-surface-subtle: #F4F5FA;
-$color-bg-surface-hover: #F8FAFD;
+$color-bg-surface-subtle: #F5F7FB;
+$color-bg-surface-hover: #F5F7FB;
 
 $color-bg-dark: #252943;
 $color-bg-dark-card: #252943;
-$color-bg-dark-subtle: rgba(37, 41, 67, 0.94);
-$color-bg-dark-elevated: rgba(37, 41, 67, 0.85);
+$color-bg-dark-subtle: #252943;
+$color-bg-dark-elevated: #252943;
 
 // 3. Semantic Typography Colors
 $color-text-primary: #252943;
 $color-text-muted: rgba(37, 41, 67, 0.70);
-$color-text-subtle: rgba(37, 41, 67, 0.48);
-$color-text-disabled: rgba(37, 41, 67, 0.32);
+$color-text-subtle: rgba(37, 41, 67, 0.50);
+$color-text-disabled: rgba(37, 41, 67, 0.40);
 
 $color-text-on-dark: #FFFFFF;
 $color-text-on-dark-muted: rgba(255, 255, 255, 0.74);
@@ -69,46 +75,57 @@ $color-text-on-dark-subtle: rgba(255, 255, 255, 0.52);
 $color-text-accent: #3A4EFB;
 $color-text-success: #168B68;
 $color-text-error: #DC2626;
-$color-text-lime: #252943; // Always #252943 on lime background for WCAG AA
+$color-text-lime: #252943; // Always Deep Navy on Lime
 
-// 4. Borders & Focus Rings
-$color-border-light: #DEE0ED;
-$color-border-light-hover: rgba(58, 78, 251, 0.35);
-$color-border-dark: rgba(222, 224, 237, 0.16);
-$color-border-dark-hover: rgba(222, 224, 237, 0.32);
-$color-border-focus: #3A4EFB;
-$color-border-lime: #E3FF3B;
+// 4. Borders & Outlines (2px standard, 3px thick/hero/modal)
+$border-width-standard: 2px;
+$border-width-thick: 3px;
+$border-navy: 2px solid #252943;
+$border-navy-thick: 3px solid #252943;
+$border-navy-dashed: 2px dashed #252943;
+$border-light: 2px solid #252943;
+$border-light-hover: 2px solid #252943;
+$border-dark: 2px solid #252943;
+$border-dark-hover: 2px solid #252943;
+$border-subtle: 2px solid #DEE0ED;
+
+$color-border-light: #252943;
+$color-border-light-hover: #252943;
+$color-border-dark: #252943;
+$color-border-dark-hover: #252943;
+$color-border-focus: #252943;
+$color-border-lime: #252943;
 $color-border-error: #DC2626;
 
 // 5. Interactive & Action States
 $color-action-primary: #3A4EFB;
-$color-action-primary-hover: #2F3ED6;
-$color-action-primary-active: #2330B5;
+$color-action-primary-hover: #3A4EFB;
+$color-action-primary-active: #3A4EFB;
 $color-action-primary-text: #FFFFFF;
 
 $color-action-secondary: #FFFFFF;
-$color-action-secondary-border: #DEE0ED;
-$color-action-secondary-hover: #F4F5FA;
+$color-action-secondary-border: #252943;
+$color-action-secondary-hover: #F5F7FB;
 $color-action-secondary-text: #252943;
 
-$color-action-ghost-hover: rgba(37, 41, 67, 0.06);
+$color-action-ghost-hover: #DEE0ED;
 
 // 6. Feedback Alerts
-$color-alert-error-bg: #FEF2F2;
-$color-alert-error-border: #FCA5A5;
-$color-alert-error-text: #991B1B;
+$color-alert-error-bg: #FFFFFF;
+$color-alert-error-border: #252943;
+$color-alert-error-text: #DC2626;
 $color-alert-error-accent: #DC2626;
 
-$color-alert-success-bg: #ECFDF5;
-$color-alert-success-border: #A7F3D0;
-$color-alert-success-text: #065F46;
+$color-alert-success-bg: #FFFFFF;
+$color-alert-success-border: #252943;
+$color-alert-success-text: #168B68;
 $color-alert-success-accent: #168B68;
 
-$color-alert-notice-bg: #EFF6FF;
-$color-alert-notice-border: #BFDBFE;
-$color-alert-notice-text: #1E40AF;
+$color-alert-notice-bg: #FFFFFF;
+$color-alert-notice-border: #252943;
+$color-alert-notice-text: #3A4EFB;
 
-// 7. Typography (Headings: Plus Jakarta Sans / Body: Inter / Fallback: Outfit)
+// 7. Typography
 $font-family-heading: 'Plus Jakarta Sans', 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 $font-family-body: 'Inter', 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 $font-family-base: 'Inter', 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -120,7 +137,7 @@ $font-weight-semibold: 600;
 $font-weight-bold: 700;
 $font-weight-extrabold: 800;
 
-// Type Scale: 12 / 14 / 16 / 20 / 28 / 40 / 56
+// Type Scale
 $font-size-11: 0.6875rem; // 11px
 $font-size-12: 0.75rem;   // 12px
 $font-size-13: 0.8125rem; // 13px
@@ -145,10 +162,10 @@ $font-size-2xl: 1.75rem;
 $font-size-3xl: 2.5rem;
 $font-size-4xl: 3.5rem;
 
-$line-height-tight: 1.2;
-$line-height-snug: 1.35;
+$line-height-tight: 1.15;
+$line-height-snug: 1.3;
 $line-height-normal: 1.5;
-$line-height-relaxed: 1.625;
+$line-height-relaxed: 1.6;
 
 // 8. Spacing Scale (4px base)
 $space-1: 4px;
@@ -171,41 +188,44 @@ $spacing-xl: 32px;
 $spacing-2xl: 48px;
 $spacing-3xl: 64px;
 
-// 9. Radii Scale (8 / 12 / 16 / 24)
+// 9. Radii Scale (TIGHT: 6px inputs/chips, 10px cards/modals/buttons)
 $radius-4: 4px;
 $radius-6: 6px;
-$radius-8: 8px;
+$radius-8: 6px;
 $radius-10: 10px;
-$radius-12: 12px;
-$radius-14: 14px;
-$radius-16: 16px;
-$radius-20: 20px;
-$radius-24: 24px;
+$radius-12: 10px;
+$radius-14: 10px;
+$radius-16: 10px;
+$radius-20: 10px;
+$radius-24: 10px;
 
 $radius-xs: 4px;
-$radius-sm: 8px;
-$radius-md: 12px;
-$radius-card: 16px;
-$radius-lg: 16px;
-$radius-modal: 24px;
-$radius-xl: 24px;
+$radius-sm: 6px;
+$radius-md: 6px;
+$radius-input: 6px;
+$radius-chip: 6px;
+$radius-button: 10px;
+$radius-card: 10px;
+$radius-lg: 10px;
+$radius-modal: 10px;
+$radius-xl: 10px;
 $radius-pill: 9999px;
 $radius-full: 9999px;
 
-// 10. Layered Soft Shadows (Tinted with #252943 at low opacity)
-$shadow-xs: 0 1px 2px rgba(37, 41, 67, 0.04);
-$shadow-sm: 0 1px 3px rgba(37, 41, 67, 0.05), 0 1px 2px rgba(37, 41, 67, 0.04);
-$shadow-md: 0 4px 16px -2px rgba(37, 41, 67, 0.08), 0 2px 6px -1px rgba(37, 41, 67, 0.04);
-$shadow-card: $shadow-md;
-$shadow-lg: 0 12px 32px -4px rgba(37, 41, 67, 0.12), 0 4px 12px -2px rgba(37, 41, 67, 0.06);
-$shadow-xl: $shadow-lg;
-$shadow-modal: 0 24px 48px -8px rgba(37, 41, 67, 0.18), 0 8px 20px -4px rgba(37, 41, 67, 0.08);
-$shadow-float: 0 8px 24px -2px rgba(37, 41, 67, 0.08), 0 2px 8px -1px rgba(37, 41, 67, 0.04);
-$shadow-nav: 0 8px 24px -2px rgba(37, 41, 67, 0.08);
+// 10. Hard Offset Shadows (ZERO BLUR, #252943)
+$shadow-xs: 2px 2px 0 #252943;
+$shadow-sm: 3px 3px 0 #252943;
+$shadow-md: 4px 4px 0 #252943;
+$shadow-card: 4px 4px 0 #252943;
+$shadow-lg: 6px 6px 0 #252943;
+$shadow-xl: 6px 6px 0 #252943;
+$shadow-modal: 6px 6px 0 #252943;
+$shadow-float: 4px 4px 0 #252943;
+$shadow-nav: 0 0 0 transparent;
 
-// 11. Transitions (150-250ms ease-out)
-$transition-fast: 150ms cubic-bezier(0.16, 1, 0.3, 1);
-$transition-normal: 250ms cubic-bezier(0.16, 1, 0.3, 1);
+// 11. Transitions (120ms crisp)
+$transition-fast: 120ms cubic-bezier(0.2, 0.8, 0.2, 1);
+$transition-normal: 150ms cubic-bezier(0.2, 0.8, 0.2, 1);
 
 // 12. Responsive Breakpoints
 $bp-mobile-sm: 360px;

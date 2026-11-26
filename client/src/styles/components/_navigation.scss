@@ -2,7 +2,8 @@
 @use '../abstracts/mixins' as *;
 
 // ==============================================================================
-// SLIM TOP BAR (Mobile Header)
+// SLIM TOP BAR (Mobile Header) — NEO-BRUTALIST
+// Flat White surface, 3px solid Navy bottom border, bold typography, Lime sticker
 // ==============================================================================
 
 .mobile-top-bar {
@@ -11,10 +12,8 @@
   justify-content: space-between;
   height: 54px;
   padding: 0 $spacing-md;
-  background-color: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid $color-subtle-border;
+  background-color: $color-white;
+  border-bottom: $border-navy-thick;
   position: sticky;
   top: 0;
   z-index: 400;
@@ -33,7 +32,7 @@
 
   &__wordmark {
     font-family: $font-family-heading;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: $font-weight-extrabold;
     letter-spacing: -0.03em;
     color: $color-deep-navy;
@@ -42,12 +41,13 @@
 
   &__badge {
     font-size: 11px;
-    font-weight: $font-weight-semibold;
-    color: $color-primary-blue;
-    background-color: rgba(58, 78, 251, 0.08);
-    border: 1px solid rgba(58, 78, 251, 0.16);
+    font-weight: $font-weight-extrabold;
+    color: $color-deep-navy;
+    background-color: $color-accent-lime;
+    border: 1.5px solid $color-deep-navy;
     padding: 2px 8px;
-    border-radius: $radius-pill;
+    border-radius: $radius-6;
+    box-shadow: 1px 1px 0 $color-deep-navy;
     @include truncate;
     max-width: 140px;
   }
@@ -64,8 +64,238 @@
 }
 
 // ==============================================================================
-// DESKTOP STICKY GLASS NAVBAR
+// DESKTOP SOLID NAVBAR — NEO-BRUTALIST
+// Flat White surface, 3px solid Navy bottom border, bold wordmark, Lime active item
 // ==============================================================================
+
+// ==============================================================================
+// GLOBAL PROFILE DROPDOWN COMPONENT (Desktop & Mobile)
+// Thick Deep Navy borders, hard shadow, 44px touch targets, Lime highlights
+// ==============================================================================
+.profile-dropdown-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.profile-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 4px 4px;
+  background-color: $color-canvas;
+  border: $border-navy;
+  border-radius: $radius-button;
+  box-shadow: $shadow-xs;
+  cursor: pointer;
+  min-height: 38px;
+  box-sizing: border-box;
+  transition: transform $transition-fast, box-shadow $transition-fast;
+
+  @include mobile-only {
+    padding: 2px;
+    border-radius: $radius-full;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    min-height: 44px;
+    min-width: 44px;
+    justify-content: center;
+  }
+
+  &:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: $shadow-sm;
+
+    @include mobile-only {
+      transform: none;
+      box-shadow: none;
+    }
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &__username {
+    font-size: $font-size-14;
+    font-weight: $font-weight-bold;
+    color: $color-deep-navy;
+    max-width: 120px;
+    @include truncate;
+
+    @include mobile-only {
+      display: none;
+    }
+  }
+
+  &__chevron {
+    color: $color-deep-navy;
+    transition: transform $transition-fast;
+
+    &--open {
+      transform: rotate(180deg);
+    }
+
+    @include mobile-only {
+      display: none;
+    }
+  }
+}
+
+.profile-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  width: 270px;
+  max-width: calc(100vw - 24px);
+  background-color: $color-white;
+  border: $border-navy;
+  border-radius: $radius-10;
+  box-shadow: $shadow-md;
+  padding: 8px;
+  z-index: 1000;
+  box-sizing: border-box;
+
+  &--right {
+    right: 0;
+    left: auto;
+  }
+
+  &--left {
+    left: 0;
+    right: auto;
+  }
+
+  &__header {
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__avatar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  &__user-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+  }
+
+  &__username {
+    font-family: $font-family-heading;
+    font-size: 15px;
+    font-weight: $font-weight-extrabold;
+    color: $color-deep-navy;
+    margin: 0;
+    line-height: 1.2;
+    @include truncate;
+  }
+
+  &__email {
+    font-size: 12px;
+    color: rgba(37, 41, 67, 0.7);
+    margin: 2px 0 0 0;
+    line-height: 1.2;
+    @include truncate;
+  }
+
+  &__badges {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 2px;
+  }
+
+  &__role-badge {
+    font-size: 10px;
+    font-weight: $font-weight-extrabold;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background-color: $color-accent-lime;
+    color: $color-deep-navy;
+    border: 1.5px solid $color-deep-navy;
+    padding: 2px 6px;
+    border-radius: $radius-6;
+    box-shadow: 1px 1px 0 $color-deep-navy;
+  }
+
+  &__space-badge {
+    font-size: 11px;
+    color: $color-deep-navy;
+    background-color: $color-canvas;
+    border: 1px solid $color-deep-navy;
+    padding: 2px 8px;
+    border-radius: $radius-6;
+    font-weight: $font-weight-bold;
+    max-width: 160px;
+    @include truncate;
+  }
+
+  &__divider {
+    height: 2px;
+    background-color: $color-deep-navy;
+    margin: 6px 0;
+  }
+
+  &__links,
+  &__footer {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 44px;
+    padding: 8px 12px;
+    border: none;
+    background: transparent;
+    border-radius: $radius-6;
+    font-size: 13px;
+    font-weight: $font-weight-bold;
+    color: $color-deep-navy;
+    text-align: left;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: background-color $transition-fast, transform $transition-fast;
+
+    svg {
+      color: $color-deep-navy;
+      flex-shrink: 0;
+    }
+
+    &:hover {
+      background-color: $color-accent-lime;
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+
+    &--logout {
+      color: $color-error-red;
+
+      svg {
+        color: $color-error-red;
+      }
+
+      &:hover {
+        background-color: #FEE2E2;
+        color: $color-error-red;
+      }
+    }
+  }
+}
 
 .dashboard-nav {
   display: none;
@@ -75,15 +305,13 @@
     position: sticky;
     top: 0;
     z-index: 500;
-    background-color: rgba(255, 255, 255, 0.82);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid $color-subtle-border;
+    background-color: $color-white;
+    border-bottom: $border-navy-thick;
     width: 100%;
   }
 
   &__inner {
-    max-width: 1080px;
+    max-width: 1180px;
     margin: 0 auto;
     height: 64px;
     padding: 0 $spacing-lg;
@@ -108,7 +336,7 @@
 
     &-title {
       font-family: $font-family-heading;
-      font-size: 17px;
+      font-size: 18px;
       font-weight: $font-weight-extrabold;
       letter-spacing: -0.03em;
       color: $color-deep-navy;
@@ -117,13 +345,15 @@
 
     &-badge {
       font-size: 11px;
-      font-weight: $font-weight-semibold;
-      color: $color-primary-blue;
-      background-color: rgba(58, 78, 251, 0.08);
-      border: 1px solid rgba(58, 78, 251, 0.18);
+      font-weight: $font-weight-extrabold;
+      color: $color-deep-navy;
+      background-color: $color-accent-lime;
+      border: 2px solid $color-deep-navy;
       padding: 3px 10px;
-      border-radius: $radius-pill;
+      border-radius: $radius-6;
+      box-shadow: 2px 2px 0 $color-deep-navy;
       max-width: 180px;
+      text-transform: uppercase;
       @include truncate;
     }
   }
@@ -144,15 +374,16 @@
     align-items: center;
     gap: 8px;
     padding: 4px 12px 4px 4px;
-    background-color: rgba(222, 224, 237, 0.45);
-    border: 1px solid $color-subtle-border;
-    border-radius: $radius-pill;
+    background-color: $color-canvas;
+    border: $border-navy;
+    border-radius: $radius-button;
+    box-shadow: $shadow-xs;
     cursor: pointer;
-    transition: all $transition-fast;
+    transition: transform $transition-fast, box-shadow $transition-fast;
 
     &:hover {
-      background-color: rgba(222, 224, 237, 0.8);
-      border-color: $color-border-light-hover;
+      transform: translate(-1px, -1px);
+      box-shadow: $shadow-sm;
     }
 
     &:focus-visible {
@@ -162,14 +393,14 @@
 
   &__username {
     font-size: $font-size-14;
-    font-weight: $font-weight-semibold;
+    font-weight: $font-weight-bold;
     color: $color-deep-navy;
     max-width: 120px;
     @include truncate;
   }
 
   &__chevron {
-    color: $color-text-subtle;
+    color: $color-deep-navy;
     transition: transform $transition-fast;
 
     &--open {
@@ -184,12 +415,11 @@
     top: calc(100% + 8px);
     width: 250px;
     background-color: $color-white;
-    border: 1.5px solid $color-subtle-border;
-    border-radius: $radius-14;
-    box-shadow: $shadow-xl;
+    border: $border-navy;
+    border-radius: $radius-card;
+    box-shadow: $shadow-md;
     padding: 8px;
     z-index: 600;
-    animation: dropdownSlideIn 180ms cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   &__dropdown-header {
@@ -199,7 +429,7 @@
   &__dropdown-name {
     font-family: $font-family-heading;
     font-size: 14px;
-    font-weight: $font-weight-bold;
+    font-weight: $font-weight-extrabold;
     color: $color-deep-navy;
     margin: 0 0 2px 0;
     @include truncate;
@@ -207,7 +437,7 @@
 
   &__dropdown-email {
     font-size: 12px;
-    color: $color-text-subtle;
+    color: rgba(37, 41, 67, 0.7);
     margin: 0 0 6px 0;
     @include truncate;
   }
@@ -221,25 +451,26 @@
 
   &__dropdown-role {
     font-size: 10px;
-    font-weight: $font-weight-bold;
+    font-weight: $font-weight-extrabold;
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    background-color: $color-lime;
+    background-color: $color-accent-lime;
     color: $color-deep-navy;
+    border: 1px solid $color-deep-navy;
     padding: 2px 7px;
-    border-radius: $radius-pill;
+    border-radius: $radius-6;
   }
 
   &__dropdown-spacename {
     font-size: 11px;
-    color: $color-text-muted;
+    color: rgba(37, 41, 67, 0.7);
     font-weight: $font-weight-medium;
     @include truncate;
   }
 
   &__dropdown-divider {
-    height: 1px;
-    background-color: $color-subtle-border;
+    height: 2px;
+    background-color: $color-deep-navy;
     margin: 6px 0;
   }
 
@@ -247,7 +478,7 @@
   &__dropdown-footer {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
   }
 
   &__dropdown-item {
@@ -258,26 +489,20 @@
     padding: 8px 10px;
     border: none;
     background: transparent;
-    border-radius: $radius-8;
+    border-radius: $radius-6;
     font-size: 13px;
-    font-weight: $font-weight-medium;
+    font-weight: $font-weight-bold;
     color: $color-deep-navy;
     text-align: left;
     cursor: pointer;
-    transition: all $transition-fast;
+    transition: background-color $transition-fast;
 
     svg {
-      color: $color-text-subtle;
-      transition: color $transition-fast;
+      color: $color-deep-navy;
     }
 
     &:hover {
-      background-color: $color-bg-page;
-      color: $color-primary-blue;
-
-      svg {
-        color: $color-primary-blue;
-      }
+      background-color: $color-accent-lime;
     }
 
     &:focus-visible {
@@ -292,73 +517,65 @@
       }
 
       &:hover {
-        background-color: rgba(220, 38, 38, 0.08);
-        color: $color-error-red;
+        background-color: $color-error-red;
+        color: $color-white;
 
         svg {
-          color: $color-error-red;
+          color: $color-white;
         }
       }
     }
   }
 }
 
-@keyframes dropdownSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 // ==============================================================================
-// DESKTOP SEGMENTED NAVIGATION LINKS (Centered in Glass Navbar)
+// DESKTOP NAVIGATION LINKS (Centered in Navbar)
 // ==============================================================================
 
 .desktop-nav-links {
   display: flex;
   align-items: center;
-  gap: 4px;
-  background-color: rgba(222, 224, 237, 0.5);
+  gap: 6px;
+  background-color: $color-canvas;
   padding: 4px;
-  border-radius: $radius-pill;
-  border: 1px solid $color-subtle-border;
+  border-radius: $radius-card;
+  border: $border-navy;
 
   &__link {
     display: inline-flex;
     align-items: center;
-    padding: 6px 18px;
-    border-radius: $radius-pill;
-    font-size: $font-size-14;
-    font-weight: $font-weight-medium;
-    color: $color-text-muted;
+    padding: 6px 16px;
+    border-radius: $radius-6;
+    font-size: $font-size-13;
+    font-weight: $font-weight-bold;
+    color: rgba(37, 41, 67, 0.75);
     text-decoration: none;
-    transition: all $transition-fast;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    transition: background-color $transition-fast, color $transition-fast;
 
     &:hover:not(&--active) {
       color: $color-deep-navy;
-      background-color: rgba(255, 255, 255, 0.65);
+      background-color: $color-subtle-border;
     }
 
     &:focus-visible {
       @include focus-ring;
     }
 
-    // Active item: Gradient pill
+    // Active item: Neo-Brutalist Lime Block with Navy border and shadow
     &--active {
-      color: $color-white;
-      background: $color-primary-gradient;
-      font-weight: $font-weight-semibold;
-      box-shadow: 0 2px 8px rgba(58, 78, 251, 0.28);
+      color: $color-deep-navy;
+      background-color: $color-accent-lime;
+      border: 2px solid $color-deep-navy;
+      box-shadow: 2px 2px 0 $color-deep-navy;
     }
   }
 }
 
 // ==============================================================================
-// MOBILE BOTTOM TAB BAR (Fixed, Safe-Area Padded, Gradient Active Icon)
+// MOBILE BOTTOM TAB BAR — NEO-BRUTALIST
+// Fixed 3px Navy top border, White surface, Lime active block, 11px uppercase label
 // ==============================================================================
 
 .mobile-bottom-nav {
@@ -367,12 +584,9 @@
   left: 0;
   right: 0;
   z-index: 900;
-  background-color: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-top: 1px solid $color-subtle-border;
+  background-color: $color-white;
+  border-top: $border-navy-thick;
   padding-bottom: env(safe-area-inset-bottom, 0px);
-  box-shadow: 0 -4px 16px rgba(37, 41, 67, 0.05);
 
   @include desktop-only {
     display: none !important;
@@ -382,10 +596,10 @@
     display: flex;
     align-items: center;
     justify-content: space-around;
-    height: 58px;
+    height: 60px;
     max-width: 480px;
     margin: 0 auto;
-    padding: 0 $spacing-sm;
+    padding: 0 4px;
   }
 
   &__item {
@@ -395,12 +609,11 @@
     align-items: center;
     justify-content: center;
     gap: 3px;
-    min-height: 48px;
-    padding: 3px $spacing-xs;
-    color: $color-text-subtle;
+    min-height: 52px;
+    padding: 4px 2px;
+    color: rgba(37, 41, 67, 0.65);
     text-decoration: none;
-    transition: all $transition-fast;
-    border-radius: $radius-12;
+    border-radius: $radius-6;
 
     &:hover {
       color: $color-deep-navy;
@@ -410,20 +623,21 @@
       @include focus-ring;
     }
 
-    // Active Tab State with Gradient Icon Background
+    // Active Tab State with Lime Block & Navy border
     &--active {
-      color: $color-primary-blue;
+      color: $color-deep-navy;
 
       .mobile-bottom-nav__icon-wrapper {
-        background: $color-primary-gradient;
-        color: $color-white;
-        box-shadow: 0 2px 8px rgba(58, 78, 251, 0.32);
-        border-radius: $radius-10;
+        background-color: $color-accent-lime;
+        color: $color-deep-navy;
+        border: 2px solid $color-deep-navy;
+        box-shadow: 2px 2px 0 $color-deep-navy;
+        border-radius: $radius-6;
       }
 
       .mobile-bottom-nav__label {
-        color: $color-primary-blue;
-        font-weight: $font-weight-bold;
+        color: $color-deep-navy;
+        font-weight: $font-weight-extrabold;
       }
     }
   }
@@ -434,18 +648,22 @@
     justify-content: center;
     width: 38px;
     height: 28px;
-    border-radius: $radius-10;
-    transition: all $transition-fast;
+    border-radius: $radius-6;
+    border: 2px solid transparent;
 
     svg {
       display: block;
+      width: 18px;
+      height: 18px;
     }
   }
 
   &__label {
     font-size: 11px;
-    font-weight: $font-weight-medium;
+    font-weight: $font-weight-bold;
     letter-spacing: -0.01em;
     line-height: 1;
+    white-space: nowrap;
+    overflow: visible;
   }
 }

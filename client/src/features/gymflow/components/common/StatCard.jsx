@@ -69,13 +69,13 @@ export function StatCard({
           </div>
 
           <div className="gymflow-stat-card__ring-box">
-            <svg className="gymflow-stat-card__ring" width="68" height="68" viewBox="0 0 68 68">
+            <svg className="gymflow-stat-card__ring" width="52" height="52" viewBox="0 0 68 68">
               <circle
                 className="gymflow-stat-card__ring-track"
                 cx="34"
                 cy="34"
                 r={radius}
-                strokeWidth="6"
+                strokeWidth="7"
                 fill="none"
               />
               <circle
@@ -83,7 +83,7 @@ export function StatCard({
                 cx="34"
                 cy="34"
                 r={radius}
-                strokeWidth="6"
+                strokeWidth="7"
                 fill="none"
                 strokeDasharray={circumference}
                 strokeDashoffset={strokeDashoffset}

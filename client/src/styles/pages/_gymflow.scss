@@ -28,104 +28,122 @@
 .gymflow-header {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   width: 100%;
   box-sizing: border-box;
   padding-top: 4px;
+  margin-bottom: 24px;
 
   @include respond-to('tablet') {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+  }
+
+  @include respond-to('desktop') {
     flex-direction: row;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-    gap: 20px;
+    gap: 24px;
   }
 
   &__titles {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    align-items: flex-start;
+    text-align: start;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+    width: 100%;
   }
 
   &__title {
     font-family: $font-family-heading;
-    font-size: 24px;
+    font-size: 26px;
     font-weight: 800;
     color: $color-deep-navy;
     margin: 0;
     line-height: 1.2;
+    text-align: start;
 
     @include respond-to('tablet') {
-      font-size: 28px;
+      font-size: 32px;
     }
   }
 
   &__subtitle {
-    font-size: 13px;
+    font-size: 14px;
     color: rgba(37, 41, 67, 0.7);
     margin: 0;
-    line-height: 1.4;
-    max-width: 480px;
-
-    @include respond-to('tablet') {
-      font-size: 14px;
-    }
+    line-height: 1.45;
+    max-width: 560px;
+    text-align: start;
   }
 }
 
-// --- SEGMENTED TABS (GymTabs) ---
+// --- SEGMENTED TABS (GymTabs) — NEO-BRUTALIST ---
 .gymflow-tabs {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  background-color: #E2E4EF;
-  padding: 4px;
-  border-radius: 14px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  padding: 6px;
+  background-color: $color-canvas;
+  border: $border-navy;
+  border-radius: $radius-10;
+  box-shadow: $shadow-xs;
   width: 100%;
   box-sizing: border-box;
 
   @include respond-to('tablet') {
-    display: flex;
-    align-items: center;
+    padding: 6px;
+    gap: 8px;
     width: auto;
-    min-width: 440px;
-    border-radius: 12px;
+    min-width: 500px;
+  }
+
+  @include respond-to('desktop') {
+    width: auto;
+    min-width: 520px;
+    flex-shrink: 0;
   }
 
   &__tab {
     flex: 1 1 0%;
+    min-width: 0;
     position: relative;
     display: inline-flex;
     flex-direction: column; // Icon above label on mobile
     align-items: center;
     justify-content: center;
-    gap: 3px;
+    gap: 4px;
     padding: 6px 2px;
-    min-height: 52px; // Mobile touch target
-    border: none;
+    min-height: 52px;
+    border: 2px solid transparent;
     background: transparent;
-    border-radius: 10px;
+    border-radius: $radius-6;
     font-family: $font-family-body;
-    font-size: 11.5px;
-    font-weight: 700;
+    font-size: 11px;
+    font-weight: $font-weight-extrabold;
     color: rgba(37, 41, 67, 0.75);
     cursor: pointer;
     white-space: nowrap;
     text-decoration: none;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform $transition-fast, box-shadow $transition-fast, background-color $transition-fast;
     user-select: none;
     box-sizing: border-box;
 
     @include respond-to('tablet') {
       flex-direction: row;
       gap: 8px;
-      font-size: 14px;
-      padding: 8px 16px;
+      font-size: 13.5px;
+      padding: 8px 12px;
       min-height: 44px;
-      border-radius: 9px;
     }
 
     &:hover:not(&--active) {
       color: $color-deep-navy;
-      background-color: rgba(255, 255, 255, 0.5);
+      background-color: rgba(255, 255, 255, 0.6);
     }
 
     &:focus-visible {
@@ -133,10 +151,10 @@
     }
 
     &--active {
-      background: $color-primary-gradient;
-      color: #ffffff;
-      box-shadow: 0 2px 10px rgba(58, 78, 251, 0.32);
-      font-weight: 700;
+      background-color: $color-accent-lime;
+      color: $color-deep-navy;
+      border: $border-navy;
+      box-shadow: $shadow-xs;
     }
   }
 
@@ -149,14 +167,15 @@
 
   &__dot-badge {
     position: absolute;
-    top: -5px;
-    right: -9px;
-    min-width: 15px;
-    height: 15px;
-    border-radius: 8px;
+    top: -6px;
+    right: -10px;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 4px;
     background-color: $color-primary-blue;
     color: #ffffff;
-    font-size: 9.5px;
+    border: 1.5px solid $color-deep-navy;
+    font-size: 10px;
     font-weight: 800;
     display: inline-flex;
     align-items: center;
@@ -165,15 +184,30 @@
     line-height: 1;
 
     &--active {
-      background-color: $color-lime;
-      color: $color-deep-navy;
+      background-color: $color-deep-navy;
+      color: $color-accent-lime;
     }
   }
 
   &__label {
     white-space: nowrap;
-    line-height: 1.2;
-    overflow: visible;
+    line-height: 1.1;
+  }
+
+  &__label-desktop {
+    display: none !important;
+
+    @include respond-to('tablet') {
+      display: inline-block !important;
+    }
+  }
+
+  &__label-mobile {
+    display: inline-block !important;
+
+    @include respond-to('tablet') {
+      display: none !important;
+    }
   }
 
   &__badge {
@@ -204,8 +238,8 @@
   background-color: #ffffff;
   padding: 16px;
   border-radius: 16px;
-  border: 1px solid $color-subtle-border;
-  box-shadow: 0 1px 3px rgba(37, 41, 67, 0.04);
+  border: $border-navy;
+  box-shadow: $shadow-xs;
   width: 100%;
   box-sizing: border-box;
 
@@ -370,9 +404,9 @@
   z-index: 100;
   min-width: 180px;
   background-color: #ffffff;
-  border: 1px solid $color-subtle-border;
+  border: $border-navy;
   border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(37, 41, 67, 0.12);
+  box-shadow: $shadow-xs;
   padding: 6px;
   display: flex;
   flex-direction: column;
@@ -410,10 +444,10 @@
 // --- SECTION CARDS (SectionCard) ---
 .gymflow-section-card {
   background-color: #ffffff;
-  border: 1px solid $color-subtle-border;
+  border: $border-navy;
   border-radius: 16px;
   padding: 16px;
-  box-shadow: 0 1px 3px rgba(37, 41, 67, 0.04);
+  box-shadow: $shadow-xs;
   width: 100%;
   box-sizing: border-box;
 
@@ -582,7 +616,7 @@
   &:focus {
     outline: none;
     border-color: $color-primary-blue;
-    box-shadow: 0 0 0 3px rgba(58, 78, 251, 0.18);
+    box-shadow: $shadow-xs;
   }
 
   &__chevron {
@@ -626,7 +660,7 @@
 
   &:focus-within {
     border-color: $color-primary-blue;
-    box-shadow: 0 0 0 2px rgba(58, 78, 251, 0.15);
+    box-shadow: $shadow-xs;
   }
 
   &--disabled {
@@ -729,7 +763,7 @@
   &--completed {
     border-color: $color-lime;
     background-color: $color-lime;
-    box-shadow: 0 2px 8px rgba(227, 255, 59, 0.4);
+    box-shadow: $shadow-xs;
 
     .gymflow-set-status-toggle__check {
       color: $color-deep-navy;
@@ -770,12 +804,12 @@
 }
 
 .gymflow-stat-card {
-  min-width: 0 !important;
+  min-width: 0;
   background-color: #ffffff;
-  border: 1px solid $color-subtle-border;
+  border: $border-navy;
   border-radius: 16px;
   padding: 16px;
-  box-shadow: 0 1px 3px rgba(37, 41, 67, 0.04);
+  box-shadow: $shadow-xs;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -846,33 +880,38 @@
     text-overflow: ellipsis;
   }
 
-  // Hero Card Variant (Workout Score)
+  // Hero Card Variant (Workout Score) — NEO-BRUTALIST
   &--hero {
-    background: $color-primary-gradient;
-    border: none;
+    background-color: $color-primary-blue;
+    border: $border-navy;
     color: #ffffff;
-    box-shadow: 0 4px 18px rgba(58, 78, 251, 0.35);
+    box-shadow: $shadow-card;
 
     .gymflow-stat-card__hero-content {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
-      gap: 10px;
+      gap: 12px;
+      width: 100%;
     }
 
     .gymflow-stat-card__hero-info {
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 4px;
+      flex: 1;
       min-width: 0;
     }
 
     .gymflow-stat-card__hero-label {
-      font-size: 13px;
-      font-weight: 700;
-      color: rgba(255, 255, 255, 0.85);
+      font-family: $font-family-heading;
+      font-size: 11px;
+      font-weight: 800;
+      color: rgba(255, 255, 255, 0.9);
       text-transform: uppercase;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.05em;
+      white-space: normal;
+      word-break: break-word;
     }
 
     .gymflow-stat-card__hero-val {
@@ -881,34 +920,37 @@
       font-weight: 800;
       color: #ffffff;
       line-height: 1.1;
+      letter-spacing: -0.02em;
     }
 
     .gymflow-stat-card__ring-box {
-      width: 68px;
-      height: 68px;
+      width: 52px;
+      height: 52px;
       flex-shrink: 0;
     }
 
     .gymflow-stat-card__ring {
+      width: 100%;
+      height: 100%;
+      display: block;
       transform: rotate(-90deg);
     }
 
     .gymflow-stat-card__ring-track {
-      stroke: rgba(255, 255, 255, 0.2);
+      stroke: rgba(255, 255, 255, 0.25);
     }
 
     .gymflow-stat-card__ring-fill {
-      stroke: $color-lime;
+      stroke: $color-accent-lime;
       transition: stroke-dashoffset 0.6s ease;
     }
 
     .gymflow-stat-card__hero-subtext {
       font-size: 12px;
-      color: rgba(255, 255, 255, 0.8);
+      color: rgba(255, 255, 255, 0.85);
       margin-top: 10px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      white-space: normal;
+      line-height: 1.35;
     }
   }
 }
@@ -923,8 +965,8 @@
   padding: 32px 20px;
   background-color: #ffffff;
   border-radius: 16px;
-  border: 1px solid $color-subtle-border;
-  box-shadow: 0 1px 3px rgba(37, 41, 67, 0.04);
+  border: $border-navy;
+  box-shadow: $shadow-xs;
   width: 100%;
   box-sizing: border-box;
 
@@ -988,17 +1030,18 @@
 
   // Hero Before Start Card Variant
   &--hero {
-    border: 1.5px solid rgba(58, 78, 251, 0.2);
-    background: linear-gradient(180deg, rgba(58, 78, 251, 0.03) 0%, #ffffff 100%);
+    border: $border-navy;
+    background-color: $color-white;
   }
 
   &--rest {
-    border: 1px solid #DEE0ED;
-    background-color: #FAFBFD;
+    border: 2px dashed $color-deep-navy;
+    background-color: $color-white;
 
     .gymflow-empty-state__icon-box {
-      background-color: rgba(37, 41, 67, 0.06);
+      background-color: $color-secondary-blue;
       color: $color-deep-navy;
+      border: 2px solid $color-deep-navy;
     }
   }
 }
@@ -1009,10 +1052,10 @@
   flex-direction: column;
   gap: 18px;
   background-color: #ffffff;
-  border: 1px solid $color-subtle-border;
+  border: $border-navy;
   border-radius: 16px;
   padding: 20px;
-  box-shadow: 0 1px 3px rgba(37, 41, 67, 0.04);
+  box-shadow: $shadow-xs;
 
   @include respond-to('tablet') {
     padding: 28px;
@@ -1080,7 +1123,7 @@
   border-left: 4.5px solid $color-lime;
   border-radius: 16px;
   padding: 16px 18px;
-  box-shadow: 0 4px 16px rgba(37, 41, 67, 0.06);
+  box-shadow: $shadow-xs;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -1180,7 +1223,7 @@
   background-color: #ffffff;
   border: 1px solid rgba(58, 78, 251, 0.2);
   border-radius: 14px;
-  box-shadow: 0 4px 16px rgba(37, 41, 67, 0.08);
+  box-shadow: $shadow-xs;
 
   &__left {
     display: flex;
@@ -1281,7 +1324,7 @@
     background: $color-primary-gradient;
     color: #ffffff;
     border-color: transparent;
-    box-shadow: 0 2px 8px rgba(58, 78, 251, 0.25);
+    box-shadow: $shadow-xs;
   }
 }
 
@@ -1421,7 +1464,7 @@
       outline: none;
       border-color: $color-primary-blue;
       background-color: #ffffff;
-      box-shadow: 0 0 0 2px rgba(58, 78, 251, 0.15);
+      box-shadow: $shadow-xs;
     }
 
     /* Hide native spin buttons */
@@ -1582,10 +1625,10 @@
 
 .gymflow-template-card {
   background-color: #ffffff;
-  border: 1px solid $color-subtle-border;
+  border: $border-navy;
   border-radius: 16px;
   padding: 18px;
-  box-shadow: 0 1px 3px rgba(37, 41, 67, 0.04);
+  box-shadow: $shadow-xs;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -1662,104 +1705,217 @@
   }
 }
 
-// --- SCHEDULE TAB ---
+// --- SCHEDULE TAB — NEO-BRUTALIST ---
 .gymflow-schedule-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
   width: 100%;
 }
 
-.gymflow-schedule-card {
+.gymflow-schedule-row {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  justify-content: space-between;
-  min-height: 56px;
+  gap: 14px;
   padding: 12px 16px;
-  background-color: #ffffff;
-  border: 1px solid $color-subtle-border;
-  border-radius: 14px;
-  box-shadow: 0 1px 2px rgba(37, 41, 67, 0.03);
+  background-color: $color-white;
+  border: $border-navy;
+  border-radius: $radius-10;
+  box-shadow: $shadow-xs;
   cursor: pointer;
-  transition: all 0.15s ease;
   box-sizing: border-box;
-  gap: 12px;
   width: 100%;
-  overflow: hidden;
+  transition: transform $transition-fast, box-shadow $transition-fast;
 
   &:hover {
-    border-color: rgba(58, 78, 251, 0.3);
-    background-color: #FAFBFD;
+    transform: translate(-1px, -1px);
+    box-shadow: $shadow-sm;
   }
 
   &--today {
-    border-left: 4px solid $color-primary-blue;
-    background-color: rgba(58, 78, 251, 0.02);
+    border-left: 6px solid $color-primary-blue;
+    background-color: #FAFBFF;
   }
 
-  &__left {
+  // LEFT COLUMN: Tall/Square Day Tile (THU, MON, etc.)
+  &__tile {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
+    background-color: $color-canvas;
+    border: $border-navy;
+    border-radius: $radius-8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: $font-family-heading;
+    font-weight: 800;
+    font-size: 13px;
+    color: $color-deep-navy;
+    flex-shrink: 0;
+    text-transform: uppercase;
+    box-shadow: 1px 1px 0 $color-deep-navy;
+  }
+
+  // RIGHT COLUMN: 2 vertical lines
+  &__details {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  // Line 1: Weekday name + TODAY sticker
+  &__name-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+
+  &__name {
+    font-family: $font-family-heading;
+    font-size: 16px;
+    font-weight: 800;
+    color: $color-deep-navy;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  &__today-sticker {
+    background-color: $color-accent-lime;
+    color: $color-deep-navy;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 7px;
+    border: 1.5px solid $color-deep-navy;
+    border-radius: $radius-6;
+    box-shadow: 1px 1px 0 $color-deep-navy;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+  }
+
+  // Line 2: Routine Chip / Not Assigned / Rest Day
+  &__assignment {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+// Edit Weekly Schedule Modal Day Row
+.gymflow-modal-day-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  background-color: $color-white;
+  border: $border-navy;
+  border-radius: $radius-8;
+  box-shadow: 1px 1px 0 $color-deep-navy;
+  box-sizing: border-box;
+  width: 100%;
+
+  &--today {
+    border-left: 5px solid $color-primary-blue;
+    background-color: #FAFBFF;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+  }
+
+  &__identity {
     display: flex;
     align-items: center;
     gap: 10px;
     min-width: 0;
-    flex-shrink: 0;
   }
 
-  &__day-tile {
-    display: inline-flex;
+  &__tile {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    background-color: $color-canvas;
+    border: $border-navy;
+    border-radius: $radius-6;
+    display: flex;
     align-items: center;
     justify-content: center;
-    width: 38px;
-    height: 38px;
-    min-width: 38px;
-    border-radius: 10px;
-    background-color: #F4F5FA;
     font-family: $font-family-heading;
-    font-size: 13px;
     font-weight: 800;
+    font-size: 11px;
     color: $color-deep-navy;
     flex-shrink: 0;
+    text-transform: uppercase;
   }
 
-  &__day-name {
+  &__names {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  &__name {
     font-family: $font-family-heading;
     font-size: 15px;
-    font-weight: 700;
+    font-weight: 800;
     color: $color-deep-navy;
-    white-space: nowrap;
   }
 
-  &__status {
-    display: inline-flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 8px;
-    min-width: 0;
-    max-width: 58%;
-    flex-shrink: 1;
+  &__select-wrap {
+    width: 100%;
+  }
+}
 
-    .chip {
-      max-width: 100%;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      display: inline-block;
-      vertical-align: middle;
-    }
+.gymflow-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: $radius-6;
+  font-family: $font-family-body;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.25;
+  box-sizing: border-box;
+  max-width: 100%;
+  white-space: normal;
+  word-break: break-word;
+
+  &--lime {
+    background-color: $color-accent-lime;
+    color: $color-deep-navy;
+    border: 1.5px solid $color-deep-navy;
+    box-shadow: 1px 1px 0 $color-deep-navy;
   }
 
-  @media (max-width: 480px) {
-    padding: 10px 12px;
-    gap: 8px;
+  &--primary {
+    background-color: $color-primary-blue;
+    color: #FFFFFF;
+    border: 1.5px solid $color-deep-navy;
+    box-shadow: 1px 1px 0 $color-deep-navy;
+  }
 
-    &__status {
-      max-width: 52%;
-
-      .chip {
-        font-size: 11.5px;
-        padding: 3px 8px;
-      }
-    }
+  &--dashed {
+    background-color: $color-canvas;
+    color: rgba(37, 41, 67, 0.7);
+    border: 1.5px dashed $color-deep-navy;
+    padding: 3px 9px;
   }
 }
 
@@ -1798,12 +1954,12 @@
   box-sizing: border-box;
 
   .gymflow-btn-discard {
-    background-color: transparent !important;
-    color: #D32F2F !important;
-    border: 1.5px solid #FFCDD2 !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 8px !important;
+    background-color: transparent;
+    color: #D32F2F;
+    border: 1.5px solid #FFCDD2;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     min-height: 44px;
     padding: 0 18px;
     font-weight: 700;
@@ -1811,8 +1967,8 @@
     transition: all 0.15s ease;
 
     &:hover {
-      background-color: #FFF5F5 !important;
-      border-color: #EF9A9A !important;
+      background-color: #FFF5F5;
+      border-color: #EF9A9A;
     }
   }
 
@@ -1830,21 +1986,21 @@
 
     .gymflow-btn-discard,
     .gymflow-btn-finish {
-      width: 100% !important;
-      margin-left: 0 !important;
-      justify-content: center !important;
-      height: 46px !important;
+      width: 100%;
+      margin-left: 0;
+      justify-content: center;
+      height: 46px;
     }
   }
 }
 
 .gymflow-skip-reason-wrap {
-  word-break: normal !important;
-  overflow-wrap: break-word !important;
-  white-space: normal !important;
-  max-width: 100% !important;
-  font-size: 13px !important;
-  line-height: 1.4 !important;
+  word-break: normal;
+  overflow-wrap: break-word;
+  white-space: normal;
+  max-width: 100%;
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 // --- ANALYTICS TAB ---
@@ -1931,7 +2087,7 @@
       background: $color-primary-gradient;
       color: #ffffff;
       font-weight: 700;
-      box-shadow: 0 2px 8px rgba(58, 78, 251, 0.28);
+      box-shadow: $shadow-xs;
     }
   }
 }
@@ -1971,10 +2127,10 @@
 }
 
 .gymflow-desktop-filters {
-  display: none !important;
+  display: none;
 
   @include respond-to('tablet') {
-    display: flex !important;
+    display: flex;
     align-items: center;
     gap: 8px;
     flex: 1;
@@ -1987,7 +2143,7 @@
   width: 100%;
 
   @include respond-to('tablet') {
-    display: none !important;
+    display: none;
   }
 }
 
@@ -1995,8 +2151,9 @@
 .gymflow-chart-container {
   position: relative;
   width: 100%;
-  height: 220px;
-  margin-top: 12px;
+  height: 240px;
+  margin-top: 14px;
+  padding-top: 24px;
   box-sizing: border-box;
 
   @include respond-to('tablet') {
@@ -2010,9 +2167,12 @@
   height: 100%;
   width: 100%;
   overflow-x: auto;
-  overflow-y: hidden;
+  overflow-y: visible;
+  padding-top: 24px;
+  padding-bottom: 2px;
   gap: 12px;
   box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
 }
 
 .gymflow-chart-col {
@@ -2021,60 +2181,251 @@
   align-items: center;
   justify-content: flex-end;
   height: 100%;
-  min-width: 32px;
+  min-width: 44px;
   flex: 1;
   position: relative;
   box-sizing: border-box;
+  cursor: pointer;
+  padding: 0 4px;
+  outline: none;
 
   &--sparse {
-    max-width: 48px;
-    flex: 0 0 48px;
+    max-width: 68px;
+    flex: 0 0 68px;
+  }
+
+  &:hover .gymflow-chart-bar:not(.gymflow-chart-bar--selected) {
+    transform: translateY(-2px);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
   }
 }
 
 .gymflow-chart-bar-slot {
-  height: calc(100% - 26px);
+  height: calc(100% - 28px);
   width: 100%;
   display: flex;
   align-items: flex-end;
   justify-content: center;
   box-sizing: border-box;
+  position: relative;
 }
 
 .gymflow-chart-bar {
-  width: 22px;
-  max-width: 28px;
-  border-radius: 6px 6px 0 0;
-  background: $color-primary-gradient;
-  transition: height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  cursor: pointer;
-
-  &:hover {
-    filter: brightness(1.1);
-  }
+  width: 24px;
+  max-width: 32px;
+  border-radius: $radius-6 $radius-6 0 0;
+  background-color: $color-primary-blue;
+  border: 2px solid $color-deep-navy;
+  border-bottom: none;
+  box-shadow: 2px 0 0 $color-deep-navy;
+  transition: transform $transition-fast, background-color $transition-fast, box-shadow $transition-fast;
+  position: relative;
 
   &--best {
-    background: $color-lime !important;
-    box-shadow: 0 2px 10px rgba(227, 255, 59, 0.5);
+    background-color: $color-lime;
+  }
+
+  &--selected {
+    transform: scaleX(1.08);
+    box-shadow: 3px 0 0 $color-deep-navy;
+    outline: 2.5px solid $color-deep-navy;
+    outline-offset: 1px;
+    z-index: 3;
   }
 }
 
 .gymflow-chart-date {
   height: 26px;
   line-height: 26px;
-  font-size: 11px;
-  font-weight: 700;
-  color: rgba(37, 41, 67, 0.55);
+  font-size: $font-size-11;
+  font-weight: $font-weight-extrabold;
+  color: $color-deep-navy;
   white-space: nowrap;
   text-align: center;
+  padding: 0 4px;
+  border-radius: $radius-6;
+  margin-top: 2px;
+  transition: background-color $transition-fast, color $transition-fast;
+
+  &--active {
+    background-color: $color-lime;
+    border: 1.5px solid $color-deep-navy;
+    box-shadow: 1px 1px 0 $color-deep-navy;
+  }
 }
 
-// Treadmill History Stat Grid
+// In-chart Floating Non-Clipping Tooltip
+.gymflow-chart-tooltip {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: $color-white;
+  color: $color-deep-navy;
+  border: 2px solid $color-deep-navy;
+  border-radius: $radius-6;
+  padding: 4px 8px;
+  font-size: $font-size-11;
+  font-weight: $font-weight-extrabold;
+  white-space: nowrap;
+  z-index: 10;
+  box-shadow: 2px 2px 0 $color-deep-navy;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1px;
+
+  &__val {
+    color: $color-deep-navy;
+    font-size: $font-size-12;
+    font-weight: $font-weight-extrabold;
+  }
+
+  &__tag {
+    font-size: 10px;
+    color: $color-text-muted;
+    font-weight: $font-weight-bold;
+  }
+}
+
+// Dedicated Selected Session Detail Card
+.gymflow-chart-active-detail {
+  margin-top: 16px;
+  padding: 14px 16px;
+  background-color: $color-white;
+  border: $border-navy;
+  border-radius: $radius-10;
+  box-shadow: $shadow-xs;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-sizing: border-box;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 10px;
+    border-bottom: 2px solid $color-deep-navy;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  &__date-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  &__date {
+    font-family: $font-family-heading;
+    font-size: 14px;
+    font-weight: 800;
+    color: $color-deep-navy;
+  }
+
+  &__badge {
+    background-color: $color-accent-lime;
+    color: $color-deep-navy;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 8px;
+    border: 2px solid $color-deep-navy;
+    border-radius: $radius-6;
+    letter-spacing: 0.04em;
+    box-shadow: 2px 2px 0 $color-deep-navy;
+  }
+
+  &__hint {
+    font-size: 12px;
+    color: rgba(37, 41, 67, 0.65);
+    font-weight: 600;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+
+    @include respond-to('tablet') {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+  }
+
+  &__item {
+    background-color: $color-white;
+    border: 2px solid $color-deep-navy;
+    border-radius: $radius-6;
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    box-shadow: 2px 2px 0 $color-deep-navy;
+    box-sizing: border-box;
+
+    &--volume {
+      background-color: $color-accent-lime;
+      border-color: $color-deep-navy;
+    }
+  }
+
+  &__label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: $color-deep-navy;
+  }
+
+  &__val-row {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+  }
+
+  &__value {
+    font-family: $font-family-heading;
+    font-size: 24px;
+    font-weight: 800;
+    color: $color-deep-navy;
+    line-height: 1.1;
+  }
+
+  &__unit {
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(37, 41, 67, 0.7);
+  }
+}
+
+// Helper note box in dashed 2px Navy
+.gymflow-chart-note-box {
+  border: 2px dashed $color-deep-navy;
+  background-color: $color-canvas;
+  border-radius: $radius-6;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: $color-deep-navy;
+  text-align: left;
+  margin-top: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+// Treadmill History Stat Grid (Item 4)
 .gymflow-treadmill-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+  gap: 12px;
   width: 100%;
+  padding-bottom: 4px;
 
   @include respond-to('tablet') {
     grid-template-columns: repeat(4, 1fr);
@@ -2082,69 +2433,294 @@
   }
 
   &__tile {
-    background-color: #F8FAFD;
-    border: 1px solid #E6E9F2;
-    border-radius: 12px;
+    border: 2px solid $color-deep-navy;
+    border-radius: $radius-6;
+    box-shadow: 2px 2px 0 $color-deep-navy;
     padding: 12px 14px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
+    box-sizing: border-box;
+
+    &--sessions {
+      background-color: $color-white;
+      color: $color-deep-navy;
+    }
+
+    &--time {
+      background-color: $color-secondary-blue;
+      color: $color-deep-navy;
+    }
+
+    &--calories {
+      background-color: $color-accent-lime;
+      color: $color-deep-navy;
+    }
+
+    &--status {
+      background-color: $color-white;
+      color: $color-deep-navy;
+    }
   }
 
   &__label {
-    font-size: 11.5px;
+    font-size: 12px;
     font-weight: 700;
-    color: rgba(37, 41, 67, 0.6);
+    color: $color-deep-navy;
     text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   &__val {
     font-family: $font-family-heading;
-    font-size: 16px;
+    font-size: 24px;
     font-weight: 800;
     color: $color-deep-navy;
+    line-height: 1.1;
+    white-space: nowrap;
   }
 }
 
-// Breakdown rows
+// Breakdown rows: Routine Breakdown & Body Part Volume (Item 2)
 .gymflow-breakdown-row {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 10px 12px;
-  background-color: #F8FAFD;
-  border-radius: 10px;
-  border: 1px solid #E6E9F2;
+  gap: 8px;
+  padding: 12px 14px;
+  background-color: $color-white;
+  border-radius: $radius-6;
+  border: 2px solid $color-deep-navy;
+  box-shadow: 2px 2px 0 $color-deep-navy;
+  box-sizing: border-box;
+  width: 100%;
 
   &__top {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 13.5px;
+    gap: 12px;
+    width: 100%;
   }
 
   &__title {
-    font-weight: 700;
+    font-family: $font-family-heading;
+    font-size: 15px;
+    font-weight: 800;
     color: $color-deep-navy;
+    line-height: 1.2;
+    display: block;
+  }
+
+  &__subtext {
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(37, 41, 67, 0.6);
+    margin-top: 2px;
+    display: block;
   }
 
   &__val {
+    font-family: $font-family-heading;
+    font-size: 15px;
     font-weight: 800;
     color: $color-deep-navy;
+    white-space: nowrap;
+    text-align: right;
+  }
+
+  &__score-chip {
+    display: inline-flex;
+    align-items: center;
+    background-color: $color-accent-lime;
+    color: $color-deep-navy;
+    border: 2px solid $color-deep-navy;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 8px;
+    box-shadow: 1px 1px 0 $color-deep-navy;
+    white-space: nowrap;
+    margin-top: 4px;
   }
 
   &__bar-track {
     width: 100%;
-    height: 6px;
-    background-color: #E2E4EF;
-    border-radius: 3px;
+    height: 14px;
+    background-color: $color-subtle-border;
+    border: 2px solid $color-deep-navy;
+    border-radius: 4px;
     overflow: hidden;
+    box-sizing: border-box;
   }
 
   &__bar-fill {
     height: 100%;
-    background: $color-primary-gradient;
-    border-radius: 3px;
+    background-color: $color-primary-blue;
+    border-radius: 0;
+    transition: width $transition-fast;
+  }
+}
+
+// Exercise Progression Grid & Folder Cards (Item 3)
+.gymflow-exercise-filter-chips {
+  .filter-chips {
+    flex-wrap: wrap;
+    overflow-x: visible;
+    gap: 8px;
+    padding: 2px 2px 8px;
+  }
+
+  .filter-chip {
+    height: 40px;
+    min-height: 40px;
+    font-weight: 700;
+  }
+}
+
+.gymflow-exercise-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  row-gap: 52px;
+  column-gap: 20px;
+  align-items: stretch;
+  padding-top: 36px; // Breathing room for the 30px folder tabs on the first row
+  padding-bottom: 12px; // Reserve room for hard shadows
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+    row-gap: 56px;
+    column-gap: 20px;
+  }
+
+  @media (min-width: 1280px) {
+    grid-template-columns: repeat(3, 1fr);
+    row-gap: 60px;
+    column-gap: 24px;
+  }
+}
+
+.gymflow-exercise-folder-card {
+  margin-top: 0 !important; // Gap is cleanly governed by grid row-gap & padding-top
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  .neo-folder-card__body {
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    background-color: $color-white;
+  }
+}
+
+.gymflow-exercise-card {
+  &__inner {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    height: 100%;
+    justify-content: space-between;
+  }
+
+  &__top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  &__title-col {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  &__name {
+    font-family: $font-family-heading;
+    font-size: 15px;
+    font-weight: 800;
+    color: $color-deep-navy;
+    margin: 0;
+    line-height: 1.25;
+    overflow-wrap: break-word;
+    word-break: normal;
+  }
+
+  &__sessions {
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(37, 41, 67, 0.6);
+  }
+
+  &__modality-chip {
+    display: inline-flex;
+    align-items: center;
+    background-color: $color-subtle-border;
+    color: $color-deep-navy;
+    border: 2px solid $color-deep-navy;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 3px 8px;
+    box-shadow: 1px 1px 0 $color-deep-navy;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  &__metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  &__stat-tile {
+    border: 2px solid $color-deep-navy;
+    border-radius: $radius-6;
+    padding: 8px 12px;
+    box-shadow: 2px 2px 0 $color-deep-navy;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    box-sizing: border-box;
+
+    &--white {
+      background-color: $color-white;
+      color: $color-deep-navy;
+    }
+
+    &--lime {
+      background-color: $color-accent-lime;
+      color: $color-deep-navy;
+    }
+  }
+
+  &__stat-label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: $color-deep-navy;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__stat-val {
+    font-family: $font-family-heading;
+    font-size: 20px;
+    font-weight: 800;
+    color: $color-deep-navy;
+    line-height: 1.1;
+    white-space: nowrap;
   }
 }
 
@@ -2154,9 +2730,8 @@
   inset: 0;
   z-index: 1000;
   background-color: rgba(37, 41, 67, 0.5);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  display: flex;
+  
+    display: flex;
   align-items: flex-end; // Bottom sheet on mobile
   justify-content: center;
   padding: 0;
@@ -2177,13 +2752,13 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 -4px 24px rgba(37, 41, 67, 0.15);
+  box-shadow: $shadow-xs;
   animation: gymflowSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 
   @include respond-to('tablet') {
     border-radius: 20px;
-    box-shadow: 0 12px 40px rgba(37, 41, 67, 0.2);
-    border: 1px solid $color-subtle-border;
+    box-shadow: $shadow-xs;
+    border: $border-navy;
     animation: modalEnter 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
@@ -2309,3 +2884,261 @@
     transform: translateY(0);
   }
 }
+
+// =============================================================================
+// GYMFLOW MONTH HISTORY CALENDAR (Neo-Brutalist)
+// =============================================================================
+.gym-history-view {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.gym-history-header-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  background-color: $color-white;
+  border: $border-navy;
+  border-radius: $radius-card;
+  box-shadow: $shadow-xs;
+  padding: 12px 16px;
+
+  &__nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__title {
+    font-family: $font-family-heading;
+    font-size: 16px;
+    font-weight: 800;
+    color: $color-deep-navy;
+    margin: 0;
+    min-width: 150px;
+    text-align: center;
+
+    @include respond-to('tablet') {
+      font-size: 18px;
+      min-width: 180px;
+    }
+  }
+
+  &__today-btn {
+    @media (max-width: 600px) {
+      width: 100%;
+    }
+  }
+}
+
+.gym-history-content-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+
+  @include respond-to('desktop') {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 20px;
+  }
+}
+
+.gym-history-calendar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gym-history-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  text-align: center;
+  font-family: $font-family-heading;
+  font-weight: 800;
+  font-size: 11px;
+  color: $color-deep-navy;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding-bottom: 8px;
+  border-bottom: 2px solid $color-deep-navy;
+
+  .weekday-mobile {
+    display: inline;
+    @include respond-to('tablet') {
+      display: none;
+    }
+  }
+
+  .weekday-desktop {
+    display: none;
+    @include respond-to('tablet') {
+      display: inline;
+    }
+  }
+}
+
+.gym-history-days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+
+  @include respond-to('tablet') {
+    gap: 6px;
+  }
+}
+
+.gym-history-day-pad {
+  min-height: 48px;
+  background-color: transparent;
+
+  @include respond-to('tablet') {
+    min-height: 76px;
+  }
+}
+
+.gym-history-day-cell {
+  position: relative;
+  min-height: 48px;
+  padding: 6px 4px;
+  background-color: $color-white;
+  border: 2px solid $color-deep-navy;
+  border-radius: $radius-input;
+  box-shadow: 1px 1px 0 $color-deep-navy;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  cursor: pointer;
+  text-align: left;
+  transition: transform $transition-fast, box-shadow $transition-fast;
+
+  &:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: $shadow-xs;
+  }
+
+  @include respond-to('tablet') {
+    min-height: 76px;
+    padding: 8px 6px;
+  }
+
+  &--today {
+    border-color: $color-primary-blue;
+    &::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: $color-primary-blue;
+    }
+  }
+
+  &--selected {
+    background-color: $color-lime !important;
+    border-color: $color-deep-navy !important;
+    box-shadow: $shadow-xs !important;
+    transform: translate(-1px, -1px);
+
+    .gym-history-day-cell__num {
+      color: $color-deep-navy !important;
+      font-weight: 800;
+    }
+  }
+
+  &--workout {
+    background-color: #F5F7FB;
+  }
+
+  &--rest {
+    background-color: rgba(51, 164, 250, 0.1);
+  }
+
+  &__num {
+    font-family: $font-family-heading;
+    font-size: 12px;
+    font-weight: 700;
+    color: $color-deep-navy;
+    line-height: 1;
+
+    @include respond-to('tablet') {
+      font-size: 13px;
+    }
+  }
+
+  &__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-top: auto;
+    align-self: center;
+
+    &--workout {
+      background-color: $color-fresh-green;
+    }
+
+    &--rest {
+      background-color: $color-secondary-blue;
+    }
+
+    @include respond-to('tablet') {
+      display: none;
+    }
+  }
+
+  &__info-desktop {
+    display: none;
+    width: 100%;
+    margin-top: 4px;
+
+    @include respond-to('tablet') {
+      display: block;
+    }
+
+    .info-title {
+      display: block;
+      font-size: 10px;
+      font-weight: 800;
+      color: $color-primary-blue;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .info-sets {
+      font-size: 10px;
+      font-weight: 600;
+      color: rgba(37, 41, 67, 0.7);
+    }
+
+    .info-rest {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 800;
+      color: $color-deep-navy;
+      background-color: $color-secondary-blue;
+      padding: 1px 4px;
+      border-radius: 4px;
+      border: 1px solid $color-deep-navy;
+    }
+  }
+}
+
+.gym-history-detail-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+
+
+

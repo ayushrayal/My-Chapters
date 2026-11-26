@@ -22,7 +22,8 @@ import {
   ChevronRightIcon,
   PlusIcon,
   MoreHorizontalIcon,
-  CloseIcon
+  CloseIcon,
+  MoonIcon
 } from '../../../components/common/Icons.jsx';
 
 export function Dayflow() {
@@ -256,13 +257,13 @@ export function Dayflow() {
                 />
               </div>
 
-              {/* DAY HEADER: Icon chevrons, heading font date, Today chip, actions */}
+              {/* DAY HEADER: Icon chevrons, heading font date, Today & Rest Day chips, actions */}
               <div className="dayflow-day-header">
-                {/* Row 1: Chevron Left (44px target) | Date centered on one line | Chevron Right (44px target) */}
-                <div className="dayflow-day-header__row-top">
+                {/* Date Navigation: < Date (with Today / Rest Day chips) > */}
+                <div className="dayflow-day-header__nav">
                   <button
                     type="button"
-                    className="btn-icon btn-icon--touch"
+                    className="icon-btn dayflow-day-header__chevron"
                     onClick={goToPreviousDay}
                     aria-label="Previous day"
                     title="Previous Day"
@@ -274,23 +275,35 @@ export function Dayflow() {
                     <h2 className="dayflow-day-header__date-text">
                       {formattedDisplayDate}
                     </h2>
-                    {isToday ? (
-                      <span className="badge-today-lime">Today</span>
-                    ) : (
-                      <button
-                        type="button"
-                        className="btn-jump-today"
-                        onClick={goToToday}
-                        aria-label="Jump to today"
-                      >
-                        Jump to today
-                      </button>
-                    )}
+                    <div className="dayflow-day-header__badges">
+                      {isToday ? (
+                        <span className="neo-tag neo-tag--lime">Today</span>
+                      ) : (
+                        <button
+                          type="button"
+                          className="btn-jump-today"
+                          onClick={goToToday}
+                          aria-label="Jump to today"
+                        >
+                          Jump to today
+                        </button>
+                      )}
+                      {isFinished && (
+                        <span className="neo-tag neo-tag--secondary" title="Day locked and immutable">
+                          🔒 Locked
+                        </span>
+                      )}
+                      {isRestDay && (
+                        <span className="neo-tag neo-tag--secondary">
+                          Rest Day
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <button
                     type="button"
-                    className="btn-icon btn-icon--touch"
+                    className="icon-btn dayflow-day-header__chevron"
                     onClick={goToNextDay}
                     aria-label="Next day"
                     title="Next Day"
@@ -299,23 +312,7 @@ export function Dayflow() {
                   </button>
                 </div>
 
-                {/* Status Badges if locked or rest */}
-                {(isFinished || isRestDay) && (
-                  <div className="dayflow-day-header__status-row">
-                    {isFinished && (
-                      <span className="dayflow-badge dayflow-badge--locked" title="Day locked and immutable">
-                        🔒 Locked
-                      </span>
-                    )}
-                    {isRestDay && (
-                      <span className="dayflow-badge dayflow-badge--rest">
-                        Rest Day
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                {/* Row 2: Desktop inline actions vs Mobile Finish Day + Overflow menu */}
+                {/* Actions: Desktop inline actions vs Mobile Primary Action + Overflow menu */}
                 <div className="dayflow-day-header__actions">
                   {/* Desktop actions */}
                   <div className="dayflow-day-header__actions-desktop">
@@ -351,12 +348,12 @@ export function Dayflow() {
                     )}
                   </div>
 
-                  {/* Mobile Actions: Row with Finish Day (full width gradient) + "..." menu button */}
+                  {/* Mobile Actions: Prominent Primary Action + "..." overflow menu */}
                   <div className="dayflow-day-header__actions-mobile">
                     {!isFinished && !isRestDay && schedule?.blocks?.length > 0 && (
                       <button
                         type="button"
-                        className="btn btn--primary dayflow-day-header__finish-mobile-btn"
+                        className="btn btn--primary dayflow-day-header__mobile-primary-btn"
                         onClick={() => setIsFinishModalOpen(true)}
                         title="Lock this day permanently"
                       >
@@ -364,11 +361,33 @@ export function Dayflow() {
                       </button>
                     )}
 
+                    {!isFinished && isRestDay && (
+                      <button
+                        type="button"
+                        className="btn btn--primary dayflow-day-header__mobile-primary-btn"
+                        onClick={handleToggleRestDay}
+                        title="Resume scheduling tasks for this day"
+                      >
+                        Resume Scheduling
+                      </button>
+                    )}
+
+                    {!isFinished && !isRestDay && (!schedule?.blocks || schedule?.blocks?.length === 0) && (
+                      <button
+                        type="button"
+                        className="btn btn--outline dayflow-day-header__mobile-primary-btn"
+                        onClick={handleToggleRestDay}
+                        title="Mark this day as a rest day"
+                      >
+                        Mark Rest Day
+                      </button>
+                    )}
+
                     {!isFinished && (
                       <div className="dayflow-day-header__overflow-wrap">
                         <button
                           type="button"
-                          className="btn-icon btn-icon--touch dayflow-day-header__overflow-btn"
+                          className="icon-btn dayflow-day-header__overflow-btn"
                           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                           aria-label="More day actions"
                           aria-expanded={isMobileMenuOpen}
@@ -390,13 +409,30 @@ export function Dayflow() {
                                 <span>Move Schedule</span>
                               </button>
                             )}
-                            <button
-                              type="button"
-                              className="dayflow-day-header__overflow-item"
-                              onClick={handleToggleRestDay}
-                            >
-                              <span>{isRestDay ? 'Resume Scheduling' : 'Mark Rest Day'}</span>
-                            </button>
+                            {!isRestDay && schedule?.blocks?.length > 0 && (
+                              <button
+                                type="button"
+                                className="dayflow-day-header__overflow-item"
+                                onClick={() => {
+                                  setIsMobileMenuOpen(false);
+                                  handleToggleRestDay();
+                                }}
+                              >
+                                <span>Mark Rest Day</span>
+                              </button>
+                            )}
+                            {isRestDay && (
+                              <button
+                                type="button"
+                                className="dayflow-day-header__overflow-item"
+                                onClick={() => {
+                                  setIsMobileMenuOpen(false);
+                                  handleToggleRestDay();
+                                }}
+                              >
+                                <span>Resume Scheduling</span>
+                              </button>
+                            )}
                             <button
                               type="button"
                               className="dayflow-day-header__overflow-item"
@@ -437,7 +473,7 @@ export function Dayflow() {
               ) : isRestDay ? (
                 <div className="dayflow-empty-state dayflow-empty-state--rest">
                   <div className="dayflow-empty-state__icon">
-                    <CalendarIcon size={36} />
+                    <MoonIcon size={28} />
                   </div>
                   <h3 className="dayflow-empty-state__title">Rest Day</h3>
                   <p className="dayflow-empty-state__description">
@@ -448,6 +484,7 @@ export function Dayflow() {
                       type="button"
                       className="btn btn--secondary"
                       onClick={handleToggleRestDay}
+                      style={{ width: '100%', maxWidth: '280px' }}
                     >
                       Change to Active Day
                     </button>

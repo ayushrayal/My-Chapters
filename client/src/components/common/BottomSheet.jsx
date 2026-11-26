@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { CloseIcon } from './Icons.jsx';
 
 export function BottomSheet({
   isOpen,
@@ -10,13 +11,18 @@ export function BottomSheet({
 }) {
   useEffect(() => {
     if (!isOpen) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
 
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') onClose?.();
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
@@ -35,14 +41,19 @@ export function BottomSheet({
         <div className="bottom-sheet-drag-handle" aria-hidden="true" />
         {title && (
           <div className="modal-header">
+            <div className="window-dots" aria-hidden="true">
+              <span className="window-dots__dot" />
+              <span className="window-dots__dot" />
+              <span className="window-dots__dot" />
+            </div>
             <h2 className="modal-title">{title}</h2>
             <button
               type="button"
-              className="modal-close-btn"
+              className="icon-btn icon-btn--sm modal-close-btn"
               onClick={onClose}
               aria-label="Close bottom sheet"
             >
-              &times;
+              <CloseIcon size={16} />
             </button>
           </div>
         )}

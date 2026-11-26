@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FilterIcon, CloseIcon } from '../Icons.jsx';
-import { Chip } from '../Badge.jsx';
+import { BottomSheet } from '../BottomSheet.jsx';
 
 /**
  * FilterBar - Unified filter container for desktop & mobile
@@ -9,8 +9,8 @@ import { Chip } from '../Badge.jsx';
  * Below: Applied filter chips with individual remove buttons + Clear all
  */
 export function FilterBar({
-  filters = [], // Array of { id, label, value, renderFilter, onRemove }
-  appliedChips = [], // Array of { id, label, onRemove }
+  filters = [],
+  appliedChips = [],
   onClearAll,
   children,
   className = ''
@@ -23,12 +23,12 @@ export function FilterBar({
     <div className={`filter-bar-container ${className}`}>
       {/* 1. Main Controls Row */}
       <div className="filter-bar">
-        {/* Desktop Aligned Row */}
+        {/* Desktop Aligned Row (Hidden on mobile) */}
         <div className="filter-bar__desktop-row">
           {children}
         </div>
 
-        {/* Mobile Single Filters Trigger Button */}
+        {/* Mobile Single Filters Trigger Button (Hidden on desktop) */}
         <div className="filter-bar__mobile-trigger">
           <button
             type="button"
@@ -49,7 +49,7 @@ export function FilterBar({
       {/* 2. Applied Filter Chips Row */}
       {activeCount > 0 && (
         <div className="filter-bar__applied-chips">
-          <span className="filter-bar__applied-label">Active Filters:</span>
+          <span className="filter-bar__applied-label">Active:</span>
           {appliedChips.map((chip) => (
             <span key={chip.id} className="filter-applied-chip">
               <span className="filter-applied-chip__text">{chip.label}</span>
@@ -76,61 +76,37 @@ export function FilterBar({
       )}
 
       {/* 3. Mobile Combined Filter Bottom Sheet */}
-      {isMobileSheetOpen && (
-        <div className="filter-select-sheet-backdrop" onClick={() => setIsMobileSheetOpen(false)}>
-          <div
-            className="filter-select-sheet"
-            role="dialog"
-            aria-modal="true"
-            aria-label="All Filters"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="filter-select-sheet__handle-bar">
-              <div className="filter-select-sheet__handle" />
-            </div>
-
-            <div className="filter-select-sheet__header">
-              <h3 className="filter-select-sheet__title">All Filters</h3>
-              <button
-                type="button"
-                className="btn-icon btn-icon--sm"
-                onClick={() => setIsMobileSheetOpen(false)}
-                aria-label="Close filters"
-              >
-                <CloseIcon size={16} />
-              </button>
-            </div>
-
-            <div className="filter-bar__sheet-body">
-              {children}
-            </div>
-
-            <div className="filter-select-sheet__footer">
-              {onClearAll && (
-                <button
-                  type="button"
-                  className="btn btn--secondary"
-                  style={{ flex: 1, minHeight: '44px' }}
-                  onClick={() => {
-                    onClearAll();
-                    setIsMobileSheetOpen(false);
-                  }}
-                >
-                  Clear All
-                </button>
-              )}
-              <button
-                type="button"
-                className="btn btn--primary"
-                style={{ flex: 2, minHeight: '44px' }}
-                onClick={() => setIsMobileSheetOpen(false)}
-              >
-                Apply Filters
-              </button>
-            </div>
-          </div>
+      <BottomSheet
+        isOpen={isMobileSheetOpen}
+        onClose={() => setIsMobileSheetOpen(false)}
+        title="Filters"
+      >
+        <div className="filter-bar__sheet-body">
+          {children}
         </div>
-      )}
+
+        <div className="filter-sheet__footer" style={{ marginTop: '16px' }}>
+          {onClearAll && (
+            <button
+              type="button"
+              className="btn btn--secondary"
+              onClick={() => {
+                onClearAll();
+                setIsMobileSheetOpen(false);
+              }}
+            >
+              Clear All
+            </button>
+          )}
+          <button
+            type="button"
+            className="btn btn--primary"
+            onClick={() => setIsMobileSheetOpen(false)}
+          >
+            Apply Filters
+          </button>
+        </div>
+      </BottomSheet>
     </div>
   );
 }

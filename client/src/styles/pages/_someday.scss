@@ -8,30 +8,39 @@
 // ==============================================================================
 
 .someday-page {
-  max-width: 1040px;
-  margin: 0 auto;
-  padding: $spacing-lg $spacing-md;
-  // Ensure content never collides with fixed bottom mobile navigation
-  padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
-
-  @include mobile-only {
-    padding: $spacing-md $spacing-sm;
-    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
-  }
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 // --- Header ---
 .someday-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: $spacing-md;
-  margin-bottom: $spacing-lg;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: start;
+  gap: 16px;
+  width: 100%;
+  margin: 0 0 $spacing-lg 0;
+  padding: 0;
+  box-sizing: border-box;
+
+  @include respond-to('tablet') {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
 
   &__content {
-    flex: 1;
-    min-width: 240px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: start;
+    gap: 8px;
+    width: 100%;
+    margin: 0;
+    padding: 0;
   }
 
   &__title {
@@ -42,58 +51,47 @@
     margin: 0;
     line-height: $line-height-tight;
     letter-spacing: -0.025em;
+    text-align: start;
   }
 
   &__subtitle {
     font-size: $font-size-base;
     color: $color-text-muted;
-    margin: 4px 0 0 0;
+    margin: 0;
+    text-align: start;
   }
 
   &__actions {
     display: flex;
     align-items: center;
     gap: $spacing-sm;
+    width: 100%;
+    margin-top: 16px;
 
-    @include mobile-only {
-      width: 100%;
-      margin-top: 16px;
-      margin-bottom: 20px;
+    @include respond-to('tablet') {
+      width: auto;
+      margin-top: 0;
     }
   }
+}
 
-  &__add-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 10px 22px;
-    border-radius: $radius-full;
-    background: $color-primary-gradient;
-    color: $color-white;
-    font-family: $font-family-body;
-    font-size: 14px;
-    font-weight: $font-weight-semibold;
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 4px 14px rgba(58, 78, 251, 0.3);
-    transition: transform $transition-fast, box-shadow $transition-fast;
+.someday-desktop-add {
+  display: none;
 
-    @include mobile-only {
-      width: 100%;
-      height: 48px;
-      font-size: 15px;
-      font-weight: 700;
-    }
+  @include respond-to('tablet') {
+    display: block;
+  }
+}
 
-    &:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(58, 78, 251, 0.4);
-    }
+.someday-mobile-add {
+  display: inline-flex;
+  width: 100%;
+  height: 48px;
+  font-size: 15px;
+  font-weight: $font-weight-extrabold;
 
-    &:focus-visible {
-      @include focus-ring;
-    }
+  @include respond-to('tablet') {
+    display: none !important;
   }
 }
 
@@ -115,7 +113,7 @@
     background: $color-primary-gradient;
     color: $color-white;
     border: none;
-    box-shadow: 0 6px 20px rgba(58, 78, 251, 0.45);
+    box-shadow: $shadow-xs;
     cursor: pointer;
     transition: transform $transition-fast, box-shadow $transition-fast;
 
@@ -144,7 +142,7 @@
   &__card {
     background-color: $color-white;
     color: $color-deep-navy;
-    border: 1.5px solid $color-subtle-border;
+    border: $border-navy;
     border-radius: $radius-14;
     padding: $spacing-md $spacing-lg;
     display: flex;
@@ -262,7 +260,99 @@
   }
 }
 
-// --- Controls & Filters ---
+// --- Controls & Filters (Neo-Brutalist 2-Row Layout) ---
+.someday-filter-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: $spacing-lg;
+  box-sizing: border-box;
+
+  &__category-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  &__chips-wrap {
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px 2px;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter-chips {
+      padding: 2px 4px 6px 4px;
+      flex-wrap: nowrap;
+    }
+  }
+
+  &__manage-btn {
+    height: 38px;
+    min-height: 38px;
+    padding: 0 14px;
+    font-size: 13px;
+    font-weight: $font-weight-extrabold;
+    flex-shrink: 0;
+    border: $border-navy;
+    border-radius: $radius-6;
+    background-color: $color-white;
+    color: $color-deep-navy;
+    box-shadow: $shadow-xs;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: transform $transition-fast, box-shadow $transition-fast, background-color $transition-fast;
+
+    &:hover {
+      background-color: $color-accent-lime;
+      transform: translate(-1px, -1px);
+      box-shadow: $shadow-sm;
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+
+  &__status-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  &__status-segmented {
+    height: 38px;
+    min-height: 38px;
+
+    @include mobile-only {
+      width: 100%;
+
+      .segmented-filter__btn {
+        flex: 1;
+        padding: 6px 8px;
+        font-size: 11px;
+      }
+    }
+  }
+}
+
 .someday-controls {
   display: flex;
   align-items: flex-end;
@@ -273,7 +363,7 @@
   background-color: $color-white;
   padding: $spacing-md $spacing-lg;
   border-radius: $radius-16;
-  border: 1.5px solid $color-subtle-border;
+  border: $border-navy;
   box-shadow: $shadow-sm;
 
   &__label {
@@ -310,7 +400,7 @@
     height: 44px;
     min-height: 44px;
     background-color: $color-bg-page;
-    border: 1.5px solid $color-subtle-border;
+    border: $border-navy;
     color: $color-deep-navy;
     font-weight: $font-weight-medium;
     border-radius: $radius-10;
@@ -328,7 +418,7 @@
     border-radius: $radius-10;
     background-color: $color-bg-page;
     color: $color-deep-navy;
-    border: 1.5px solid $color-subtle-border;
+    border: $border-navy;
     font-size: $font-size-14;
     font-weight: $font-weight-semibold;
     cursor: pointer;
@@ -380,7 +470,7 @@
   font-weight: $font-weight-medium;
   color: $color-text-muted;
   background-color: $color-bg-page;
-  border: 1.5px solid $color-subtle-border;
+  border: $border-navy;
   white-space: nowrap;
   cursor: pointer;
   min-height: 38px;
@@ -409,7 +499,7 @@
     color: $color-white;
     border-color: $color-primary-blue;
     font-weight: $font-weight-bold;
-    box-shadow: 0 2px 8px rgba(58, 78, 251, 0.28);
+    box-shadow: $shadow-xs;
   }
 
   &__count {
@@ -434,7 +524,7 @@
   background-color: rgba(222, 224, 237, 0.5);
   padding: 4px;
   border-radius: $radius-full;
-  border: 1.5px solid $color-subtle-border;
+  border: $border-navy;
   gap: 4px;
   min-height: 44px;
   align-items: center;
@@ -485,7 +575,7 @@
     background: $color-primary-gradient;
     color: $color-white;
     font-weight: $font-weight-bold;
-    box-shadow: 0 2px 8px rgba(58, 78, 251, 0.28);
+    box-shadow: $shadow-xs;
 
     &:hover {
       color: $color-white;
@@ -544,7 +634,7 @@
 
 .someday-skeleton-card {
   background-color: $color-white;
-  border: 1.5px solid $color-subtle-border;
+  border: $border-navy;
   border-radius: $radius-16;
   padding: $spacing-lg;
   display: flex;
@@ -596,7 +686,7 @@
   gap: 8px;
   margin-top: 8px;
   padding-top: 12px;
-  border-top: 1px solid $color-subtle-border;
+  border-top: $border-navy;
 }
 
 @keyframes shimmer {
@@ -612,23 +702,25 @@
 .someday-card {
   background-color: $color-white;
   color: $color-deep-navy;
-  border: 1.5px solid $color-subtle-border;
-  border-radius: $radius-16;
-  padding: $spacing-lg;
+  border: $border-navy;
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: $radius-card;
+  border-bottom-right-radius: $radius-card;
+  border-bottom-left-radius: $radius-card;
+  overflow: visible !important;
   display: flex;
   flex-direction: column;
-  box-shadow: $shadow-sm;
-  transition: transform $transition-fast, box-shadow $transition-fast, border-color $transition-fast;
+  box-shadow: $shadow-card;
+  transition: transform $transition-fast, box-shadow $transition-fast;
 
   &:hover {
-    border-color: $color-border-light-hover;
-    box-shadow: $shadow-md;
-    transform: translateY(-3px);
+    box-shadow: $shadow-lg;
+    transform: translate(-2px, -2px);
   }
 
   // Subtle lime left border for purchased items
   &--purchased {
-    border-left: 4px solid $color-lime;
+    border-left: 5px solid $color-lime;
   }
 
   &__header {
@@ -652,7 +744,7 @@
     padding: 3px 10px;
     border-radius: $radius-full;
     background-color: $color-bg-page;
-    border: 1px solid $color-subtle-border;
+    border: $border-navy;
     color: $color-text-muted;
     letter-spacing: 0.02em;
     max-width: 140px;
@@ -680,7 +772,7 @@
       background-color: $color-lime;
       color: $color-deep-navy;
       border: 1px solid $color-lime-border-dark;
-      box-shadow: 0 1px 3px rgba(37, 41, 67, 0.08);
+      box-shadow: $shadow-xs;
     }
   }
 
@@ -747,7 +839,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    border-top: 1px solid $color-subtle-border;
+    border-top: $border-navy;
     padding-top: $spacing-sm;
   }
 
@@ -757,7 +849,7 @@
     width: 38px;
     height: 38px;
     border-radius: $radius-8;
-    border: 1px solid $color-subtle-border;
+    border: $border-navy;
     background-color: $color-white;
     color: $color-text-subtle;
     display: flex;
@@ -822,7 +914,7 @@
     opacity: 0;
     transition: opacity $transition-fast, transform $transition-fast;
     z-index: 20;
-    box-shadow: 0 2px 6px rgba(37, 41, 67, 0.2);
+    box-shadow: $shadow-xs;
 
     &::after {
       content: '';
@@ -853,7 +945,7 @@
   padding: $spacing-3xl $spacing-lg;
   background-color: $color-white;
   border-radius: $radius-16;
-  border: 1.5px solid $color-subtle-border;
+  border: $border-navy;
   box-shadow: $shadow-sm;
 
   &__icon-box {
@@ -899,12 +991,12 @@
     font-weight: $font-weight-semibold;
     border: none;
     cursor: pointer;
-    box-shadow: 0 4px 14px rgba(58, 78, 251, 0.3);
+    box-shadow: $shadow-xs;
     transition: transform $transition-fast, box-shadow $transition-fast;
 
     &:hover {
       transform: translateY(-1px);
-      box-shadow: 0 6px 18px rgba(58, 78, 251, 0.4);
+      box-shadow: $shadow-xs;
     }
 
     &:focus-visible {
@@ -919,9 +1011,8 @@
 
 .modal-overlay--glass {
   background-color: rgba(37, 41, 67, 0.45);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
+  
+  }
 
 .item-form-modal {
   display: flex;
@@ -966,7 +1057,7 @@
     bottom: 0;
     z-index: 10;
     background-color: $color-white;
-    border-top: 1px solid $color-subtle-border;
+    border-top: $border-navy;
     padding: $spacing-md $spacing-xl;
     display: flex;
     align-items: center;
@@ -1047,7 +1138,7 @@
   background-color: rgba(222, 224, 237, 0.5);
   padding: 4px;
   border-radius: $radius-12;
-  border: 1.5px solid $color-subtle-border;
+  border: $border-navy;
 }
 
 .segmented-status-btn {
@@ -1078,7 +1169,7 @@
   &--active {
     background: $color-primary-gradient;
     color: $color-white;
-    box-shadow: 0 2px 8px rgba(58, 78, 251, 0.28);
+    box-shadow: $shadow-xs;
 
     svg {
       color: $color-white;
@@ -1119,7 +1210,7 @@
   gap: 8px;
   padding: 8px 10px;
   background-color: $color-surface-tint;
-  border: 1px solid $color-subtle-border;
+  border: $border-navy;
   border-radius: $radius-10;
   position: relative;
   flex-wrap: wrap;
@@ -1219,7 +1310,7 @@
 
   &--category {
     background-color: $color-surface-secondary;
-    border: 1px solid $color-subtle-border;
+    border: $border-navy;
     color: $color-text-muted;
   }
 
@@ -1306,7 +1397,7 @@
     grid-template-columns: repeat(2, 1fr);
     gap: $spacing-sm;
     padding-top: $spacing-sm;
-    border-top: 1px solid $color-subtle-border;
+    border-top: $border-navy;
 
     @include mobile-only {
       grid-template-columns: 1fr;
@@ -1364,7 +1455,7 @@
     align-items: center;
     justify-content: center;
     border-radius: $radius-md;
-    border: 1px solid $color-subtle-border;
+    border: $border-navy;
     background-color: $color-surface-secondary;
     color: $color-error-red;
     cursor: pointer;
@@ -1423,7 +1514,7 @@
     gap: $spacing-sm;
     padding: $spacing-sm $spacing-md;
     background-color: $color-surface-secondary;
-    border: 1px solid $color-subtle-border;
+    border: $border-navy;
     border-radius: $radius-md;
     transition: border-color $transition-fast;
 
@@ -1572,7 +1663,7 @@
   gap: $spacing-sm;
   padding: $spacing-sm $spacing-md;
   background-color: $color-surface-secondary;
-  border: 1px solid $color-subtle-border;
+  border: $border-navy;
   border-radius: $radius-md;
   transition: border-color $transition-fast;
 
@@ -1679,7 +1770,7 @@
   &__item-preview {
     padding: $spacing-sm $spacing-md;
     background-color: $color-surface-secondary;
-    border: 1px solid $color-subtle-border;
+    border: $border-navy;
     border-radius: $radius-md;
     font-weight: $font-weight-semibold;
     color: $color-deep-navy;
@@ -1718,7 +1809,7 @@
     align-items: center;
     gap: $spacing-xs;
     padding: $spacing-sm $spacing-md;
-    border: 1px solid $color-subtle-border;
+    border: $border-navy;
     border-radius: $radius-md;
     background-color: $color-surface-secondary;
     text-decoration: none;
@@ -1762,3 +1853,6 @@
     color: $color-deep-navy;
   }
 }
+
+
+

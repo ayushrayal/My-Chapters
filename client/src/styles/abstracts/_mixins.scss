@@ -40,18 +40,47 @@
   justify-content: center;
 }
 
-// Accessible Focus Ring (2px #3A4EFB with offset)
-@mixin focus-ring {
-  outline: 2px solid $color-primary-blue;
-  outline-offset: 2px;
-  box-shadow: 0 0 0 2px $color-bg-page, 0 0 0 4px rgba(58, 78, 251, 0.35);
+// Neo-Brutalist Card Mixin
+@mixin neo-card($bg: $color-white, $shadow: $shadow-md, $border: $border-navy, $radius: $radius-card) {
+  background-color: $bg;
+  border: $border;
+  border-radius: $radius;
+  box-shadow: $shadow;
 }
 
-// Focus Ring for Dark Surfaces (Lime accent highlight)
-@mixin focus-ring-dark {
-  outline: 2px solid $color-lime-accent;
+// Neo-Brutalist Interactive Button / Surface
+@mixin neo-interactive($shadow: $shadow-sm) {
+  transition: transform $transition-fast, box-shadow $transition-fast;
+  
+  &:hover:not(:disabled) {
+    transform: translate(-2px, -2px);
+    box-shadow: calc(#{nth($shadow, 1)} + 2px) calc(#{nth($shadow, 2)} + 2px) 0 #{$color-deep-navy};
+  }
+
+  &:active:not(:disabled) {
+    transform: translate(2px, 2px);
+    box-shadow: 0 0 0 transparent;
+  }
+}
+
+// Neo-Brutalist Focus Ring (3px Lime outline + 2px Navy ring)
+@mixin focus-ring {
+  outline: 3px solid $color-accent-lime;
   outline-offset: 2px;
-  box-shadow: 0 0 0 2px $color-deep-navy, 0 0 0 4px rgba(227, 255, 59, 0.45);
+  box-shadow: 0 0 0 2px $color-deep-navy;
+}
+
+@mixin focus-ring-dark {
+  outline: 3px solid $color-accent-lime;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px $color-deep-navy;
+}
+
+// Canvas 6% Dot-Grid
+@mixin neo-dot-grid {
+  background-color: $color-canvas;
+  background-image: radial-gradient(#252943 1px, transparent 1px);
+  background-size: 20px 20px;
 }
 
 // Text Ellipsis
@@ -71,5 +100,6 @@
   @media (prefers-reduced-motion: reduce) {
     animation: none !important;
     transition: none !important;
+    transform: none !important;
   }
 }

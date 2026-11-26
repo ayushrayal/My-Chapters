@@ -9,6 +9,8 @@ import {
   CircleIcon,
   MoreHorizontalIcon
 } from '../../../components/common/Icons.jsx';
+import { FolderCard } from '../../../components/common/WindowCard.jsx';
+import { FilterChips } from '../../../components/common/FilterControl/FilterChips.jsx';
 
 export function DailyTimeline({
   schedule,
@@ -20,17 +22,15 @@ export function DailyTimeline({
   onCreateTaskQuick
 }) {
   const [filterBlockId, setFilterBlockId] = useState('ALL');
-  // Tracks inline task creation per block: blockId -> boolean
   const [inlineBlockId, setInlineBlockId] = useState(null);
   const [inlineTaskTitle, setInlineTaskTitle] = useState('');
-  // Mobile dropdown state for task actions: taskId -> boolean
   const [activeMenuTaskId, setActiveMenuTaskId] = useState(null);
 
   if (!schedule || (!schedule.blocks?.length && !schedule.tasks?.length)) {
     return (
-      <div className="dayflow-empty-state dayflow-empty-state--hero">
-        <div className="dayflow-empty-state__icon">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+      <div className="empty-state" style={{ padding: '36px 20px' }}>
+        <div className="empty-state__icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#252943" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
             <line x1="16" y1="2" x2="16" y2="6" />
             <line x1="8" y1="2" x2="8" y2="6" />
@@ -39,8 +39,8 @@ export function DailyTimeline({
             <path d="M10 16h4" />
           </svg>
         </div>
-        <h3 className="dayflow-empty-state__title">Plan Your Day with Dayflow</h3>
-        <p className="dayflow-empty-state__description">
+        <h3 className="empty-state__title">Plan Your Day with Dayflow</h3>
+        <p className="empty-state__subtitle">
           Apply a template to get started, or add your first routine block to begin tracking your day.
         </p>
       </div>
@@ -93,163 +93,158 @@ export function DailyTimeline({
   };
 
   return (
-    <div className="daily-timeline-redesign">
-      {/* 1. BLOCK FILTER BAR: single-line horizontally scrollable chip row with edge fade & badge counts */}
+    <div className="daily-timeline-redesign" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      {/* 1. BLOCK FILTER BAR: FilterChips in single-line scroll */}
       {blocks.length > 1 && (
-        <div className="block-filter-scroll-wrapper">
-          <div className="block-filter-bar" role="tablist" aria-label="Filter timeline by time block">
-            <button
-              type="button"
-              className={`block-filter-chip ${filterBlockId === 'ALL' ? 'block-filter-chip--active' : ''}`}
-              onClick={() => setFilterBlockId('ALL')}
-              role="tab"
-              aria-selected={filterBlockId === 'ALL'}
-            >
-              <span>All Blocks</span>
-              <span className="block-filter-chip__badge">{tasks.length}</span>
-            </button>
-
-            {blocks.map((block) => {
-              const bId = block._id || block.id;
-              const count = tasks.filter((t) => t.blockId === bId).length;
-              return (
-                <button
-                  key={bId}
-                  type="button"
-                  className={`block-filter-chip ${filterBlockId === bId ? 'block-filter-chip--active' : ''}`}
-                  onClick={() => setFilterBlockId(bId)}
-                  role="tab"
-                  aria-selected={filterBlockId === bId}
-                >
-                  <span className="block-filter-chip__label">{block.name}</span>
-                  <span className="block-filter-chip__badge">{count}</span>
-                </button>
-              );
-            })}
-          </div>
-          <div className="block-filter-scroll-fade" aria-hidden="true" />
+        <div style={{ display: 'flex', alignItems: 'center', overflowX: 'auto', padding: '2px 0 6px' }}>
+          <FilterChips
+            options={[
+              { value: 'ALL', label: 'All Blocks', badge: tasks.length },
+              ...blocks.map((block) => {
+                const bId = block._id || block.id;
+                const count = tasks.filter((t) => t.blockId === bId).length;
+                return {
+                  value: bId,
+                  label: block.name,
+                  badge: count
+                };
+              })
+            ]}
+            value={filterBlockId}
+            onChange={setFilterBlockId}
+          />
         </div>
       )}
 
-      {/* 2. VERTICAL TIMELINE OF BLOCKS */}
-      <div className="timeline-stream">
-        {filteredBlocks.map((block, index) => {
+      {/* 2. TIMELINE BLOCKS AS FOLDER CARDS */}
+      <div className="timeline-stream" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {filteredBlocks.map((block) => {
           const bId = block._id || block.id;
           const blockTasks = tasks.filter((t) => t.blockId === bId);
           const hasMandatoryRequirement = block.tasksRequired;
           const isEmpty = blockTasks.length === 0;
-
-          // Block states: past, current, upcoming
           const isCurrent = block.status === 'CURRENT';
-          const isPast = block.status === 'PAST' || (block.status === 'PENDING' && !isCurrent);
-
-          const blockStateClass = isCurrent
-            ? 'timeline-node--current'
-            : isPast
-            ? 'timeline-node--past'
-            : 'timeline-node--upcoming';
-
-          const isLastBlock = index === filteredBlocks.length - 1;
 
           return (
-            <div
+            <FolderCard
               key={bId}
-              className={`timeline-node ${blockStateClass}`}
-              style={{ animationDelay: `${index * 50}ms` }}
+              tabLabel={`${block.startTime} – ${block.endTime}`}
+              tabColor={isCurrent ? 'lime' : 'blue'}
+              style={{
+                borderLeft: isCurrent ? '6px solid #3A4EFB' : '2px solid #252943',
+                backgroundColor: isEmpty ? '#F5F7FB' : '#FFFFFF'
+              }}
             >
-              {/* Left Column: 56px wide time column + thin vertical continuous line & dot */}
-              <div className="timeline-node__time-col">
-                <span className="timeline-node__start-time">{block.startTime}</span>
-                <span className="timeline-node__end-time">{block.endTime}</span>
-                <div className="timeline-node__track">
-                  <span className="timeline-node__dot" />
-                  {!isLastBlock && <span className="timeline-node__line" />}
-                </div>
-              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {/* Block Header Row */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: '#252943' }}>
+                      {block.name}
+                    </h3>
 
-              {/* Right Column: Block Card */}
-              <div className="timeline-node__card">
-                {/* Block Card Header: Clean Flex Row */}
-                <div className="timeline-node__header">
-                  <div className="timeline-node__header-left">
-                    <h3 className="timeline-node__title">{block.name}</h3>
-
-                    {/* Time Pill for Mobile (e.g. 08:30 – 09:00) */}
-                    <span className="block-time-pill-mobile">
-                      {block.startTime} – {block.endTime}
-                    </span>
-
-                    {/* Chips: Mandatory (ink-outline) and NOW (lime pill) */}
                     {hasMandatoryRequirement && (
-                      <span className="badge-mandatory-outline" title="At least one task required in this block">
+                      <span className="neo-tag neo-tag--canvas" style={{ fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                         <LockIcon size={12} />
                         <span>Mandatory</span>
                       </span>
                     )}
+
                     {isCurrent && (
-                      <span className="badge-now">NOW</span>
+                      <span className="neo-sticker" style={{ fontSize: '10px', padding: '2px 6px' }}>
+                        NOW
+                      </span>
                     )}
                   </div>
 
-                  {/* Header right: Compact "+" icon button on mobile, with ghost text on desktop */}
+                  {/* Header Right: "+" Add Task Icon button */}
                   {!isFinished && inlineBlockId !== bId && (
                     <button
                       type="button"
-                      className="btn-ghost-sm block-add-task-btn"
+                      className="btn btn--sm btn--secondary"
                       onClick={() => handleStartInline(bId)}
                       aria-label={`+ Add task to ${block.name}`}
+                      style={{ height: '32px', minHeight: '32px', padding: '0 10px', fontSize: '12px' }}
                     >
-                      <PlusIcon size={16} />
-                      <span className="block-add-task-btn__text">+ Add task</span>
+                      <PlusIcon size={14} />
+                      <span>Add task</span>
                     </button>
                   )}
                 </div>
 
                 {block.description && (
-                  <p className="timeline-node__desc">{block.description}</p>
+                  <p style={{ fontSize: '13px', color: 'rgba(37,41,67,0.7)', margin: 0, lineHeight: 1.4 }}>
+                    {block.description}
+                  </p>
                 )}
 
-                {/* Inline task input form (when active) */}
+                {/* Inline task input form */}
                 {!isFinished && inlineBlockId === bId && (
-                  <div className="inline-task-input-box">
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '8px',
+                      border: '2px solid #252943',
+                      borderRadius: '6px',
+                      backgroundColor: '#FFFFFF',
+                      boxShadow: '2px 2px 0 #252943'
+                    }}
+                  >
                     <input
                       type="text"
-                      className="inline-task-input"
+                      className="form-input"
                       placeholder="Task name... (Enter to save, Esc to cancel)"
                       value={inlineTaskTitle}
                       onChange={(e) => setInlineTaskTitle(e.target.value)}
                       onKeyDown={(e) => handleKeyDownInline(e, bId)}
                       autoFocus
+                      style={{ height: '36px', minHeight: '36px', padding: '0 8px', fontSize: '13px', border: '1px solid #252943', borderRadius: '4px' }}
                     />
                     <button
                       type="button"
-                      className="inline-task-btn inline-task-btn--save"
+                      className="btn btn--sm btn--primary"
                       onClick={() => handleSaveInline(bId)}
+                      style={{ height: '36px', minHeight: '36px' }}
                     >
                       Save
                     </button>
                     <button
                       type="button"
-                      className="inline-task-btn inline-task-btn--cancel"
+                      className="btn btn--sm btn--secondary"
                       onClick={handleCancelInline}
+                      style={{ height: '36px', minHeight: '36px' }}
                     >
                       Cancel
                     </button>
                   </div>
                 )}
 
-                {/* EMPTY BLOCK: Slim row with "No tasks scheduled" in muted text */}
+                {/* EMPTY BLOCK: Slim row with dashed border */}
                 {isEmpty ? (
-                  <div className="timeline-node__empty-slim">
-                    <span className="timeline-node__empty-text">
-                      {hasMandatoryRequirement ? '⚠️ Requires task' : 'No tasks scheduled'}
-                    </span>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '12px 14px',
+                      border: '2px dashed #252943',
+                      borderRadius: '6px',
+                      backgroundColor: '#F5F7FB',
+                      color: 'rgba(37,41,67,0.6)',
+                      fontSize: '13px',
+                      fontWeight: 600
+                    }}
+                  >
+                    <span>{hasMandatoryRequirement ? '⚠️ Requires task' : 'No tasks scheduled'}</span>
                     {!isFinished && inlineBlockId !== bId && (
                       <button
                         type="button"
-                        className="btn-icon btn-icon--sm block-empty-plus-btn"
+                        className="btn btn--sm btn--secondary"
                         onClick={() => handleStartInline(bId)}
                         aria-label={`Add task to ${block.name}`}
+                        style={{ width: '32px', height: '32px', minHeight: '32px', padding: 0 }}
                       >
                         <PlusIcon size={14} />
                       </button>
@@ -257,195 +252,202 @@ export function DailyTimeline({
                   </div>
                 ) : (
                   /* TASK ROWS */
-                  <div className="timeline-node__tasks-list">
-                    {blockTasks.map((task) => {
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {blockTasks.map((task, taskIndex) => {
                       const taskId = task._id || task.id;
                       const isCompleted = task.status === 'COMPLETED';
                       const isSkipped = task.status === 'SKIPPED';
                       const isMenuOpen = activeMenuTaskId === taskId;
+                      const isMandatory = task.isMandatory || task.mandatory || (hasMandatoryRequirement && taskIndex === 0);
 
                       return (
                         <div
                           key={taskId}
-                          className={`task-row task-row--${task.status.toLowerCase()} ${
-                            isCompleted ? 'task-row--completed' : ''
-                          }`}
+                          className="task-row"
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '10px',
+                            padding: '12px 14px',
+                            border: '2px solid #252943',
+                            borderLeft: isCompleted ? '6px solid #168B68' : isSkipped ? '6px solid #DC2626' : '2px solid #252943',
+                            borderRadius: '8px',
+                            backgroundColor: isCompleted ? '#F5F7FB' : '#FFFFFF',
+                            boxShadow: '2px 2px 0 #252943',
+                            transition: 'background-color 0.15s ease'
+                          }}
                         >
-                          {/* Row 1: Circular complete toggle (24px) */}
-                          <div className="task-row__col-toggle">
-                            {isCompleted ? (
+                          {/* A. Task Header: Checkbox + Title + Mandatory Badge + "..." Menu */}
+                          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px' }}>
+                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', flex: 1, minWidth: 0 }}>
+                              {/* Square 28px Checkbox */}
                               <button
                                 type="button"
-                                className="task-row__toggle-btn task-row__toggle-btn--completed"
-                                onClick={() => {
-                                  if (!isFinished && onRevertTaskToPending) {
-                                    onRevertTaskToPending(taskId);
-                                  }
-                                }}
-                                disabled={isFinished}
-                                aria-label="Revert task to pending"
-                                title={isFinished ? 'Completed (day is locked)' : 'Completed (click to revert to Pending)'}
-                              >
-                                <span className="task-row__check-circle" title="Completed">
-                                  <CheckIcon size={13} />
-                                </span>
-                              </button>
-                            ) : (
-                              <button
-                                type="button"
-                                className="task-row__toggle-btn"
                                 onClick={() => {
                                   if (!isFinished) {
-                                    onCompleteTask(taskId);
+                                    if (isCompleted && onRevertTaskToPending) {
+                                      onRevertTaskToPending(taskId);
+                                    } else {
+                                      onCompleteTask(taskId);
+                                    }
                                   }
                                 }}
                                 disabled={isFinished}
-                                aria-label="Toggle complete"
-                                title="Toggle complete"
+                                aria-label={isCompleted ? `Uncheck "${task.title}"` : `Toggle "${task.title}" complete`}
+                                style={{
+                                  width: '28px',
+                                  height: '28px',
+                                  minWidth: '28px',
+                                  border: '2px solid #252943',
+                                  borderRadius: '5px',
+                                  backgroundColor: isCompleted ? '#168B68' : '#FFFFFF',
+                                  color: '#FFFFFF',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  cursor: isFinished ? 'not-allowed' : 'pointer',
+                                  boxShadow: '1px 1px 0 #252943',
+                                  padding: 0,
+                                  marginTop: '1px',
+                                  flexShrink: 0
+                                }}
                               >
-                                <CircleIcon size={20} className="task-row__toggle-icon" />
+                                {isCompleted && <CheckIcon size={16} />}
                               </button>
-                            )}
-                          </div>
 
-                          {/* Row 1: Task title (min-width: 0, wraps normally, 15px) */}
-                          <div className="task-row__col-title">
-                            <span className={`task-row__title ${isCompleted ? 'task-row__title--done' : ''}`}>
-                              {task.title}
-                            </span>
-                            {task.description && (
-                              <p className="task-row__desc">{task.description}</p>
-                            )}
-                          </div>
+                              {/* Title, Mandatory Badge, and Description */}
+                              <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0, gap: '4px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', minWidth: 0 }}>
+                                  <span
+                                    style={{
+                                      fontSize: '14px',
+                                      fontWeight: 800,
+                                      color: isCompleted ? 'rgba(37,41,67,0.6)' : '#252943',
+                                      textDecoration: isCompleted ? 'line-through' : 'none',
+                                      wordBreak: 'break-word',
+                                      lineHeight: 1.35
+                                    }}
+                                  >
+                                    {task.title}
+                                  </span>
 
-                          {/* Row 1: Desktop tools vs Mobile "..." menu icon button (40px) */}
-                          <div className="task-row__col-menu">
-                            {/* Desktop ONLY tools */}
-                            {!isFinished && (
-                              <div className="task-row__desktop-tools">
-                                {isCompleted && (
-                                  <button
-                                    type="button"
-                                    className="btn-icon btn-icon--sm"
-                                    onClick={() => onRevertTaskToPending && onRevertTaskToPending(taskId)}
-                                    title="Revert to Pending"
-                                    aria-label={`Revert task ${task.title} to pending`}
-                                  >
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                      <polyline points="1 4 1 10 7 10" />
-                                      <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
-                                    </svg>
-                                  </button>
+                                  {isMandatory && (
+                                    <span
+                                      className="neo-tag neo-tag--lime"
+                                      style={{
+                                        fontSize: '10px',
+                                        fontWeight: 800,
+                                        padding: '2px 6px',
+                                        border: '1.5px solid #252943',
+                                        borderRadius: '4px',
+                                        letterSpacing: '0.04em',
+                                        flexShrink: 0
+                                      }}
+                                    >
+                                      MANDATORY
+                                    </span>
+                                  )}
+                                </div>
+
+                                {task.description && (
+                                  <p style={{ fontSize: '13px', color: 'rgba(37,41,67,0.7)', margin: 0, lineHeight: 1.4, wordBreak: 'break-word' }}>
+                                    {task.description}
+                                  </p>
                                 )}
-                                {isSkipped && (
-                                  <button
-                                    type="button"
-                                    className="btn-icon btn-icon--sm"
-                                    onClick={() => onRevertTaskToPending && onRevertTaskToPending(taskId)}
-                                    title="Revert to Pending"
-                                    aria-label={`Revert task ${task.title} to pending`}
+
+                                {/* Treadmill details if present */}
+                                {(task.treadmill || task.treadmillDetails) && (
+                                  <div
+                                    style={{
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '6px',
+                                      padding: '3px 8px',
+                                      backgroundColor: '#F5F7FB',
+                                      border: '1.5px solid #252943',
+                                      borderRadius: '4px',
+                                      fontSize: '11px',
+                                      fontWeight: 700,
+                                      color: '#252943',
+                                      width: 'fit-content',
+                                      marginTop: '2px'
+                                    }}
                                   >
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                      <polyline points="1 4 1 10 7 10" />
-                                      <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
-                                    </svg>
-                                  </button>
+                                    <span>🏃 Cardio:</span>
+                                    <span>
+                                      {task.treadmill?.actualMinutes || task.treadmillDetails?.actualMinutes || 0} mins ·{' '}
+                                      {task.treadmill?.caloriesBurned || task.treadmillDetails?.caloriesBurned || 0} kcal
+                                    </span>
+                                  </div>
                                 )}
-                                <button
-                                  type="button"
-                                  className="btn-icon btn-icon--sm"
-                                  onClick={() => onOpenTaskModal(task, bId)}
-                                  title="Edit Task"
-                                  aria-label={`Edit task ${task.title}`}
-                                >
-                                  <EditIcon size={14} />
-                                </button>
-                                <button
-                                  type="button"
-                                  className="btn-icon btn-icon--sm btn-icon--danger"
-                                  onClick={() => onDeleteTask(taskId)}
-                                  title="Delete Task"
-                                  aria-label={`Delete task ${task.title}`}
-                                >
-                                  <TrashIcon size={14} />
-                                </button>
                               </div>
-                            )}
+                            </div>
 
-                            {/* Mobile ONLY: "..." menu */}
+                            {/* "..." menu button */}
                             {!isFinished && (
-                              <div className="task-row__mobile-tools">
+                              <div style={{ position: 'relative', flexShrink: 0 }}>
                                 <button
                                   type="button"
-                                  className="btn-icon btn-icon--touch"
+                                  className="btn btn--sm btn--secondary"
                                   onClick={() => setActiveMenuTaskId(isMenuOpen ? null : taskId)}
                                   aria-label="More task actions"
-                                  aria-expanded={isMenuOpen}
+                                  style={{ width: '32px', height: '32px', minHeight: '32px', padding: 0 }}
                                 >
-                                  <MoreHorizontalIcon size={18} />
+                                  <MoreHorizontalIcon size={16} />
                                 </button>
 
                                 {isMenuOpen && (
-                                  <div className="task-row__dropdown-menu">
+                                  <div
+                                    style={{
+                                      position: 'absolute',
+                                      right: 0,
+                                      top: '36px',
+                                      backgroundColor: '#FFFFFF',
+                                      border: '2px solid #252943',
+                                      borderRadius: '6px',
+                                      boxShadow: '4px 4px 0 #252943',
+                                      zIndex: 100,
+                                      minWidth: '160px',
+                                      padding: '4px',
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      gap: '2px'
+                                    }}
+                                  >
                                     {(isCompleted || isSkipped) && (
                                       <button
                                         type="button"
-                                        className="task-row__dropdown-item"
+                                        className="btn btn--sm btn--secondary"
+                                        style={{ justifyContent: 'flex-start', border: 'none', boxShadow: 'none' }}
                                         onClick={() => {
                                           setActiveMenuTaskId(null);
                                           onRevertTaskToPending && onRevertTaskToPending(taskId);
                                         }}
                                       >
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                          <polyline points="1 4 1 10 7 10" />
-                                          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
-                                        </svg>
-                                        <span>Revert to Pending</span>
-                                      </button>
-                                    )}
-                                    {isCompleted && (
-                                      <button
-                                        type="button"
-                                        className="task-row__dropdown-item"
-                                        onClick={() => {
-                                          setActiveMenuTaskId(null);
-                                          onOpenSkipModal(task);
-                                        }}
-                                      >
-                                        <CloseIcon size={14} /> <span>Change to Skipped</span>
-                                      </button>
-                                    )}
-                                    {isSkipped && (
-                                      <button
-                                        type="button"
-                                        className="task-row__dropdown-item"
-                                        onClick={() => {
-                                          setActiveMenuTaskId(null);
-                                          onCompleteTask(taskId);
-                                        }}
-                                      >
-                                        <CheckIcon size={14} /> <span>Mark as Completed</span>
+                                        Revert to Pending
                                       </button>
                                     )}
                                     <button
                                       type="button"
-                                      className="task-row__dropdown-item"
+                                      className="btn btn--sm btn--secondary"
+                                      style={{ justifyContent: 'flex-start', border: 'none', boxShadow: 'none' }}
                                       onClick={() => {
                                         setActiveMenuTaskId(null);
                                         onOpenTaskModal(task, bId);
                                       }}
                                     >
-                                      <EditIcon size={14} /> <span>Edit Task</span>
+                                      Edit Task
                                     </button>
                                     <button
                                       type="button"
-                                      className="task-row__dropdown-item task-row__dropdown-item--danger"
+                                      className="btn btn--sm btn--danger"
+                                      style={{ justifyContent: 'flex-start', border: 'none', boxShadow: 'none' }}
                                       onClick={() => {
                                         setActiveMenuTaskId(null);
                                         onDeleteTask(taskId);
                                       }}
                                     >
-                                      <TrashIcon size={14} /> <span>Delete Task</span>
+                                      Delete Task
                                     </button>
                                   </div>
                                 )}
@@ -453,42 +455,104 @@ export function DailyTimeline({
                             )}
                           </div>
 
-                          {/* Row 2 (Column 2): Status chip + completed-at time as small muted text, on one line */}
-                          <div className="task-row__col-meta">
-                            <span className={`task-status-chip task-status-chip--${task.status.toLowerCase()}`}>
-                              {task.status}
-                            </span>
-
-                            {isCompleted && task.completedAt && (
-                              <span className="task-row__completed-time">
-                                Completed at {new Date(task.completedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {/* B & C. Task Status & Completion Timestamp */}
+                          {isCompleted && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '2px' }}>
+                              <span
+                                className="neo-tag neo-tag--success"
+                                style={{
+                                  fontSize: '11px',
+                                  fontWeight: 800,
+                                  padding: '3px 8px',
+                                  borderRadius: '4px',
+                                  border: '1.5px solid #252943'
+                                }}
+                              >
+                                COMPLETED
                               </span>
-                            )}
+                              {task.completedAt && (
+                                <span style={{ fontSize: '12px', color: 'rgba(37,41,67,0.7)', fontWeight: 600 }}>
+                                  Completed at {new Date(task.completedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              )}
+                            </div>
+                          )}
 
-                            {isSkipped && (
-                              <span className="task-row__skip-reason">
-                                Reason: {task.skippedReason || 'No reason provided'}
+                          {/* D. Skip Reason in a dedicated callout block */}
+                          {isSkipped && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '2px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                <span
+                                  className="neo-tag"
+                                  style={{
+                                    backgroundColor: '#DC2626',
+                                    color: '#FFFFFF',
+                                    border: '1.5px solid #252943',
+                                    fontSize: '11px',
+                                    fontWeight: 800,
+                                    padding: '3px 8px',
+                                    borderRadius: '4px'
+                                  }}
+                                >
+                                  SKIPPED
+                                </span>
+                              </div>
+                              <div
+                                style={{
+                                  padding: '8px 10px',
+                                  backgroundColor: '#FEF2F2',
+                                  border: '1.5px solid #DC2626',
+                                  borderRadius: '6px',
+                                  fontSize: '12px',
+                                  color: '#DC2626',
+                                  fontWeight: 600,
+                                  lineHeight: 1.4,
+                                  wordBreak: 'break-word'
+                                }}
+                              >
+                                <span style={{ fontWeight: 800 }}>Reason: </span>
+                                {task.skippedReason || 'No reason provided'}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Pending Task Status (if not completed and not skipped) */}
+                          {!isCompleted && !isSkipped && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span
+                                className="neo-tag neo-tag--secondary"
+                                style={{
+                                  fontSize: '11px',
+                                  fontWeight: 800,
+                                  padding: '3px 8px',
+                                  borderRadius: '4px',
+                                  border: '1.5px solid #252943'
+                                }}
+                              >
+                                PENDING
                               </span>
-                            )}
-                          </div>
+                            </div>
+                          )}
 
-                          {/* Row 3 (Column 2 to 3): Action buttons based on task status */}
+                          {/* Row 3: Action Buttons (side-by-side, 44px min-height) */}
                           {!isFinished && !isCompleted && !isSkipped && (
-                            <div className="task-row__col-buttons">
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '4px' }}>
                               <button
                                 type="button"
-                                className="btn btn--primary task-row__complete-btn"
+                                className="btn btn--primary"
                                 onClick={() => onCompleteTask(taskId)}
                                 aria-label={`Mark "${task.title}" complete`}
+                                style={{ height: '44px', minHeight: '44px' }}
                               >
                                 <CheckIcon size={16} />
                                 <span>Complete</span>
                               </button>
                               <button
                                 type="button"
-                                className="btn btn--outline task-row__skip-btn"
+                                className="btn btn--secondary"
                                 onClick={() => onOpenSkipModal(task)}
                                 aria-label={`Skip "${task.title}" with reason`}
+                                style={{ height: '44px', minHeight: '44px' }}
                               >
                                 <span>Skip</span>
                               </button>
@@ -496,24 +560,22 @@ export function DailyTimeline({
                           )}
 
                           {!isFinished && isCompleted && (
-                            <div className="task-row__col-buttons">
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '4px' }}>
                               <button
                                 type="button"
-                                className="btn btn--secondary task-row__revert-btn"
+                                className="btn btn--secondary"
                                 onClick={() => onRevertTaskToPending && onRevertTaskToPending(taskId)}
                                 aria-label={`Undo complete and revert "${task.title}" to pending`}
+                                style={{ height: '44px', minHeight: '44px' }}
                               >
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <polyline points="1 4 1 10 7 10" />
-                                  <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
-                                </svg>
-                                <span>Revert to Pending</span>
+                                <span>Revert</span>
                               </button>
                               <button
                                 type="button"
-                                className="btn btn--outline task-row__skip-btn"
+                                className="btn btn--secondary"
                                 onClick={() => onOpenSkipModal(task)}
                                 aria-label={`Change "${task.title}" to skipped`}
+                                style={{ height: '44px', minHeight: '44px' }}
                               >
                                 <span>Skip</span>
                               </button>
@@ -521,24 +583,22 @@ export function DailyTimeline({
                           )}
 
                           {!isFinished && isSkipped && (
-                            <div className="task-row__col-buttons">
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '4px' }}>
                               <button
                                 type="button"
-                                className="btn btn--secondary task-row__revert-btn"
+                                className="btn btn--secondary"
                                 onClick={() => onRevertTaskToPending && onRevertTaskToPending(taskId)}
                                 aria-label={`Revert skipped "${task.title}" to pending`}
+                                style={{ height: '44px', minHeight: '44px' }}
                               >
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <polyline points="1 4 1 10 7 10" />
-                                  <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
-                                </svg>
-                                <span>Revert to Pending</span>
+                                <span>Revert</span>
                               </button>
                               <button
                                 type="button"
-                                className="btn btn--primary task-row__complete-btn"
+                                className="btn btn--primary"
                                 onClick={() => onCompleteTask(taskId)}
                                 aria-label={`Mark "${task.title}" complete`}
+                                style={{ height: '44px', minHeight: '44px' }}
                               >
                                 <CheckIcon size={16} />
                                 <span>Complete</span>
@@ -551,7 +611,7 @@ export function DailyTimeline({
                   </div>
                 )}
               </div>
-            </div>
+            </FolderCard>
           );
         })}
       </div>

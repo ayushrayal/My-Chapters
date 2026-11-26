@@ -263,6 +263,8 @@ export class GymAnalyticsService {
         date: session.date,
         volume: sessionFilteredVolume,
         reps: sessionFilteredReps,
+        completedSets: sessionFilteredCompletedSets,
+        setsCount: sessionFilteredCompletedSets,
         score: session.scoreBreakdown?.totalScore || 0
       });
     }

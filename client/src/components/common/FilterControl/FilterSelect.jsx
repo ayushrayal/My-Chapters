@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useRef, useId } from 'react';
-import { ChevronDownIcon, CheckIcon, CloseIcon, SearchIcon } from '../Icons.jsx';
+import { useState, useEffect, useRef, useId } from 'react';
+import { ChevronDownIcon, CheckIcon, SearchIcon } from '../Icons.jsx';
 
 /**
- * FilterSelect - Custom filter trigger button that opens accessible popover (desktop)
- * or full bottom sheet (mobile). Never renders native <select>.
+ * FilterSelect - Neo-Brutalist option picker.
+ * Single-select: 48px trigger, options panel directly below (in-flow on mobile, popover on desktop).
+ * Tapping an option selects and closes immediately. No title, no X, no Clear/Done buttons.
+ * Multi-select: Checkboxes on left and sticky Done button.
  */
 export function FilterSelect({
   label,
@@ -12,7 +14,8 @@ export function FilterSelect({
   options = [],
   placeholder = 'Select option...',
   disabled = false,
-  allowClear = true,
+  isMulti = false,
+  allowClear = false,
   ariaLabel,
   className = ''
 }) {
@@ -35,9 +38,9 @@ export function FilterSelect({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Handle click outside to close desktop popover
+  // Close on click outside (works on desktop and mobile)
   useEffect(() => {
-    if (!isOpen || isMobile) return;
+    if (!isOpen) return;
 
     const handleClickOutside = (e) => {
       if (containerRef.current && !containerRef.current.contains(e.target)) {
@@ -51,12 +54,12 @@ export function FilterSelect({
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('touchstart', handleClickOutside);
     };
-  }, [isOpen, isMobile]);
+  }, [isOpen]);
 
-  // Focus search input when sheet opens with 8+ options
+  // Focus search input when panel opens with 8+ options
   useEffect(() => {
     if (isOpen && options.length >= 8 && searchInputRef.current) {
-      setTimeout(() => searchInputRef.current?.focus(), 100);
+      setTimeout(() => searchInputRef.current?.focus(), 80);
     }
   }, [isOpen, options.length]);
 
@@ -74,8 +77,17 @@ export function FilterSelect({
     }
   };
 
-  // Find selected option
-  const selectedOption = options.find((opt) => (opt.value ?? opt.id) === value);
+  // Find selected option(s)
+  const isSelected = (optVal) => {
+    if (isMulti) {
+      return Array.isArray(value) && value.includes(optVal);
+    }
+    return value === optVal;
+  };
+
+  const selectedOption = isMulti
+    ? null
+    : options.find((opt) => (opt.value ?? opt.id) === value);
 
   // Filter options if search query is present
   const filteredOptions = searchQuery.trim()
@@ -84,18 +96,32 @@ export function FilterSelect({
       )
     : options;
 
-  const handleSelect = (optVal) => {
-    onChange?.(optVal);
-    setIsOpen(false);
-    setSearchQuery('');
-    triggerRef.current?.focus();
+  const handleOptionClick = (optVal) => {
+    if (isMulti) {
+      const current = Array.isArray(value) ? [...value] : [];
+      const idx = current.indexOf(optVal);
+      if (idx > -1) {
+        current.splice(idx, 1);
+      } else {
+        current.push(optVal);
+      }
+      onChange?.(current);
+    } else {
+      onChange?.(optVal);
+      setIsOpen(false);
+      setSearchQuery('');
+      triggerRef.current?.focus();
+    }
   };
 
-  const handleClear = (e) => {
-    e.stopPropagation();
-    onChange?.('');
-    setIsOpen(false);
-    setSearchQuery('');
+  const getDisplayValue = () => {
+    if (isMulti) {
+      if (!value || (Array.isArray(value) && value.length === 0)) {
+        return placeholder;
+      }
+      return `${value.length} selected`;
+    }
+    return selectedOption?.label || placeholder;
   };
 
   return (
@@ -120,38 +146,27 @@ export function FilterSelect({
       >
         <div className="filter-select__trigger-content">
           {label && <span className="filter-select__label-prefix">{label}:</span>}
-          {selectedOption ? (
-            <span className="filter-select__value-chip">{selectedOption.label}</span>
-          ) : (
-            <span className="filter-select__placeholder">{placeholder}</span>
-          )}
+          <span
+            className={`filter-select__value-text ${
+              !selectedOption && !isMulti ? 'filter-select__value-text--placeholder' : ''
+            }`}
+          >
+            {getDisplayValue()}
+          </span>
         </div>
 
         <div className="filter-select__trigger-actions">
-          {allowClear && selectedOption && !disabled && (
-            <span
-              role="button"
-              tabIndex={0}
-              className="filter-select__clear-btn"
-              onClick={handleClear}
-              onKeyDown={(e) => e.key === 'Enter' && handleClear(e)}
-              title="Clear selection"
-              aria-label="Clear selection"
-            >
-              <CloseIcon size={14} />
-            </span>
-          )}
           <span className={`filter-select__chevron ${isOpen ? 'filter-select__chevron--open' : ''}`}>
             <ChevronDownIcon size={16} />
           </span>
         </div>
       </button>
 
-      {/* DESKTOP POPOVER PANEL */}
-      {isOpen && !isMobile && (
+      {/* OPTIONS PANEL: In-flow on mobile, absolute popover on desktop */}
+      {isOpen && (
         <div
           id={listboxId}
-          className="filter-select__popover"
+          className={`filter-select__panel ${isMobile ? 'filter-select__panel--mobile' : 'filter-select__panel--desktop'}`}
           role="listbox"
           tabIndex={-1}
         >
@@ -170,34 +185,42 @@ export function FilterSelect({
           )}
 
           <div className="filter-select__options-list">
-            {allowClear && (
+            {allowClear && !isMulti && (
               <button
                 type="button"
                 className={`filter-select__option ${!value ? 'filter-select__option--selected' : ''}`}
-                onClick={() => handleSelect('')}
+                onClick={() => handleOptionClick('')}
                 role="option"
                 aria-selected={!value}
               >
-                <span>{placeholder || 'All'}</span>
+                <span className="filter-select__option-label">{placeholder || 'All'}</span>
                 {!value && <CheckIcon size={16} className="filter-select__option-check" />}
               </button>
             )}
 
             {filteredOptions.map((opt) => {
               const optVal = opt.value ?? opt.id;
-              const isSelected = optVal === value;
+              const active = isSelected(optVal);
+
               return (
                 <button
                   key={optVal}
                   type="button"
-                  className={`filter-select__option ${isSelected ? 'filter-select__option--selected' : ''}`}
-                  onClick={() => handleSelect(optVal)}
+                  className={`filter-select__option ${active ? 'filter-select__option--selected' : ''}`}
+                  onClick={() => handleOptionClick(optVal)}
                   role="option"
-                  aria-selected={isSelected}
+                  aria-selected={active}
                   disabled={opt.disabled}
                 >
+                  {isMulti && (
+                    <span className={`filter-select__checkbox ${active ? 'filter-select__checkbox--checked' : ''}`}>
+                      {active && <CheckIcon size={12} />}
+                    </span>
+                  )}
                   <span className="filter-select__option-label">{opt.label}</span>
-                  {isSelected && <CheckIcon size={16} className="filter-select__option-check" />}
+                  {!isMulti && active && (
+                    <CheckIcon size={16} className="filter-select__option-check" />
+                  )}
                 </button>
               );
             })}
@@ -206,114 +229,20 @@ export function FilterSelect({
               <div className="filter-select__empty-msg">No options found</div>
             )}
           </div>
-        </div>
-      )}
 
-      {/* MOBILE BOTTOM SHEET MODAL */}
-      {isOpen && isMobile && (
-        <div className="filter-select-sheet-backdrop" onClick={() => setIsOpen(false)}>
-          <div
-            className="filter-select-sheet"
-            role="dialog"
-            aria-modal="true"
-            aria-label={label || 'Select Filter'}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Sheet Drag Handle */}
-            <div className="filter-select-sheet__handle-bar">
-              <div className="filter-select-sheet__handle" />
-            </div>
-
-            {/* Sheet Header */}
-            <div className="filter-select-sheet__header">
-              <h3 className="filter-select-sheet__title">{label || placeholder}</h3>
-              <button
-                type="button"
-                className="btn-icon btn-icon--sm"
-                onClick={() => setIsOpen(false)}
-                aria-label="Close picker"
-              >
-                <CloseIcon size={16} />
-              </button>
-            </div>
-
-            {/* Search Box when 8+ options */}
-            {options.length >= 8 && (
-              <div className="filter-select-sheet__search">
-                <SearchIcon size={16} className="filter-select__search-icon" />
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  className="filter-select__search-input"
-                  placeholder="Search options..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-            )}
-
-            {/* 48px Tall Option Rows */}
-            <div className="filter-select-sheet__list" role="listbox">
-              {allowClear && (
-                <button
-                  type="button"
-                  className={`filter-select-sheet__row ${!value ? 'filter-select-sheet__row--selected' : ''}`}
-                  onClick={() => handleSelect('')}
-                  role="option"
-                  aria-selected={!value}
-                >
-                  <span>{placeholder || 'All'}</span>
-                  {!value && <CheckIcon size={18} className="filter-select__option-check" />}
-                </button>
-              )}
-
-              {filteredOptions.map((opt) => {
-                const optVal = opt.value ?? opt.id;
-                const isSelected = optVal === value;
-                return (
-                  <button
-                    key={optVal}
-                    type="button"
-                    className={`filter-select-sheet__row ${isSelected ? 'filter-select-sheet__row--selected' : ''}`}
-                    onClick={() => handleSelect(optVal)}
-                    role="option"
-                    aria-selected={isSelected}
-                    disabled={opt.disabled}
-                  >
-                    <span className="filter-select-sheet__row-label">{opt.label}</span>
-                    {isSelected && <CheckIcon size={18} className="filter-select__option-check" />}
-                  </button>
-                );
-              })}
-
-              {filteredOptions.length === 0 && (
-                <div className="filter-select__empty-msg">No options match your search</div>
-              )}
-            </div>
-
-            {/* Sticky Sheet Footer */}
-            <div className="filter-select-sheet__footer">
-              <button
-                type="button"
-                className="btn btn--secondary"
-                style={{ flex: 1, minHeight: '44px' }}
-                onClick={() => {
-                  onChange?.('');
-                  setIsOpen(false);
-                }}
-              >
-                Clear
-              </button>
+          {/* Sticky Done Button for Multi-select */}
+          {isMulti && (
+            <div className="filter-select__multi-footer">
               <button
                 type="button"
                 className="btn btn--primary"
-                style={{ flex: 2, minHeight: '44px' }}
+                style={{ width: '100%', height: '40px', minHeight: '40px' }}
                 onClick={() => setIsOpen(false)}
               >
                 Done
               </button>
             </div>
-          </div>
+          )}
         </div>
       )}
     </div>

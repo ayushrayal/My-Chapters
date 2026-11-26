@@ -1,0 +1,90 @@
+@use '../abstracts/variables' as *;
+@use '../abstracts/mixins' as *;
+
+// ==============================================================================
+// AVATAR COMPONENT — NEO-BRUTALIST
+// 40px square (10px radius) block with 2px Navy border, Primary Blue fill,
+// white letter in weight 800, and 2px hard shadow.
+// ==============================================================================
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: $radius-10;
+  border: $border-navy;
+  background-color: $color-primary-blue;
+  color: $color-white;
+  box-shadow: $shadow-xs;
+  flex-shrink: 0;
+  overflow: hidden;
+  user-select: none;
+  box-sizing: border-box;
+
+  &__initial {
+    font-family: $font-family-heading;
+    font-size: $font-size-16;
+    font-weight: $font-weight-extrabold;
+    line-height: 1;
+    color: $color-white;
+    text-transform: uppercase;
+  }
+
+  &__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  &--xs {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    min-height: 28px;
+    border-radius: $radius-6;
+    font-size: 12px;
+  }
+
+  &--sm {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    border-radius: $radius-10;
+    font-size: 16px;
+  }
+
+  &--md {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
+    border-radius: $radius-10;
+    font-size: 18px;
+  }
+
+  &--lg {
+    width: 64px;
+    height: 64px;
+    min-width: 64px;
+    min-height: 64px;
+    border-radius: 12px;
+    font-size: 24px;
+  }
+
+  &--xl {
+    width: 96px;
+    height: 96px;
+    min-width: 96px;
+    min-height: 96px;
+    border-radius: 14px;
+    border: $border-navy-thick;
+    box-shadow: $shadow-md;
+    font-size: 36px;
+  }
+}

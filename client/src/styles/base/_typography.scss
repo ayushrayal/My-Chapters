@@ -1,9 +1,9 @@
 @use '../abstracts/variables' as *;
 
 // ==============================================================================
-// TYPOGRAPHY SYSTEM
-// Headings: Plus Jakarta Sans (fallback: Outfit)
-// Body: Inter (fallback: Outfit)
+// TYPOGRAPHY SYSTEM — NEO-BRUTALIST
+// Headings: Plus Jakarta Sans / Outfit (Weight 800/700, Tight Tracking)
+// Body: Inter / Outfit
 // Scale: 12 / 14 / 16 / 20 / 28 / 40 / 56
 // ==============================================================================
 
@@ -53,7 +53,7 @@ body, input, button, textarea, select {
   font-family: $font-family-body;
   font-size: $font-size-16;
   line-height: $line-height-normal;
-  color: $color-text-primary;
+  color: $color-deep-navy;
 }
 
 // Headings with Display Font
@@ -61,7 +61,7 @@ h1, h2, h3, h4, h5, h6 {
   font-family: $font-family-heading;
   color: $color-deep-navy;
   line-height: $line-height-tight;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.03em;
 }
 
 h1 {
@@ -75,7 +75,7 @@ h1 {
 
 h2 {
   font-size: $font-size-20;
-  font-weight: $font-weight-bold;
+  font-weight: $font-weight-extrabold;
 
   @media (min-width: #{$bp-tablet}) {
     font-size: $font-size-28;
@@ -93,42 +93,67 @@ h3 {
 
 h4 {
   font-size: $font-size-14;
-  font-weight: $font-weight-semibold;
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 p {
   line-height: $line-height-normal;
-  color: $color-text-primary;
 }
 
-// Explicit Type Scale Classes (12 / 14 / 16 / 20 / 28 / 40 / 56)
-.text-12 { font-size: $font-size-12; }
-.text-14 { font-size: $font-size-14; }
-.text-16 { font-size: $font-size-16; }
-.text-20 { font-size: $font-size-20; }
-.text-28 { font-size: $font-size-28; }
-.text-40 { font-size: $font-size-40; }
-.text-56 { font-size: $font-size-56; }
-
-// Color Helper Classes
-.text-primary { color: $color-text-primary; }
-.text-muted { color: $color-text-muted; }
-.text-subtle { color: $color-text-subtle; }
-.text-blue { color: $color-primary-blue; }
-.text-green { color: $color-fresh-green; }
-
-// Lime Accent Helper: Always ink text on lime background for WCAG AA
-.badge-lime,
-.tag-lime,
-.text-lime-contrast {
+// Neo-Brutalist Sticker / Badge Label Style
+.neo-sticker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   background-color: $color-accent-lime;
   color: $color-deep-navy;
-  font-weight: $font-weight-bold;
+  border: 2px solid $color-deep-navy;
+  border-radius: $radius-6;
+  padding: 4px 10px;
+  font-family: $font-family-heading;
+  font-size: $font-size-12;
+  font-weight: $font-weight-extrabold;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  box-shadow: $shadow-xs;
 }
 
-// Font Weight Helpers
-.font-regular { font-weight: $font-weight-regular; }
-.font-medium { font-weight: $font-weight-medium; }
-.font-semibold { font-weight: $font-weight-semibold; }
-.font-bold { font-weight: $font-weight-bold; }
-.font-extrabold { font-weight: $font-weight-extrabold; }
+.neo-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border: 2px solid $color-deep-navy;
+  border-radius: $radius-6;
+  font-size: $font-size-12;
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  box-shadow: 1px 1px 0 $color-deep-navy;
+
+  &--primary {
+    background-color: $color-primary-blue;
+    color: $color-white;
+  }
+
+  &--secondary {
+    background-color: $color-secondary-blue;
+    color: $color-deep-navy;
+  }
+
+  &--success {
+    background-color: $color-fresh-green;
+    color: $color-white;
+  }
+
+  &--lime {
+    background-color: $color-accent-lime;
+    color: $color-deep-navy;
+  }
+
+  &--canvas {
+    background-color: $color-canvas;
+    color: $color-deep-navy;
+  }
+}

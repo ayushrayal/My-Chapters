@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '../../../components/common/Button.jsx';
 import { Input } from '../../../components/common/Input.jsx';
 import { FilterSelect } from '../../../components/common/FilterControl/FilterSelect.jsx';
+import { SegmentedFilter } from '../../../components/common/FilterControl/SegmentedFilter.jsx';
 
 export function ItemFormModal({
   isOpen,
@@ -12,7 +13,6 @@ export function ItemFormModal({
   onOpenAddCategory
 }) {
   const isEditing = Boolean(itemToEdit);
-  const modalRef = useRef(null);
 
   const [name, setName] = useState('');
   const [categoryId, setCategoryId] = useState('');
@@ -25,7 +25,6 @@ export function ItemFormModal({
   const [formError, setFormError] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
 
-  // Reset or pre-fill form when modal opens or itemToEdit changes
   useEffect(() => {
     if (isOpen) {
       setFormError(null);
@@ -61,7 +60,6 @@ export function ItemFormModal({
     }
   }, [isOpen, itemToEdit, categories]);
 
-  // Escape key handler to close modal
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape' && isOpen) {
@@ -78,7 +76,6 @@ export function ItemFormModal({
 
   if (!isOpen) return null;
 
-  // Handle dynamic link addition
   const handleAddLink = () => {
     if (links.length >= 3) return;
     setLinks([...links, { label: '', url: '' }]);
@@ -99,32 +96,12 @@ export function ItemFormModal({
     setFormError(null);
     setFieldErrors({});
 
-    // Client-side validations
     const errors = {};
-    const trimmedName = name.trim();
-
-    if (!trimmedName) {
+    if (!name.trim()) {
       errors.name = 'Item name is required';
-    } else if (trimmedName.length > 120) {
-      errors.name = 'Item name cannot exceed 120 characters';
     }
-
     if (!categoryId) {
-      errors.categoryId = 'Please select a category';
-    }
-
-    // Validate links
-    if (links.length > 3) {
-      errors.links = 'Maximum 3 links are allowed';
-    } else {
-      links.forEach((link, idx) => {
-        const trimmedUrl = link.url.trim();
-        if (!trimmedUrl) {
-          errors[`link_${idx}`] = 'URL is required';
-        } else if (!/^https?:\/\/.+/i.test(trimmedUrl)) {
-          errors[`link_${idx}`] = 'URL must start with http:// or https://';
-        }
-      });
+      errors.categoryId = 'Category is required';
     }
 
     if (Object.keys(errors).length > 0) {
@@ -134,66 +111,38 @@ export function ItemFormModal({
 
     setIsSubmitting(true);
     try {
-      const sanitizedLinks = links
-        .filter((l) => l.url.trim().length > 0)
-        .map((l) => ({
-          label: l.label ? l.label.trim() : '',
-          url: l.url.trim()
-        }));
-
-      const payload = {
-        name: trimmedName,
+      await onSubmit({
+        name: name.trim(),
         categoryId,
-        links: sanitizedLinks,
+        links: links.filter((l) => l.url.trim() !== ''),
         note: note.trim(),
-        status
-      };
-
-      if (status === 'PURCHASED') {
-        payload.purchaseDate = purchaseDate ? new Date(purchaseDate).toISOString() : null;
-      } else {
-        payload.purchaseDate = null;
-      }
-
-      await onSubmit(payload);
+        status,
+        purchaseDate: status === 'PURCHASED' ? (purchaseDate ? new Date(purchaseDate).toISOString() : null) : null
+      });
       onClose();
     } catch (err) {
-      if (err?.fieldErrors && Object.keys(err.fieldErrors).length > 0) {
-        setFieldErrors(err.fieldErrors);
-      }
-      setFormError(err?.message || 'Failed to save item. Please check your inputs.');
+      setFormError(err?.message || 'Failed to save item');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const isNearNoteLimit = note.length > 1800;
-  const isAtNoteLimit = note.length >= 2000;
-
   return (
-    <div
-      className="modal-overlay modal-overlay--glass"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="item-form-title"
-      onClick={onClose}
-    >
+    <div className="modal-overlay" role="dialog" aria-modal="true" onClick={onClose}>
       <div
-        ref={modalRef}
-        className="modal-container modal-container--lg item-form-modal"
+        className="modal-container modal-container--md"
         onClick={(e) => e.stopPropagation()}
+        style={{ display: 'flex', flexDirection: 'column' }}
       >
-        {/* Modal Header */}
+        {/* Window Header */}
         <div className="modal-header">
-          <div className="modal-header__title-group">
-            <h2 id="item-form-title" className="modal-title">
-              {isEditing ? 'Edit Someday Item' : 'Add Item to Someday'}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ width: '8px', height: '8px', backgroundColor: '#252943', display: 'inline-block' }} />
+            <span style={{ width: '8px', height: '8px', backgroundColor: '#252943', display: 'inline-block' }} />
+            <span style={{ width: '8px', height: '8px', backgroundColor: '#252943', display: 'inline-block' }} />
+            <h2 className="modal-title" style={{ marginLeft: '4px' }}>
+              {isEditing ? 'Edit Item' : 'Add Item to Someday'}
             </h2>
-            <p className="modal-header__subtitle">
-              {isEditing
-                ? 'Update details, category, or links for this item.'
-                : 'Save an aspiration you want to acquire or document a purchase.'}
-            </p>
           </div>
           <button
             type="button"
@@ -205,243 +154,184 @@ export function ItemFormModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} noValidate className="item-form-modal__form">
-          {/* Scrollable Modal Body */}
-          <div className="modal-body item-form-modal__body">
+        {/* Modal Form Body */}
+        <form noValidate onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+          <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto' }}>
             {formError && (
-              <div className="alert alert--error" role="alert" style={{ marginBottom: '16px' }}>
-                <p>{formError}</p>
+              <div className="alert alert--error" role="alert">
+                <div className="alert__content">
+                  <p className="alert__title">Error</p>
+                  <p>{formError}</p>
+                </div>
               </div>
             )}
 
-            {/* Item Name */}
+            {/* Name Input */}
             <Input
               label="Item Name"
-              name="itemName"
-              required
-              placeholder="What would you like to own?"
+              placeholder="What would you like to own? (e.g. Mechanical Keyboard)"
               value={name}
               onChange={(e) => setName(e.target.value)}
               error={fieldErrors.name}
-              autoFocus
             />
 
-            {/* Category Select + Small Ghost Action */}
+            {/* Category Select + Add Category Button */}
             <div className="form-group">
-              <div className="form-label-row">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
                 <label htmlFor="item-category" className="form-label">
-                  <span>Category <span className="form-label__required" aria-hidden="true">*</span></span>
+                  CATEGORY <span className="form-label__required">*</span>
                 </label>
                 {onOpenAddCategory && (
                   <button
                     type="button"
-                    className="ghost-action-btn"
+                    className="btn btn--sm btn--ghost"
                     onClick={onOpenAddCategory}
+                    style={{ height: '28px', minHeight: '28px', fontSize: '11px', padding: '0 8px' }}
                   >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                      <line x1="12" y1="5" x2="12" y2="19" />
-                      <line x1="5" y1="12" x2="19" y2="12" />
-                    </svg>
-                    <span>New Category</span>
+                    + New Category
                   </button>
                 )}
               </div>
-              <div className="select-picker-wrap">
-                <FilterSelect
+              <div className="select-wrapper">
+                <select
+                  id="item-category"
                   value={categoryId}
-                  onChange={(val) => {
-                    setCategoryId(val);
-                    if (fieldErrors.categoryId) {
-                      setFieldErrors((prev) => ({ ...prev, categoryId: null }));
-                    }
-                  }}
-                  options={categories.map((cat) => ({
-                    value: cat.id,
-                    label: `${cat.name} ${cat.isSystem ? '(System Default)' : ''}`
-                  }))}
-                  placeholder="Select a category"
-                  allowClear={false}
-                  ariaLabel="Item category"
-                />
+                  onChange={(e) => setCategoryId(e.target.value)}
+                  className="form-select"
+                  required
+                >
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
               </div>
-              {fieldErrors.categoryId && (
-                <span className="form-error">{fieldErrors.categoryId}</span>
-              )}
             </div>
 
-            {/* Collection Status: Segmented Toggle with Two Clearly Separated Options */}
+            {/* Collection Status: SegmentedFilter */}
             <div className="form-group">
-              <label className="form-label">Collection Status</label>
-              <div className="segmented-status-toggle" role="group" aria-label="Item Status">
-                <button
-                  type="button"
-                  className={`segmented-status-btn ${status === 'PLANNED' ? 'segmented-status-btn--active' : ''}`}
-                  onClick={() => setStatus('PLANNED')}
-                  aria-pressed={status === 'PLANNED'}
-                >
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <circle cx="12" cy="12" r="10" />
-                    <polyline points="12 6 12 12 14 14" />
-                  </svg>
-                  <span>Planned</span>
-                </button>
-                <button
-                  type="button"
-                  className={`segmented-status-btn ${status === 'PURCHASED' ? 'segmented-status-btn--active' : ''}`}
-                  onClick={() => setStatus('PURCHASED')}
-                  aria-pressed={status === 'PURCHASED'}
-                >
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                    <polyline points="22 4 12 14.01 9 11.01" />
-                  </svg>
-                  <span>Purchased</span>
-                </button>
-              </div>
+              <label className="form-label">COLLECTION STATUS</label>
+              <SegmentedFilter
+                options={[
+                  { value: 'PLANNED', label: 'Planned' },
+                  { value: 'PURCHASED', label: 'Purchased' }
+                ]}
+                value={status}
+                onChange={setStatus}
+              />
             </div>
 
-            {/* Purchase Date (only visible when Purchased) */}
+            {/* Purchase Date (if purchased) */}
             {status === 'PURCHASED' && (
-              <div className="form-group purchase-date-group">
-                <label htmlFor="purchase-date" className="form-label">
-                  <span>Purchase Date <span className="form-label__optional">(Optional)</span></span>
-                </label>
+              <div className="form-group">
+                <label className="form-label">PURCHASE DATE</label>
                 <input
-                  id="purchase-date"
                   type="date"
-                  className="form-input"
                   value={purchaseDate}
                   onChange={(e) => setPurchaseDate(e.target.value)}
+                  className="form-input"
+                  style={{
+                    border: '2px solid #252943',
+                    borderRadius: '6px',
+                    height: '48px',
+                    padding: '0 12px',
+                    backgroundColor: '#FFFFFF',
+                    color: '#252943'
+                  }}
                 />
-                <span className="form-hint">
-                  Leave empty to automatically record today as the purchase date.
-                </span>
               </div>
             )}
 
-            {/* Dynamic Links (0 to 3) with Icon & Counter Badge */}
+            {/* Dynamic Links: Max 3 */}
             <div className="form-group">
-              <div className="form-label-row">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
                 <label className="form-label">
-                  <span>External Links <span className="counter-badge">({links.length}/3 max)</span></span>
+                  LINKS ({links.length}/3 max)
                 </label>
                 {links.length < 3 && (
                   <button
                     type="button"
-                    className="ghost-action-btn"
+                    className="btn btn--sm btn--ghost"
                     onClick={handleAddLink}
+                    style={{ height: '28px', minHeight: '28px', fontSize: '11px', padding: '0 8px' }}
                   >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                      <line x1="12" y1="5" x2="12" y2="19" />
-                      <line x1="5" y1="12" x2="19" y2="12" />
-                    </svg>
-                    <span>+ Add Link</span>
+                    + Add Link
                   </button>
                 )}
               </div>
 
-              {links.length === 0 ? (
-                <div className="links-empty-hint">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                  </svg>
-                  <span>No links added yet. Attach store links, reviews, or spec sheets (up to 3).</span>
+              {links.map((link, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    marginBottom: '8px',
+                    padding: '8px',
+                    border: '2px solid #252943',
+                    borderRadius: '6px',
+                    backgroundColor: '#F5F7FB'
+                  }}
+                >
+                  <input
+                    type="text"
+                    placeholder="Label (optional)"
+                    value={link.label}
+                    onChange={(e) => handleLinkChange(idx, 'label', e.target.value)}
+                    className="form-input"
+                    style={{ height: '36px', minHeight: '36px', width: '120px', border: '1.5px solid #252943', borderRadius: '4px', backgroundColor: '#FFFFFF', padding: '0 8px', fontSize: '12px' }}
+                  />
+                  <input
+                    type="url"
+                    placeholder="https://example.com/item"
+                    value={link.url}
+                    onChange={(e) => handleLinkChange(idx, 'url', e.target.value)}
+                    className="form-input"
+                    style={{ height: '36px', minHeight: '36px', flex: 1, border: '1.5px solid #252943', borderRadius: '4px', backgroundColor: '#FFFFFF', padding: '0 8px', fontSize: '12px' }}
+                  />
+                  <button
+                    type="button"
+                    className="btn btn--sm btn--danger"
+                    onClick={() => handleRemoveLink(idx)}
+                    style={{ width: '36px', height: '36px', minHeight: '36px', padding: 0 }}
+                    aria-label={`Remove link ${idx + 1}`}
+                  >
+                    &times;
+                  </button>
                 </div>
-              ) : (
-                <div className="links-builder">
-                  {links.map((link, idx) => (
-                    <div key={idx} className="link-card-row">
-                      <div className="link-card-row__icon-box" aria-hidden="true">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                        </svg>
-                      </div>
-
-                      <div className="link-card-row__fields">
-                        <input
-                          type="text"
-                          placeholder="Label (e.g. Official Store, Amazon)"
-                          value={link.label}
-                          onChange={(e) => handleLinkChange(idx, 'label', e.target.value)}
-                          className="form-input link-card-row__label-input"
-                          maxLength={100}
-                        />
-                        <input
-                          type="url"
-                          placeholder="https://example.com/item"
-                          value={link.url}
-                          onChange={(e) => handleLinkChange(idx, 'url', e.target.value)}
-                          className={`form-input link-card-row__url-input ${
-                            fieldErrors[`link_${idx}`] ? 'form-input--error' : ''
-                          }`}
-                          required
-                        />
-                      </div>
-
-                      <button
-                        type="button"
-                        className="link-card-row__remove-btn"
-                        onClick={() => handleRemoveLink(idx)}
-                        title="Remove link"
-                        aria-label={`Remove link ${idx + 1}`}
-                      >
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                          <line x1="18" y1="6" x2="6" y2="18" />
-                          <line x1="6" y1="6" x2="18" y2="18" />
-                        </svg>
-                      </button>
-
-                      {fieldErrors[`link_${idx}`] && (
-                        <span className="form-error link-card-row__error">
-                          {fieldErrors[`link_${idx}`]}
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
+              ))}
             </div>
 
-            {/* Note Textarea with Colored Limit Counter */}
+            {/* Note Textarea with character counter */}
             <div className="form-group">
-              <label htmlFor="item-note" className="form-label">
-                <span>Personal Note <span className="form-label__optional">(Optional)</span></span>
-              </label>
-              <textarea
-                id="item-note"
-                name="note"
-                rows={3}
-                placeholder="Details, specs, reasons for purchase, or ideas..."
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                className="form-input form-textarea"
-                maxLength={2000}
-              />
-              <div className="textarea-footer">
-                <span className={`char-counter ${isAtNoteLimit ? 'char-counter--limit' : isNearNoteLimit ? 'char-counter--warn' : ''}`}>
-                  {note.length} / 2000 characters
-                </span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                <label className="form-label">NOTE / DETAILS</label>
+                <span className="form-label__counter">{note.length}/500</span>
               </div>
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value.slice(0, 500))}
+                placeholder="Specifications, size, color, or reason to purchase..."
+                rows={3}
+                className="form-input form-textarea"
+                style={{
+                  border: '2px solid #252943',
+                  borderRadius: '6px',
+                  backgroundColor: '#FFFFFF',
+                  color: '#252943'
+                }}
+              />
             </div>
           </div>
 
-          {/* Sticky Modal Footer with Clean Buttons */}
-          <div className="modal-footer item-form-modal__footer">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={onClose}
-              disabled={isSubmitting}
-            >
+          {/* Sticky Modal Footer */}
+          <div className="modal-footer">
+            <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              isLoading={isSubmitting}
-            >
+            <Button type="submit" variant="primary" isLoading={isSubmitting}>
               {isEditing ? 'Save Changes' : 'Add Item'}
             </Button>
           </div>
@@ -450,4 +340,3 @@ export function ItemFormModal({
     </div>
   );
 }
-

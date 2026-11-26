@@ -109,42 +109,46 @@ export function WeeklyAssignmentModal({ isOpen, weeklySchedule, templates, onClo
         {days.map((d) => {
           const isToday = d.weekday === currentDayOfWeek;
           const currentValue = d.isRestDay ? 'REST' : d.templateId;
+          const shortDay = d.weekday.slice(0, 3).toUpperCase();
 
           return (
             <div
               key={d.weekday}
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px',
-                padding: '12px 14px',
-                backgroundColor: isToday ? 'rgba(58, 78, 251, 0.03)' : '#F8FAFD',
-                border: isToday ? '1.5px solid #3A4EFB' : '1px solid #E6E9F2',
-                borderRadius: '12px'
-              }}
+              className={`gymflow-modal-day-row ${isToday ? 'gymflow-modal-day-row--today' : ''}`}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '15px', fontWeight: 800, color: '#252943' }}>
-                    {d.weekday}
+              <div className="gymflow-modal-day-row__header">
+                <div className="gymflow-modal-day-row__identity">
+                  <span className="gymflow-modal-day-row__tile">
+                    {shortDay}
                   </span>
-                  {isToday && <Chip variant="lime">Today</Chip>}
+                  <div className="gymflow-modal-day-row__names">
+                    <span className="gymflow-modal-day-row__name">
+                      {d.weekday}
+                    </span>
+                    {isToday && (
+                      <span className="gymflow-schedule-row__today-sticker">
+                        TODAY
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {d.isRestDay ? (
-                  <Chip variant="outline">Rest Day</Chip>
+                  <span className="gymflow-chip gymflow-chip--lime">Rest Day</span>
                 ) : d.templateId ? (
-                  <Chip variant="gradient-tint">Assigned</Chip>
+                  <span className="gymflow-chip gymflow-chip--primary">Assigned</span>
                 ) : null}
               </div>
 
-              <FilterSelect
-                value={currentValue}
-                onChange={(val) => handleTemplateChange(d.weekday, val)}
-                options={selectOptions}
-                ariaLabel={`Routine for ${d.weekday}`}
-                allowClear={false}
-              />
+              <div className="gymflow-modal-day-row__select-wrap">
+                <FilterSelect
+                  value={currentValue}
+                  onChange={(val) => handleTemplateChange(d.weekday, val)}
+                  options={selectOptions}
+                  ariaLabel={`Routine for ${d.weekday}`}
+                  allowClear={false}
+                />
+              </div>
             </div>
           );
         })}
