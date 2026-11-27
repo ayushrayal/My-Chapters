@@ -8,27 +8,76 @@ export class GymAnalyticsService {
    * Generates comprehensive gym analytics with multi-dimensional filtering
    * (Date Range, Routine/Template, Body Part, Exercise) applied with AND logic.
    */
-  static async getAnalytics(spaceId, { startDate, endDate, templateId, templateName, routine, bodyPart, exerciseName }) {
+  static async getAnalytics(
+    spaceId,
+    {
+      startDate,
+      endDate,
+      templateId,
+      templateName,
+      routine,
+      bodyPart,
+      exerciseName,
+      parentWorkoutName,
+      sessionCount,
+      selectedSessionDates
+    }
+  ) {
     // 1. Fetch user's defined templates and all space workout sessions to populate routines & filter options
     const [userTemplates, allSpaceSessions] = await Promise.all([
-      GymTemplate.find({ spaceId }).select('name bodyParts.name bodyParts.exercises.name').lean(),
+      GymTemplate.find({ spaceId }).select('name parentWorkoutName bodyParts.name bodyParts.exercises.name bodyParts.exercises.exerciseIdentityId bodyParts.exercises.pauseHistory').lean(),
       GymWorkoutSession.find({ spaceId, isRestDay: false })
-        .select('templateName templateId bodyParts.name bodyParts.exercises.name')
+        .select('templateName parentWorkoutName templateId bodyParts.name bodyParts.exercises.name')
         .lean()
     ]);
 
     const query = { spaceId, isRestDay: false };
 
-    // Date range filter
-    if (startDate && endDate) {
-      query.date = { $gte: startDate, $lte: endDate };
-    } else if (startDate) {
-      query.date = { $gte: startDate };
-    } else if (endDate) {
-      query.date = { $lte: endDate };
+    // 2. Handle completed session filters (e.g. Last 2, 3, 5, 7, 14, 30 sessions or custom selected dates)
+    if (Array.isArray(selectedSessionDates) && selectedSessionDates.length > 0) {
+      query.date = { $in: selectedSessionDates };
+    } else if (sessionCount && Number(sessionCount) > 0) {
+      const recentSessionsQuery = {
+        spaceId,
+        isRestDay: false,
+        isFinished: true
+      };
+      if (parentWorkoutName && parentWorkoutName !== 'ALL' && parentWorkoutName !== 'All Parents') {
+        recentSessionsQuery.$or = [
+          { parentWorkoutName: new RegExp(`^${parentWorkoutName}$`, 'i') },
+          { templateName: new RegExp(`^${parentWorkoutName}$`, 'i') }
+        ];
+      }
+      const recentSessions = await GymWorkoutSession.find(recentSessionsQuery)
+        .select('date')
+        .sort({ date: -1 })
+        .limit(Number(sessionCount))
+        .lean();
+
+      const dates = recentSessions.map((s) => s.date);
+      query.date = { $in: dates };
+    } else {
+      // Date range filter fallback
+      if (startDate && endDate) {
+        query.date = { $gte: startDate, $lte: endDate };
+      } else if (startDate) {
+        query.date = { $gte: startDate };
+      } else if (endDate) {
+        query.date = { $lte: endDate };
+      }
     }
 
-    // Routine / Template filter (supports ID or name)
+    // 3. Parent Workout Level 1 Filter
+    const rawParent = parentWorkoutName?.trim();
+    if (rawParent && rawParent !== 'ALL' && rawParent !== 'All Parents' && rawParent !== 'All Routines') {
+      // Match parent name or fallback to template name
+      query.$or = [
+        { parentWorkoutName: new RegExp(`^${rawParent}$`, 'i') },
+        { templateName: new RegExp(`^${rawParent}$`, 'i') }
+      ];
+    }
+
+    // 4. Routine / Template variation filter (supports ID or name)
     const rawRoutine = (routine || templateName || templateId)?.trim();
     if (rawRoutine && rawRoutine !== 'ALL' && rawRoutine !== 'All Templates' && rawRoutine !== 'All Routines') {
       if (mongoose.Types.ObjectId.isValid(rawRoutine)) {
@@ -57,9 +106,9 @@ export class GymAnalyticsService {
       }
     }
 
-    // Fetch matching workout sessions with targeted projections (avoids loading set notes, subdocument IDs)
+    // Fetch matching workout sessions with targeted projections (including parentWorkoutName & set details)
     const sessions = await GymWorkoutSession.find(query)
-      .select('date templateName templateId isFinished scoreBreakdown.totalScore treadmill bodyParts.name bodyParts.exercises.name bodyParts.exercises.measurementType bodyParts.exercises.sets.status bodyParts.exercises.sets.weightKg bodyParts.exercises.sets.reps bodyParts.exercises.sets.extraWeightKg bodyParts.exercises.sets.durationMinutes')
+      .select('date parentWorkoutName templateName templateId isFinished scoreBreakdown.totalScore treadmill bodyParts.name bodyParts.exercises.name bodyParts.exercises.exerciseIdentityId bodyParts.exercises.measurementType bodyParts.exercises.sets.status bodyParts.exercises.sets.setNumber bodyParts.exercises.sets.weightKg bodyParts.exercises.sets.reps bodyParts.exercises.sets.extraWeightKg bodyParts.exercises.sets.durationMinutes')
       .sort({ date: 1 })
       .lean();
 
@@ -95,6 +144,7 @@ export class GymAnalyticsService {
 
     // Trend & Breakdown Maps
     const dailyVolumeTrend = [];
+    const detailedSessionTable = [];
     const templatePerformanceMap = new Map();
     const bodyPartPerformanceMap = new Map();
     const exercisePerformanceMap = new Map();
@@ -154,7 +204,10 @@ export class GymAnalyticsService {
                 if (weight > exMaxWeight) {
                   exMaxWeight = weight;
                 }
-              } else if (mType === 'BODYWEIGHT_REPS') {
+              } else if (mType === 'BODYWEIGHT') {
+                const reps = Math.max(0, Number(s.reps) || 0);
+                exReps += reps;
+              } else if (mType === 'BODYWEIGHT_LOAD' || mType === 'BODYWEIGHT_REPS') {
                 const reps = Math.max(0, Number(s.reps) || 0);
                 const extraWeight = Math.max(0, Number(s.extraWeightKg) || 0);
                 exReps += reps;
@@ -167,6 +220,24 @@ export class GymAnalyticsService {
               }
 
               exCompletedSets += 1;
+
+              // Populate Detailed Historical Session Table row
+              detailedSessionTable.push({
+                date: session.date,
+                parentWorkoutName: session.parentWorkoutName || session.templateName || 'Workout',
+                templateName: session.templateName || 'Custom Workout',
+                templateId: session.templateId?.toString() || null,
+                bodyPart: bpName,
+                exerciseName: exName,
+                exerciseIdentityId: ex.exerciseIdentityId?.toString() || null,
+                measurementType: mType,
+                setNumber: s.setNumber,
+                weightKg: Number(s.weightKg) || 0,
+                reps: Number(s.reps) || 0,
+                extraWeightKg: Number(s.extraWeightKg) || 0,
+                durationMinutes: Number(s.durationMinutes) || 0,
+                status: s.status
+              });
             }
           }
 
@@ -379,8 +450,33 @@ export class GymAnalyticsService {
       }
     }
 
+    // Build distinct parents map from user templates
+    const parentsMap = new Map();
+    for (const tpl of userTemplates) {
+      const pName = (tpl.parentWorkoutName && tpl.parentWorkoutName.trim()) || tpl.name?.trim();
+      if (!pName) continue;
+      if (!parentsMap.has(pName)) {
+        parentsMap.set(pName, { name: pName, variations: [] });
+      }
+      parentsMap.get(pName).variations.push({
+        id: tpl._id.toString(),
+        name: tpl.name?.trim()
+      });
+    }
+
+    // Fetch all available completed sessions for session-based filtering
+    const availableCompletedSessions = await GymWorkoutSession.find({
+      spaceId,
+      isRestDay: false,
+      isFinished: true
+    })
+      .select('date templateName parentWorkoutName scoreBreakdown.totalScore')
+      .sort({ date: -1 })
+      .lean();
+
     // Convert Sets to sorted Arrays
     const filterOptions = {
+      parents: Array.from(parentsMap.values()),
       routines: Array.from(routinesSet).sort(),
       bodyPartsByRoutine: Object.fromEntries(
         Object.entries(bodyPartsByRoutine).map(([r, set]) => [r, Array.from(set).sort()])
@@ -416,6 +512,13 @@ export class GymAnalyticsService {
         trend: treadmillTrend
       },
       dailyVolumeTrend,
+      detailedSessionTable,
+      availableSessions: availableCompletedSessions.map((s) => ({
+        date: s.date,
+        templateName: s.templateName || (s.isRestDay ? 'Rest Day' : 'Custom Workout'),
+        parentWorkoutName: s.parentWorkoutName || s.templateName || 'Workout',
+        score: s.scoreBreakdown?.totalScore || 0
+      })),
       templatesBreakdown: Array.from(templatePerformanceMap.values())
         .filter((t) => t.sessionsCount > 0)
         .map((t) => ({
@@ -446,8 +549,19 @@ export class GymAnalyticsService {
             totalSets += h.completedSets || 0;
           });
 
+          const matchedTplEx = userTemplates
+            .flatMap((t) => t.bodyParts || [])
+            .flatMap((bp) => bp.exercises || [])
+            .find(
+              (te) =>
+                (ex.exerciseIdentityId && te.exerciseIdentityId?.toString() === ex.exerciseIdentityId.toString()) ||
+                te.name.toLowerCase() === ex.name.toLowerCase()
+            );
+
           return {
             ...ex,
+            pauseHistory: matchedTplEx?.pauseHistory || [],
+            status: matchedTplEx?.status || 'ACTIVE',
             totalVolume: totalVol,
             maxWeight: maxWt,
             maxReps: maxRps,

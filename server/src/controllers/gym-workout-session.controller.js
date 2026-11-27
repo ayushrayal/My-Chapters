@@ -61,10 +61,12 @@ export class GymWorkoutSessionController {
   static async getComparisons(req, res) {
     const { date } = req.params;
     const exercises = req.body.exercises || [];
+    const templateId = req.body.templateId || req.query.templateId || null;
     const comparisons = await GymWorkoutSessionService.getPreviousExerciseComparisons(
       GymWorkoutSessionController.getSpaceId(req),
       date,
-      exercises
+      exercises,
+      templateId
     );
     return ApiResponse.success(res, 'Previous comparisons retrieved successfully', { comparisons });
   }

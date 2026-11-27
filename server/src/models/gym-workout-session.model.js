@@ -62,6 +62,11 @@ const workoutSetSchema = new mongoose.Schema(
 
 const sessionExerciseSchema = new mongoose.Schema(
   {
+    exerciseIdentityId: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: null,
+      index: true
+    },
     originalExerciseId: {
       type: mongoose.Schema.Types.ObjectId,
       default: null
@@ -199,6 +204,12 @@ const gymWorkoutSessionSchema = new mongoose.Schema(
       trim: true,
       default: ''
     },
+    parentWorkoutName: {
+      type: String,
+      trim: true,
+      maxlength: [100, 'Parent workout name cannot exceed 100 characters'],
+      default: ''
+    },
     isRestDay: {
       type: Boolean,
       default: false
@@ -262,5 +273,7 @@ gymWorkoutSessionSchema.index({ spaceId: 1, date: 1 }, { unique: true });
 gymWorkoutSessionSchema.index({ spaceId: 1, isRestDay: 1, date: 1 });
 gymWorkoutSessionSchema.index({ spaceId: 1, isRestDay: 1, templateId: 1 });
 gymWorkoutSessionSchema.index({ spaceId: 1, isRestDay: 1, templateName: 1 });
+gymWorkoutSessionSchema.index({ spaceId: 1, isRestDay: 1, parentWorkoutName: 1 });
+gymWorkoutSessionSchema.index({ spaceId: 1, 'bodyParts.exercises.exerciseIdentityId': 1, date: -1 });
 
 export const GymWorkoutSession = mongoose.model('GymWorkoutSession', gymWorkoutSessionSchema);

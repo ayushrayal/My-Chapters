@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { BottomSheetModal } from './common/BottomSheetModal.jsx';
 import { NumberStepperInput } from './common/NumberStepperInput.jsx';
 import { FilterSelect } from '../../../components/common/FilterControl/FilterSelect.jsx';
+import { gymflowApi } from '../services/gymflow.api.js';
 import {
   TrashIcon,
   PlusIcon,
@@ -18,12 +19,21 @@ function createInitialState(tpl) {
   if (!tpl) {
     return {
       name: '',
+      parentOption: 'SEPARATE',
+      selectedParentWorkout: '',
       description: '',
       bodyParts: []
     };
   }
+  const isExistingParent = Boolean(
+    tpl.parentWorkoutName &&
+    tpl.name &&
+    tpl.parentWorkoutName.trim().toLowerCase() !== tpl.name.trim().toLowerCase()
+  );
   return {
     name: tpl.name || '',
+    parentOption: isExistingParent ? 'EXISTING' : 'SEPARATE',
+    selectedParentWorkout: isExistingParent ? tpl.parentWorkoutName.trim() : '',
     description: tpl.description || '',
     bodyParts: (tpl.bodyParts || []).map((bp, bpIdx) => ({
       _id: bp._id,
@@ -33,6 +43,9 @@ function createInitialState(tpl) {
       exercises: (bp.exercises || []).map((ex, exIdx) => ({
         _id: ex._id,
         _cid: ex._id ? String(ex._id) : generateClientId('ex'),
+        exerciseIdentityId: ex.exerciseIdentityId || undefined,
+        status: ex.status || 'ACTIVE',
+        pauseHistory: ex.pauseHistory || [],
         name: ex.name || '',
         targetBodyPart: ex.targetBodyPart || bp.name || '',
         measurementType: ex.measurementType || 'WEIGHT_REPS',
@@ -44,8 +57,10 @@ function createInitialState(tpl) {
   };
 }
 
-export function GymTemplateModal({ isOpen, template, onClose, onSave }) {
+export function GymTemplateModal({ isOpen, template, onClose, onSave, parentWorkouts = [] }) {
   const [name, setName] = useState('');
+  const [parentOption, setParentOption] = useState('SEPARATE'); // 'SEPARATE' | 'EXISTING'
+  const [selectedParentWorkout, setSelectedParentWorkout] = useState('');
   const [description, setDescription] = useState('');
   const [bodyParts, setBodyParts] = useState([]);
   const [newBodyPartName, setNewBodyPartName] = useState('');
@@ -53,12 +68,50 @@ export function GymTemplateModal({ isOpen, template, onClose, onSave }) {
   const [expandedNotes, setExpandedNotes] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [internalParents, setInternalParents] = useState([]);
+
+  // Fetch parent workouts if not passed as prop
+  useEffect(() => {
+    if (isOpen && (!parentWorkouts || parentWorkouts.length === 0)) {
+      gymflowApi.getParentWorkouts()
+        .then((res) => {
+          if (Array.isArray(res)) setInternalParents(res);
+        })
+        .catch(() => {});
+    }
+  }, [isOpen, parentWorkouts]);
+
+  // Combine parent options from props or internal fetch
+  const rawParents = (parentWorkouts && parentWorkouts.length > 0) ? parentWorkouts : internalParents;
+
+  const availableParents = useMemo(() => {
+    const list = [];
+    const seen = new Set();
+    rawParents.forEach((p) => {
+      const pName = typeof p === 'string' ? p.trim() : (p.parentWorkoutName || p.name || '').trim();
+      if (pName && !seen.has(pName.toLowerCase())) {
+        // Exclude the template itself when editing
+        if (template && template.name && template.name.trim().toLowerCase() === pName.toLowerCase()) {
+          return;
+        }
+        seen.add(pName.toLowerCase());
+        list.push({
+          id: pName,
+          value: pName,
+          label: pName
+        });
+      }
+    });
+    return list;
+  }, [rawParents, template]);
 
   // Sync state cleanly whenever opening or template changes
   useEffect(() => {
     if (isOpen) {
       const initial = createInitialState(template);
       setName(initial.name);
+      setParentOption(initial.parentOption);
+      setSelectedParentWorkout(initial.selectedParentWorkout);
       setDescription(initial.description);
       setBodyParts(initial.bodyParts);
       setNewBodyPartName('');
@@ -68,6 +121,8 @@ export function GymTemplateModal({ isOpen, template, onClose, onSave }) {
     } else {
       // Clear all state when closed
       setName('');
+      setParentOption('SEPARATE');
+      setSelectedParentWorkout('');
       setDescription('');
       setBodyParts([]);
       setNewBodyPartName('');
@@ -321,12 +376,28 @@ export function GymTemplateModal({ isOpen, template, onClose, onSave }) {
       }
     }
 
+    if (parentOption === 'EXISTING') {
+      if (availableParents.length === 0) {
+        setError('Cannot add to an existing parent because no parent workouts exist yet. Please select "Create a Separate Workout".');
+        return;
+      }
+      if (!selectedParentWorkout || !selectedParentWorkout.trim()) {
+        setError('Please select an existing parent workout.');
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     setError('');
+
+    const finalParentName = parentOption === 'EXISTING'
+      ? selectedParentWorkout.trim()
+      : trimmedName;
 
     // Clean payload: strip internal client IDs (_cid)
     const payload = {
       name: trimmedName,
+      parentWorkoutName: finalParentName,
       description: description.trim(),
       bodyParts: bodyParts.map((bp, bpIdx) => ({
         ...(bp._id ? { _id: bp._id } : {}),
@@ -334,6 +405,9 @@ export function GymTemplateModal({ isOpen, template, onClose, onSave }) {
         order: bpIdx,
         exercises: (bp.exercises || []).map((ex, exIdx) => ({
           ...(ex._id ? { _id: ex._id } : {}),
+          ...(ex.exerciseIdentityId ? { exerciseIdentityId: ex.exerciseIdentityId } : {}),
+          ...(ex.status ? { status: ex.status } : {}),
+          ...(Array.isArray(ex.pauseHistory) ? { pauseHistory: ex.pauseHistory } : {}),
           name: ex.name.trim(),
           targetBodyPart: bp.name.trim(),
           measurementType: ex.measurementType || 'WEIGHT_REPS',
@@ -410,6 +484,150 @@ export function GymTemplateModal({ isOpen, template, onClose, onSave }) {
             required
             autoComplete="off"
           />
+        </div>
+
+        {/* Parent Workout Architecture: Two Mutually Exclusive Options */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <label style={{ fontSize: '13px', fontWeight: 700, color: '#252943' }}>
+            Workout Structure
+          </label>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: '10px'
+            }}
+          >
+            {/* Option A Card */}
+            <button
+              type="button"
+              className={`neo-radio-card ${parentOption === 'SEPARATE' ? 'neo-radio-card--selected' : ''}`}
+              onClick={() => {
+                setParentOption('SEPARATE');
+                setSelectedParentWorkout('');
+              }}
+              style={{
+                border: '2px solid #252943',
+                borderRadius: '8px',
+                padding: '12px 14px',
+                backgroundColor: parentOption === 'SEPARATE' ? '#E3FF3B' : '#FFFFFF',
+                boxShadow: parentOption === 'SEPARATE' ? '2px 2px 0px #252943' : 'none',
+                cursor: 'pointer',
+                textAlign: 'left',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '4px'
+              }}
+              aria-pressed={parentOption === 'SEPARATE'}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <span style={{ fontSize: '14px', fontWeight: 800, color: '#252943' }}>
+                  Create a Separate Workout
+                </span>
+                <span
+                  style={{
+                    width: '16px',
+                    height: '16px',
+                    borderRadius: '50%',
+                    border: '2px solid #252943',
+                    backgroundColor: parentOption === 'SEPARATE' ? '#252943' : '#FFFFFF',
+                    display: 'inline-block'
+                  }}
+                />
+              </div>
+              <span style={{ fontSize: '11px', color: '#252943', opacity: 0.85, fontWeight: 500 }}>
+                Independent parent routine with its own variations
+              </span>
+            </button>
+
+            {/* Option B Card */}
+            <button
+              type="button"
+              className={`neo-radio-card ${parentOption === 'EXISTING' ? 'neo-radio-card--selected' : ''}`}
+              onClick={() => {
+                setParentOption('EXISTING');
+                if (!selectedParentWorkout && availableParents.length > 0) {
+                  setSelectedParentWorkout(availableParents[0].value);
+                }
+              }}
+              style={{
+                border: '2px solid #252943',
+                borderRadius: '8px',
+                padding: '12px 14px',
+                backgroundColor: parentOption === 'EXISTING' ? '#E3FF3B' : '#FFFFFF',
+                boxShadow: parentOption === 'EXISTING' ? '2px 2px 0px #252943' : 'none',
+                cursor: 'pointer',
+                textAlign: 'left',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '4px'
+              }}
+              aria-pressed={parentOption === 'EXISTING'}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <span style={{ fontSize: '14px', fontWeight: 800, color: '#252943' }}>
+                  Add to Existing Parent Workout
+                </span>
+                <span
+                  style={{
+                    width: '16px',
+                    height: '16px',
+                    borderRadius: '50%',
+                    border: '2px solid #252943',
+                    backgroundColor: parentOption === 'EXISTING' ? '#252943' : '#FFFFFF',
+                    display: 'inline-block'
+                  }}
+                />
+              </div>
+              <span style={{ fontSize: '11px', color: '#252943', opacity: 0.85, fontWeight: 500 }}>
+                Variation that shares progression history with parent
+              </span>
+            </button>
+          </div>
+
+          {/* Option B Dropdown (Only visible when Option B is selected) */}
+          {parentOption === 'EXISTING' && (
+            <div style={{ marginTop: '8px' }}>
+              {availableParents.length > 0 ? (
+                <div>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontSize: '12px',
+                      fontWeight: 800,
+                      color: '#252943',
+                      marginBottom: '6px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em'
+                    }}
+                  >
+                    Select Existing Parent Workout *
+                  </label>
+                  <FilterSelect
+                    value={selectedParentWorkout}
+                    onChange={(val) => setSelectedParentWorkout(val)}
+                    placeholder="Choose parent workout..."
+                    options={availableParents}
+                    ariaLabel="Select Existing Parent Workout"
+                  />
+                </div>
+              ) : (
+                <div
+                  style={{
+                    border: '1.5px dashed #252943',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    backgroundColor: '#FFFFFF',
+                    color: '#252943',
+                    fontSize: '13px',
+                    fontWeight: 600
+                  }}
+                >
+                  No existing parent workouts found. Create this template as a separate workout first to establish a parent.
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Template Description */}
@@ -690,6 +908,7 @@ export function GymTemplateModal({ isOpen, template, onClose, onSave }) {
                                   options={[
                                     { value: 'WEIGHT_REPS', label: 'Weight + Reps' },
                                     { value: 'BODYWEIGHT_REPS', label: 'Bodyweight' },
+                                    { value: 'BODYWEIGHT_LOAD', label: 'Bodyweight + Load' },
                                     { value: 'DURATION', label: 'Duration' }
                                   ]}
                                   disabled={isSubmitting}

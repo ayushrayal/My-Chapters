@@ -414,31 +414,30 @@
   width: 100%;
   box-sizing: border-box;
 
+  &__controls,
   &__desktop-row {
-    display: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
 
     @include respond-to('tablet') {
-      display: flex;
+      flex-direction: row;
       align-items: center;
       gap: 10px;
       flex: 1;
-      width: 100%;
       flex-wrap: nowrap;
+    }
 
-      .filter-select {
-        flex: 1 1 0%;
-        min-width: 0;
-      }
+    .filter-select {
+      flex: 1 1 0%;
+      min-width: 0;
+      width: 100%;
     }
   }
 
   &__mobile-trigger {
-    display: block;
-    width: 100%;
-
-    @include respond-to('tablet') {
-      display: none;
-    }
+    display: none;
   }
 
   &__mobile-btn {

@@ -39,12 +39,14 @@ export class GymWorkoutSessionService {
     }
 
     let templateName = '';
+    let parentWorkoutName = '';
     let bodyParts = [];
 
     if (templateId) {
       const template = await GymTemplate.findOne({ _id: templateId, spaceId });
       if (template) {
         templateName = template.name;
+        parentWorkoutName = template.parentWorkoutName || template.name;
         // Deep copy body parts and exercises into independent workout structure
         bodyParts = (template.bodyParts || []).map((bp, bpIdx) => ({
           name: bp.name,
@@ -67,6 +69,7 @@ export class GymWorkoutSessionService {
             }
 
             return {
+              exerciseIdentityId: ex.exerciseIdentityId || ex._id,
               originalExerciseId: ex._id,
               name: ex.name,
               targetBodyPart: ex.targetBodyPart || bp.name,
@@ -86,6 +89,7 @@ export class GymWorkoutSessionService {
       date,
       templateId: templateId || null,
       templateName,
+      parentWorkoutName,
       isRestDay: false,
       isFinished: false,
       bodyParts,
@@ -173,6 +177,10 @@ export class GymWorkoutSessionService {
       updateFields.templateName = data.templateName ? data.templateName.trim() : '';
     }
 
+    if (data.parentWorkoutName !== undefined) {
+      updateFields.parentWorkoutName = data.parentWorkoutName ? data.parentWorkoutName.trim() : '';
+    }
+
     if (Array.isArray(data.bodyParts)) {
       updateFields.bodyParts = data.bodyParts.map((bp, bpIdx) => ({
         ...bp,
@@ -181,6 +189,8 @@ export class GymWorkoutSessionService {
         exercises: Array.isArray(bp.exercises)
           ? bp.exercises.map((ex, exIdx) => ({
               ...ex,
+              exerciseIdentityId: ex.exerciseIdentityId || ex.originalExerciseId || null,
+              originalExerciseId: ex.originalExerciseId || null,
               name: ex.name,
               targetBodyPart: ex.targetBodyPart || bp.name || 'General',
               plannedSets: ex.plannedSets || (Array.isArray(ex.sets) && ex.sets.length > 0 ? ex.sets.length : 3),
@@ -296,25 +306,48 @@ export class GymWorkoutSessionService {
 
   /**
    * Comparison helper: compares each exercise in the given session with the immediately preceding
-   * session that contains that same exercise (by originalExerciseId or matching exercise name).
+   * session from the SAME template variation that contains that same exercise identity.
    */
-  static async getPreviousExerciseComparisons(spaceId, date, currentExercises = []) {
+  static async getPreviousExerciseComparisons(spaceId, date, currentExercises = [], explicitTemplateId = null) {
     const comparisons = {};
 
-    for (const ex of currentExercises) {
-      const exIdentifier = ex.originalExerciseId || ex.name;
+    // 1. Determine the effective template variation ID
+    let targetTemplateId = explicitTemplateId;
+    if (!targetTemplateId) {
+      const currentSession = await GymWorkoutSession.findOne({ spaceId, date }).select('templateId').lean();
+      targetTemplateId = currentSession?.templateId || null;
+    }
 
-      // Find the most recent finished session before this date that has this exercise
+    for (const ex of currentExercises) {
+      const exKey = ex._id?.toString() || ex.exerciseIdentityId?.toString() || ex.name;
+
+      // Build query strictly restricted to the SAME template variation if templateId is known
       const query = {
         spaceId,
         date: { $lt: date },
         isRestDay: false,
-        isFinished: true,
-        $or: [
-          { 'bodyParts.exercises.originalExerciseId': ex.originalExerciseId },
-          { 'bodyParts.exercises.name': ex.name }
-        ]
+        isFinished: true
       };
+
+      if (targetTemplateId) {
+        query.templateId = targetTemplateId;
+      }
+
+      // Match exercise by exerciseIdentityId, originalExerciseId, or name within the variation
+      const exConditions = [];
+      if (ex.exerciseIdentityId) {
+        exConditions.push({ 'bodyParts.exercises.exerciseIdentityId': ex.exerciseIdentityId });
+      }
+      if (ex.originalExerciseId) {
+        exConditions.push({ 'bodyParts.exercises.originalExerciseId': ex.originalExerciseId });
+      }
+      if (ex.name) {
+        exConditions.push({ 'bodyParts.exercises.name': ex.name.trim() });
+      }
+
+      if (exConditions.length > 0) {
+        query.$or = exConditions;
+      }
 
       const pastSession = await GymWorkoutSession.findOne(query).sort({ date: -1 }).lean();
 
@@ -322,10 +355,20 @@ export class GymWorkoutSessionService {
         let prevEx = null;
         for (const bp of pastSession.bodyParts || []) {
           for (const pe of bp.exercises || []) {
-            if (
-              (ex.originalExerciseId && pe.originalExerciseId?.toString() === ex.originalExerciseId?.toString()) ||
-              pe.name.toLowerCase() === ex.name.toLowerCase()
-            ) {
+            const matchesIdentity =
+              ex.exerciseIdentityId &&
+              pe.exerciseIdentityId &&
+              pe.exerciseIdentityId.toString() === ex.exerciseIdentityId.toString();
+
+            const matchesOriginal =
+              ex.originalExerciseId &&
+              pe.originalExerciseId &&
+              pe.originalExerciseId.toString() === ex.originalExerciseId.toString();
+
+            const matchesName =
+              pe.name && ex.name && pe.name.trim().toLowerCase() === ex.name.trim().toLowerCase();
+
+            if (matchesIdentity || matchesOriginal || matchesName) {
               prevEx = pe;
               break;
             }
@@ -334,27 +377,84 @@ export class GymWorkoutSessionService {
         }
 
         if (prevEx) {
+          const mType = prevEx.measurementType || ex.measurementType || 'WEIGHT_REPS';
           let prevVolume = 0;
           let prevReps = 0;
           let prevMaxWeight = 0;
+          let prevTotalDuration = 0;
+          let bestSet = null;
+
+          // Incomplete, skipped, or unfinished sets must NOT count as completed historical performance
+          const completedSets = [];
+
           for (const s of prevEx.sets || []) {
             if (s.status === GYM_SET_STATUS.COMPLETED) {
-              prevVolume += (Number(s.weightKg) || 0) * (Number(s.reps) || 0);
-              prevReps += Number(s.reps) || 0;
-              if (Number(s.weightKg) > prevMaxWeight) {
-                prevMaxWeight = Number(s.weightKg);
+              const weight = Number(s.weightKg) || 0;
+              const reps = Number(s.reps) || 0;
+              const extraWeight = Number(s.extraWeightKg) || 0;
+              const duration = Number(s.durationMinutes) || 0;
+
+              completedSets.push({
+                setNumber: s.setNumber,
+                weightKg: weight,
+                reps,
+                extraWeightKg: extraWeight,
+                durationMinutes: duration,
+                status: s.status,
+                notes: s.notes || ''
+              });
+
+              if (mType === 'WEIGHT_REPS') {
+                prevVolume += weight * reps;
+                prevReps += reps;
+                if (weight > prevMaxWeight) prevMaxWeight = weight;
+                if (!bestSet || weight > bestSet.weightKg || (weight === bestSet.weightKg && reps > bestSet.reps)) {
+                  bestSet = { weightKg: weight, reps, desc: `${weight} kg × ${reps} reps` };
+                }
+              } else if (mType === 'BODYWEIGHT' || mType === 'BODYWEIGHT_REPS' || mType === 'BODYWEIGHT_LOAD') {
+                prevReps += reps;
+                if (extraWeight > prevMaxWeight) prevMaxWeight = extraWeight;
+                if (!bestSet || extraWeight > (bestSet.extraWeightKg || 0) || (extraWeight === (bestSet.extraWeightKg || 0) && reps > bestSet.reps)) {
+                  bestSet = {
+                    reps,
+                    extraWeightKg: extraWeight,
+                    desc: extraWeight > 0 ? `${reps} reps (+${extraWeight} kg)` : `${reps} reps`
+                  };
+                }
+              } else if (mType === 'DURATION') {
+                prevTotalDuration += duration;
+                if (!bestSet || duration > bestSet.durationMinutes) {
+                  bestSet = { durationMinutes: duration, desc: `${duration} mins` };
+                }
               }
             }
           }
 
-          comparisons[ex._id?.toString() || ex.name] = {
-            previousDate: pastSession.date,
-            previousMaxWeight: prevMaxWeight,
-            previousTotalReps: prevReps,
-            previousVolume: prevVolume
-          };
+          if (completedSets.length > 0) {
+            comparisons[exKey] = {
+              hasRecord: true,
+              previousDate: pastSession.date,
+              previousTemplateName: pastSession.templateName || 'Workout',
+              previousTemplateId: pastSession.templateId?.toString() || null,
+              measurementType: mType,
+              previousMaxWeight: prevMaxWeight,
+              previousTotalReps: prevReps,
+              previousVolume: prevVolume,
+              previousTotalDuration: prevTotalDuration,
+              previousBestSet: bestSet?.desc || 'N/A',
+              sets: completedSets
+            };
+            continue;
+          }
         }
       }
+
+      // If no valid completed performance found in same variation
+      comparisons[exKey] = {
+        hasRecord: false,
+        message: 'First time performing this exercise in this variation',
+        sets: []
+      };
     }
 
     return comparisons;

@@ -12,6 +12,74 @@ import {
   DumbbellIcon
 } from '../../../components/common/Icons.jsx';
 
+function renderSetComparisonBadge(currentSet, prevSet, mType) {
+  if (!prevSet) return null;
+  if (mType === 'WEIGHT_REPS') {
+    const curW = Number(currentSet.weightKg) || 0;
+    const prevW = Number(prevSet.weightKg) || 0;
+    const curR = Number(currentSet.reps) || 0;
+    const prevR = Number(prevSet.reps) || 0;
+    const diffW = curW - prevW;
+    const diffR = curR - prevR;
+    if (diffW === 0 && diffR === 0) {
+      return <span className="neo-tag" style={{ fontSize: '9px', padding: '1px 3px' }} title="Identical to previous set">=</span >;
+    }
+    const parts = [];
+    if (diffW !== 0) parts.push(`${diffW > 0 ? '+' : ''}${diffW}k`);
+    if (diffR !== 0) parts.push(`${diffR > 0 ? '+' : ''}${diffR}r`);
+    const isGain = diffW > 0 || (diffW === 0 && diffR > 0);
+    return (
+      <span
+        className={`neo-tag ${isGain ? 'neo-tag--lime' : 'neo-tag--secondary'}`}
+        style={{ fontSize: '9px', padding: '1px 3px', whiteSpace: 'nowrap' }}
+        title={`Comparison with prev Set: ${parts.join(', ')}`}
+      >
+        {parts.join(' ')}
+      </span>
+    );
+  }
+  if (mType === 'BODYWEIGHT_REPS') {
+    const curR = Number(currentSet.reps) || 0;
+    const prevR = Number(prevSet.reps) || 0;
+    const curExtra = Number(currentSet.extraWeightKg) || 0;
+    const prevExtra = Number(prevSet.extraWeightKg) || 0;
+    const diffR = curR - prevR;
+    const diffE = curExtra - prevExtra;
+    if (diffR === 0 && diffE === 0) {
+      return <span className="neo-tag" style={{ fontSize: '9px', padding: '1px 3px' }} title="Identical to previous set">=</span >;
+    }
+    const parts = [];
+    if (diffR !== 0) parts.push(`${diffR > 0 ? '+' : ''}${diffR}r`);
+    if (diffE !== 0) parts.push(`${diffE > 0 ? '+' : ''}${diffE}k`);
+    const isGain = diffE > 0 || (diffE === 0 && diffR > 0);
+    return (
+      <span
+        className={`neo-tag ${isGain ? 'neo-tag--lime' : 'neo-tag--secondary'}`}
+        style={{ fontSize: '9px', padding: '1px 3px', whiteSpace: 'nowrap' }}
+        title={`Comparison with prev Set: ${parts.join(', ')}`}
+      >
+        {parts.join(' ')}
+      </span>
+    );
+  }
+  if (mType === 'DURATION') {
+    const curD = Number(currentSet.durationMinutes) || 0;
+    const prevD = Number(prevSet.durationMinutes) || 0;
+    const diff = Math.round((curD - prevD) * 10) / 10;
+    if (diff === 0) return <span className="neo-tag" style={{ fontSize: '9px', padding: '1px 3px' }}>=</span>;
+    return (
+      <span
+        className={`neo-tag ${diff > 0 ? 'neo-tag--lime' : 'neo-tag--secondary'}`}
+        style={{ fontSize: '9px', padding: '1px 3px', whiteSpace: 'nowrap' }}
+        title={`Duration compared with prev: ${diff > 0 ? '+' : ''}${diff}m`}
+      >
+        {diff > 0 ? `+${diff}m` : `${diff}m`}
+      </span>
+    );
+  }
+  return null;
+}
+
 export function ActiveWorkoutView({ session, comparisons = {}, onSave, onFinish, onDiscard, isFinished }) {
   const [bodyParts, setBodyParts] = useState(session.bodyParts || []);
   const [treadmill, setTreadmill] = useState(
@@ -452,11 +520,6 @@ export function ActiveWorkoutView({ session, comparisons = {}, onSave, onFinish,
                           <span className="neo-tag neo-tag--subtle" style={{ fontSize: '10px' }}>
                             {mType === 'DURATION' ? 'Duration' : mType === 'BODYWEIGHT_REPS' ? 'Bodyweight' : 'Weight + Reps'}
                           </span>
-                          {prev && (
-                            <span style={{ fontSize: '11px', color: '#252943', fontWeight: 700 }}>
-                              Prev: {prev.previousMaxWeight} kg max · {prev.previousTotalReps} reps
-                            </span>
-                          )}
                         </div>
 
                         {!isFinished && (
@@ -471,6 +534,59 @@ export function ActiveWorkoutView({ session, comparisons = {}, onSave, onFinish,
                           </button>
                         )}
                       </div>
+
+                      {/* Collapsible / Rich Previous Performance Record Panel */}
+                      {prev && (prev.hasRecord || prev.previousTotalReps || prev.previousMaxWeight) ? (
+                        <div
+                          style={{
+                            backgroundColor: '#F5F7FB',
+                            border: '1.5px solid #252943',
+                            borderRadius: '6px',
+                            padding: '8px 12px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '4px'
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+                            <span style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#252943' }}>
+                              Previous Record ({prev.previousSessionDate || 'Last Session'}{prev.previousTemplateName ? ` · ${prev.previousTemplateName}` : ''})
+                            </span>
+                            {prev.previousMaxWeight ? (
+                              <span className="neo-tag neo-tag--lime" style={{ fontSize: '10px', padding: '1px 6px' }}>
+                                Prev: {prev.previousMaxWeight} kg max · {prev.previousTotalReps} reps
+                              </span>
+                            ) : prev.previousBestSet ? (
+                              <span className="neo-tag neo-tag--lime" style={{ fontSize: '10px', padding: '1px 6px' }}>
+                                Best: {prev.previousBestSet.weightKg ? `${prev.previousBestSet.weightKg} kg × ` : ''}{prev.previousBestSet.reps ? `${prev.previousBestSet.reps} reps` : `${prev.previousBestSet.durationMinutes} mins`}
+                              </span>
+                            ) : null}
+                          </div>
+                          {Array.isArray(prev.sets) && prev.sets.length > 0 && (
+                            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', fontSize: '11px', color: '#252943', marginTop: '2px' }}>
+                              {prev.sets.map((ps, sidx) => (
+                                <span key={sidx} style={{ backgroundColor: '#FFFFFF', border: '1px solid #DEE0ED', borderRadius: '4px', padding: '2px 6px', fontWeight: 600 }}>
+                                  S{ps.setNumber || sidx + 1}: {ps.weightKg ? `${ps.weightKg}kg × ` : ''}{ps.reps ? `${ps.reps}r` : `${ps.durationMinutes}m`}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div
+                          style={{
+                            backgroundColor: '#FFFFFF',
+                            border: '1.5px dashed #252943',
+                            borderRadius: '6px',
+                            padding: '6px 12px',
+                            fontSize: '11px',
+                            color: 'rgba(37, 41, 67, 0.7)',
+                            fontWeight: 600
+                          }}
+                        >
+                          No Previous Record — First time performing this exercise.
+                        </div>
+                      )}
 
                       {/* Set Column Headers: exactly matching set row CSS grid */}
                       {mType === 'WEIGHT_REPS' && (
@@ -520,7 +636,10 @@ export function ActiveWorkoutView({ session, comparisons = {}, onSave, onFinish,
                                 : undefined
                             }
                           >
-                            <span className="gymflow-set-row__num">{s.setNumber}</span>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                              <span className="gymflow-set-row__num">{s.setNumber}</span>
+                              {renderSetComparisonBadge(s, prev?.sets?.[sIdx], mType)}
+                            </div>
 
                             {/* WEIGHT_REPS Inputs */}
                             {mType === 'WEIGHT_REPS' && (

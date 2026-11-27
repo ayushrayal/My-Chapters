@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { StatCard } from './common/StatCard.jsx';
 import { Chip } from './common/Chip.jsx';
 import { EmptyState } from './common/EmptyState.jsx';
@@ -21,12 +21,21 @@ import {
 
 export function GymAnalyticsView({ analytics, templates = [], onRefresh }) {
   const [range, setRange] = useState('30d');
+  const [sessionCountFilter, setSessionCountFilter] = useState('ALL');
+  const [selectedParent, setSelectedParent] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState('');
   const [selectedBodyPart, setSelectedBodyPart] = useState('');
   const [selectedExercise, setSelectedExercise] = useState('');
   const [hoveredPoint, setHoveredPoint] = useState(null);
   const [selectedPoint, setSelectedPoint] = useState(null);
   const [showAllExercises, setShowAllExercises] = useState(false);
+  const activeDetailRef = useRef(null);
+
+  useEffect(() => {
+    if (selectedPoint && activeDetailRef.current) {
+      activeDetailRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [selectedPoint]);
 
   // Sync refresh on filter changes
   useEffect(() => {
@@ -42,11 +51,13 @@ export function GymAnalyticsView({ analytics, templates = [], onRefresh }) {
     onRefresh({
       startDate: start,
       endDate: end,
+      parentWorkoutName: selectedParent || undefined,
       templateId: selectedTemplate || undefined,
       bodyPart: selectedBodyPart || undefined,
-      exerciseName: selectedExercise || undefined
+      exerciseName: selectedExercise || undefined,
+      sessionCount: sessionCountFilter !== 'ALL' ? Number(sessionCountFilter) : undefined
     });
-  }, [range, selectedTemplate, selectedBodyPart, selectedExercise, onRefresh]);
+  }, [range, sessionCountFilter, selectedParent, selectedTemplate, selectedBodyPart, selectedExercise, onRefresh]);
 
   const overall = analytics?.overall || {};
   const treadmill = analytics?.treadmill || {};
@@ -58,12 +69,14 @@ export function GymAnalyticsView({ analytics, templates = [], onRefresh }) {
   const maxVolume = dailyVolumeTrend.reduce((max, d) => Math.max(max, d.volume || 0), 0) || 1;
   const bestDay = dailyVolumeTrend.reduce((best, cur) => (cur.volume > (best?.volume || 0) ? cur : best), null);
 
-  const activeFiltersCount = [selectedTemplate, selectedBodyPart, selectedExercise].filter(Boolean).length;
+  const activeFiltersCount = [selectedParent, selectedTemplate, selectedBodyPart, selectedExercise].filter(Boolean).length;
 
   const handleClearFilters = () => {
+    setSelectedParent('');
     setSelectedTemplate('');
     setSelectedBodyPart('');
     setSelectedExercise('');
+    setSessionCountFilter('ALL');
   };
 
   const maxRoutineVol = templatesBreakdown.reduce((max, t) => Math.max(max, t.totalVolume || 0), 0) || 1;
@@ -79,7 +92,66 @@ export function GymAnalyticsView({ analytics, templates = [], onRefresh }) {
     ? templates.templates
     : [];
 
+  // Build Parent Options safely with stable IDs and variations
+  const parentMap = new Map();
+
+  (filterOptions.parents || []).forEach((p, idx) => {
+    if (typeof p === 'string') {
+      const trimmed = p.trim();
+      if (trimmed && !parentMap.has(trimmed)) {
+        parentMap.set(trimmed, {
+          id: trimmed,
+          value: trimmed,
+          label: trimmed,
+          variations: []
+        });
+      }
+    } else if (p && typeof p === 'object') {
+      const name = (p.name || p.label || p.title || '').trim();
+      if (name && !parentMap.has(name)) {
+        const id = p.id || p._id || p.value || name;
+        parentMap.set(name, {
+          id: String(id),
+          value: name,
+          label: name,
+          variations: Array.isArray(p.variations) ? p.variations : []
+        });
+      }
+    }
+  });
+
+  // Also harvest from user templateList if any templates have parentWorkoutName
+  templateList.forEach((t) => {
+    const pName = (t.parentWorkoutName || '').trim();
+    if (pName) {
+      if (!parentMap.has(pName)) {
+        parentMap.set(pName, {
+          id: pName,
+          value: pName,
+          label: pName,
+          variations: []
+        });
+      }
+      const existing = parentMap.get(pName);
+      const tName = (t.name || t.title || '').trim();
+      if (tName && !existing.variations.some((v) => (v.name || v.label) === tName)) {
+        existing.variations.push({
+          id: String(t._id || t.id || tName),
+          name: tName
+        });
+      }
+    }
+  });
+
+  const parentOptions = Array.from(parentMap.values());
+
   // 1. Gather all routine options from backend filterOptions, templates prop, and breakdown
+  const activeParentObj = selectedParent
+    ? parentOptions.find(
+        (p) => p.value === selectedParent || p.label === selectedParent || p.id === selectedParent
+      )
+    : null;
+
   const routineNamesSet = new Set();
 
   const addValidRoutine = (item) => {
@@ -99,10 +171,22 @@ export function GymAnalyticsView({ analytics, templates = [], onRefresh }) {
     templatesBreakdown.forEach(addValidRoutine);
   }
 
-  const routineOptions = Array.from(routineNamesSet).sort().map((name) => ({
-    value: name,
-    label: name
-  }));
+  // If a parent is selected and has variations, restrict routine options to those variations
+  const routineOptions = (activeParentObj && activeParentObj.variations?.length > 0)
+    ? activeParentObj.variations.map((v) => {
+        const name = typeof v === 'string' ? v : v.name || v.label || v.title || v.id;
+        const id = (typeof v === 'object' && (v.id || v._id || v.value)) || name;
+        return {
+          id: String(id),
+          value: String(name),
+          label: String(name)
+        };
+      })
+    : Array.from(routineNamesSet).sort().map((name) => ({
+        id: name,
+        value: name,
+        label: name
+      }));
 
   // 2. Cascading Body Parts
   let availableBodyParts = [];
@@ -132,7 +216,7 @@ export function GymAnalyticsView({ analytics, templates = [], onRefresh }) {
   const bodyPartOptions = availableBodyParts
     .map((bp) => (typeof bp === 'string' ? bp : bp.name || bp.id))
     .filter(Boolean)
-    .map((name) => ({ value: name, label: name }));
+    .map((name) => ({ id: name, value: name, label: name }));
 
   // 3. Cascading Exercises
   let availableExercises = [];
@@ -169,12 +253,29 @@ export function GymAnalyticsView({ analytics, templates = [], onRefresh }) {
   const exerciseOptions = availableExercises
     .map((ex) => (typeof ex === 'string' ? ex : ex.name || ex.id))
     .filter(Boolean)
-    .map((name) => ({ value: name, label: name }));
+    .map((name) => ({ id: name, value: name, label: name }));
+
+  const handleParentChange = (val) => {
+    const norm = typeof val === 'object' && val !== null ? val.value || val.name || val.id || '' : (val || '');
+    setSelectedParent(norm);
+    if (norm) {
+      const pObj = parentOptions.find((p) => p.value === norm || p.label === norm || p.id === norm);
+      if (pObj && pObj.variations?.length > 0) {
+        const hasCurrentTpl = pObj.variations.some(
+          (v) => (v.name || v.label || v.id) === selectedTemplate
+        );
+        if (!hasCurrentTpl) {
+          setSelectedTemplate('');
+        }
+      }
+    }
+  };
 
   const handleTemplateChange = (val) => {
-    setSelectedTemplate(val);
-    if (val && filterOptions.bodyPartsByRoutine?.[val]) {
-      const allowed = filterOptions.bodyPartsByRoutine[val];
+    const norm = typeof val === 'object' && val !== null ? val.value || val.name || val.id || '' : (val || '');
+    setSelectedTemplate(norm);
+    if (norm && filterOptions.bodyPartsByRoutine?.[norm]) {
+      const allowed = filterOptions.bodyPartsByRoutine[norm];
       if (selectedBodyPart && !allowed.includes(selectedBodyPart)) {
         setSelectedBodyPart('');
         setSelectedExercise('');
@@ -183,9 +284,10 @@ export function GymAnalyticsView({ analytics, templates = [], onRefresh }) {
   };
 
   const handleBodyPartChange = (val) => {
-    setSelectedBodyPart(val);
-    if (val && filterOptions.exercisesByBodyPart?.[val]) {
-      const allowed = filterOptions.exercisesByBodyPart[val];
+    const norm = typeof val === 'object' && val !== null ? val.value || val.name || val.id || '' : (val || '');
+    setSelectedBodyPart(norm);
+    if (norm && filterOptions.exercisesByBodyPart?.[norm]) {
+      const allowed = filterOptions.exercisesByBodyPart[norm];
       if (selectedExercise && !allowed.includes(selectedExercise)) {
         setSelectedExercise('');
       }
@@ -193,7 +295,8 @@ export function GymAnalyticsView({ analytics, templates = [], onRefresh }) {
   };
 
   const handleExerciseChange = (val) => {
-    setSelectedExercise(val);
+    const norm = typeof val === 'object' && val !== null ? val.value || val.name || val.id || '' : (val || '');
+    setSelectedExercise(norm);
   };
 
   const [exerciseModalityFilter, setExerciseModalityFilter] = useState('ALL');
@@ -249,18 +352,30 @@ export function GymAnalyticsView({ analytics, templates = [], onRefresh }) {
         <FilterBar
           className="gymflow-analytics-controls__filters"
           appliedChips={[
+            selectedParent ? { id: 'parent', label: `Parent: ${selectedParent}`, onRemove: () => handleParentChange('') } : null,
             selectedTemplate ? { id: 'template', label: `Routine: ${selectedTemplate}`, onRemove: () => handleTemplateChange('') } : null,
             selectedBodyPart ? { id: 'bodyPart', label: `Body Part: ${selectedBodyPart}`, onRemove: () => handleBodyPartChange('') } : null,
             selectedExercise ? { id: 'exercise', label: `Exercise: ${selectedExercise}`, onRemove: () => handleExerciseChange('') } : null
           ].filter(Boolean)}
           onClearAll={handleClearFilters}
         >
+          {parentOptions.length > 0 && (
+            <FilterSelect
+              label="Parent"
+              value={selectedParent}
+              onChange={handleParentChange}
+              placeholder="All Parents"
+              options={parentOptions}
+              allowClear
+            />
+          )}
           <FilterSelect
             label="Routine"
             value={selectedTemplate}
             onChange={handleTemplateChange}
             placeholder="All Routines"
             options={routineOptions}
+            allowClear
           />
           <FilterSelect
             label="Body Part"
@@ -268,6 +383,7 @@ export function GymAnalyticsView({ analytics, templates = [], onRefresh }) {
             onChange={handleBodyPartChange}
             placeholder="All Body Parts"
             options={bodyPartOptions}
+            allowClear
           />
           <FilterSelect
             label="Exercise"
@@ -275,8 +391,27 @@ export function GymAnalyticsView({ analytics, templates = [], onRefresh }) {
             onChange={handleExerciseChange}
             placeholder="All Exercises"
             options={exerciseOptions}
+            allowClear
           />
         </FilterBar>
+      </div>
+
+      {/* Completed Session History Filter Chips */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+        <span style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', color: '#252943', letterSpacing: '0.04em' }}>
+          Completed Sessions:
+        </span>
+        {['ALL', '2', '3', '5', '7', '14', '30'].map((sc) => (
+          <button
+            key={sc}
+            type="button"
+            className={`neo-tag ${sessionCountFilter === sc ? 'neo-tag--lime' : 'neo-tag--subtle'}`}
+            style={{ cursor: 'pointer', border: '1.5px solid #252943' }}
+            onClick={() => setSessionCountFilter(sc)}
+          >
+            {sc === 'ALL' ? 'All Sessions' : `Last ${sc}`}
+          </button>
+        ))}
       </div>
 
       {/* 2. KPI Grid (4 columns desktop, 2x2 mobile) */}
@@ -447,7 +582,7 @@ export function GymAnalyticsView({ analytics, templates = [], onRefresh }) {
 
                 {/* Dedicated Session Details Inspector Card */}
                 {activePoint && (
-                  <div className="gymflow-chart-active-detail">
+                  <div ref={activeDetailRef} className="gymflow-chart-active-detail">
                     <div className="gymflow-chart-active-detail__header">
                       <div className="gymflow-chart-active-detail__date-row">
                         <span className="gymflow-chart-active-detail__date">
@@ -769,6 +904,66 @@ export function GymAnalyticsView({ analytics, templates = [], onRefresh }) {
           </div>
         </div>
       </WindowCard>
+
+      {/* 7. Detailed Historical Session Progression Table */}
+      {Array.isArray(analytics?.detailedSessionTable) && analytics.detailedSessionTable.length > 0 && (
+        <WindowCard title="Session History & Set Log">
+          <p style={{ margin: '0 0 12px', fontSize: '13px', color: 'rgba(37, 41, 67, 0.65)', fontWeight: 600 }}>
+            Set-by-set breakdown across completed workouts
+          </p>
+          <div style={{ overflowX: 'auto', width: '100%', WebkitOverflowScrolling: 'touch' }}>
+            <table
+              style={{
+                width: '100%',
+                borderCollapse: 'collapse',
+                fontSize: '13px',
+                textAlign: 'left',
+                border: '2px solid #252943',
+                backgroundColor: '#FFFFFF',
+                borderRadius: '6px'
+              }}
+            >
+              <thead>
+                <tr style={{ backgroundColor: '#252943', color: '#FFFFFF', fontSize: '11px', textTransform: 'uppercase' }}>
+                  <th style={{ padding: '8px 12px', letterSpacing: '0.04em' }}>Date</th>
+                  <th style={{ padding: '8px 12px', letterSpacing: '0.04em' }}>Variation / Routine</th>
+                  <th style={{ padding: '8px 12px', letterSpacing: '0.04em' }}>Exercise</th>
+                  <th style={{ padding: '8px 12px', letterSpacing: '0.04em', textAlign: 'center' }}>Set</th>
+                  <th style={{ padding: '8px 12px', letterSpacing: '0.04em' }}>Performance</th>
+                  <th style={{ padding: '8px 12px', letterSpacing: '0.04em', textAlign: 'center' }}>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {analytics.detailedSessionTable.slice(0, 50).map((row, rIdx) => (
+                  <tr
+                    key={rIdx}
+                    style={{
+                      borderBottom: '1.5px solid #DEE0ED',
+                      backgroundColor: rIdx % 2 === 0 ? '#FFFFFF' : '#F5F7FB'
+                    }}
+                  >
+                    <td style={{ padding: '8px 12px', fontWeight: 700, whiteSpace: 'nowrap' }}>{row.date}</td>
+                    <td style={{ padding: '8px 12px', fontWeight: 600 }}>{row.templateName || '—'}</td>
+                    <td style={{ padding: '8px 12px', fontWeight: 700, color: '#252943' }}>{row.exerciseName}</td>
+                    <td style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 800 }}>S{row.setNumber}</td>
+                    <td style={{ padding: '8px 12px', fontWeight: 700 }}>
+                      {row.weightKg ? `${row.weightKg} kg × ${row.reps} reps` : row.reps ? `${row.reps} reps` : row.durationMinutes ? `${row.durationMinutes} mins` : '—'}
+                    </td>
+                    <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                      <span
+                        className={`neo-tag ${row.status === 'COMPLETED' ? 'neo-tag--lime' : 'neo-tag--subtle'}`}
+                        style={{ fontSize: '10px', padding: '1px 6px' }}
+                      >
+                        {row.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </WindowCard>
+      )}
     </div>
   );
 }

@@ -1682,11 +1682,13 @@
   &__nav {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     gap: 12px;
+    width: 100%;
     min-width: 0;
 
     @include respond-to('tablet') {
+      width: auto;
       justify-content: flex-start;
       gap: 16px;
     }
@@ -1730,11 +1732,18 @@
     gap: 4px;
     min-width: 0;
     text-align: center;
+    flex: 1;
+
+    @include respond-to('tablet') {
+      flex: 0 0 auto;
+      align-items: flex-start;
+      text-align: left;
+    }
   }
 
   &__date-text {
     font-family: $font-family-heading;
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 800;
     color: $color-deep-navy;
     margin: 0;
@@ -1753,6 +1762,10 @@
     justify-content: center;
     gap: 6px;
     flex-wrap: wrap;
+
+    @include respond-to('tablet') {
+      justify-content: flex-start;
+    }
 
     .neo-tag {
       font-size: 11px;
@@ -1797,7 +1810,13 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    flex-shrink: 0;
+    width: 100%;
+    box-sizing: border-box;
+
+    @include respond-to('tablet') {
+      width: auto;
+      flex-shrink: 0;
+    }
   }
 
   &__actions-desktop {
@@ -1813,8 +1832,10 @@
   &__actions-mobile {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 10px;
     width: 100%;
+    box-sizing: border-box;
 
     @include respond-to('tablet') {
       display: none;
@@ -1833,12 +1854,15 @@
     border-radius: $radius-6;
     border: $border-navy;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 12px;
+    box-sizing: border-box;
   }
 
   &__overflow-wrap {
     position: relative;
     flex-shrink: 0;
-    margin-left: auto;
   }
 
   &__overflow-btn {
@@ -1901,6 +1925,38 @@
 
     &:hover {
       background-color: $color-accent-lime;
+    }
+  }
+}
+
+.dayflow-task-menu-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: $color-deep-navy;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: left;
+  white-space: nowrap;
+  box-sizing: border-box;
+  transition: background-color $transition-fast, color $transition-fast;
+
+  &:hover {
+    background-color: $color-accent-lime;
+    color: $color-deep-navy;
+  }
+
+  &--danger {
+    color: $color-error-red;
+
+    &:hover {
+      background-color: $color-error-red;
+      color: $color-white;
     }
   }
 }
@@ -5744,10 +5800,10 @@
 
       &__top {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: space-between;
         width: 100%;
-        gap: 8px;
+        gap: 12px;
       }
 
       &__info {
@@ -5756,10 +5812,12 @@
       }
 
       &__label {
-        font-size: 13px;
-        letter-spacing: 0;
-        white-space: nowrap;
+        font-size: 12px;
+        letter-spacing: 0.04em;
+        white-space: normal;
+        word-break: break-word;
         display: block;
+        line-height: 1.25;
       }
 
       &__label--desktop {
@@ -5771,17 +5829,17 @@
       }
 
       &__value {
-        font-size: 32px;
+        font-size: 30px;
         line-height: 1.1;
         margin-top: 4px;
       }
 
       &__ring-wrap {
         position: relative;
-        width: 56px;
-        height: 56px;
+        width: 48px;
+        height: 48px;
         flex-shrink: 0;
-        margin-right: -4px;
+        margin-right: 0;
       }
 
       &__subtext {
@@ -5852,10 +5910,10 @@
 
     &__info {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
+      flex-direction: column;
+      align-items: flex-start;
       width: 100%;
-      gap: 8px;
+      gap: 4px;
     }
 
     &__name {
@@ -5864,12 +5922,16 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      width: 100%;
     }
 
     &__meta {
       font-size: 12px;
       color: rgba(37, 41, 67, 0.6);
-      white-space: nowrap;
+      white-space: normal;
+      word-break: break-word;
+      line-height: 1.35;
+      width: 100%;
     }
 
     &__progress-group {

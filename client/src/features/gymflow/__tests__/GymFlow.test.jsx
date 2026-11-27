@@ -107,6 +107,7 @@ describe('GymFlow Page Component & New Feature Suite', () => {
       session: mockSession,
       dayAssignment: { templateId: { name: 'Push Day' } },
       templates: mockTemplates,
+      parentWorkouts: [],
       weeklySchedule: mockWeeklySchedule,
       comparisons: {
         'ex-1': { previousDate: '2026-11-20', previousMaxWeight: 85, previousTotalReps: 22, previousVolume: 1800 }

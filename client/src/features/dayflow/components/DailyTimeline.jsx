@@ -398,27 +398,28 @@ export function DailyTimeline({
 
                                 {isMenuOpen && (
                                   <div
+                                    className="dayflow-task-card__dropdown-menu"
                                     style={{
                                       position: 'absolute',
                                       right: 0,
-                                      top: '36px',
+                                      top: '38px',
                                       backgroundColor: '#FFFFFF',
                                       border: '2px solid #252943',
                                       borderRadius: '6px',
-                                      boxShadow: '4px 4px 0 #252943',
+                                      boxShadow: '3px 3px 0 #252943',
                                       zIndex: 100,
-                                      minWidth: '160px',
+                                      minWidth: '150px',
                                       padding: '4px',
                                       display: 'flex',
                                       flexDirection: 'column',
-                                      gap: '2px'
+                                      gap: '2px',
+                                      boxSizing: 'border-box'
                                     }}
                                   >
                                     {(isCompleted || isSkipped) && (
                                       <button
                                         type="button"
-                                        className="btn btn--sm btn--secondary"
-                                        style={{ justifyContent: 'flex-start', border: 'none', boxShadow: 'none' }}
+                                        className="dayflow-task-menu-item"
                                         onClick={() => {
                                           setActiveMenuTaskId(null);
                                           onRevertTaskToPending && onRevertTaskToPending(taskId);
@@ -429,8 +430,7 @@ export function DailyTimeline({
                                     )}
                                     <button
                                       type="button"
-                                      className="btn btn--sm btn--secondary"
-                                      style={{ justifyContent: 'flex-start', border: 'none', boxShadow: 'none' }}
+                                      className="dayflow-task-menu-item"
                                       onClick={() => {
                                         setActiveMenuTaskId(null);
                                         onOpenTaskModal(task, bId);
@@ -440,8 +440,7 @@ export function DailyTimeline({
                                     </button>
                                     <button
                                       type="button"
-                                      className="btn btn--sm btn--danger"
-                                      style={{ justifyContent: 'flex-start', border: 'none', boxShadow: 'none' }}
+                                      className="dayflow-task-menu-item dayflow-task-menu-item--danger"
                                       onClick={() => {
                                         setActiveMenuTaskId(null);
                                         onDeleteTask(taskId);

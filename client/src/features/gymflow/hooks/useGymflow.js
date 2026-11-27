@@ -34,6 +34,18 @@ export function useGymflow() {
     queryClient
   );
 
+  // 1b. Parent Workouts Query
+  const {
+    data: parentWorkouts = []
+  } = useQuery(
+    {
+      queryKey: ['gymflow', 'parentWorkouts', spaceId],
+      queryFn: () => gymflowApi.getParentWorkouts(),
+      staleTime: 5 * 60 * 1000
+    },
+    queryClient
+  );
+
   // 2. Weekly Schedule Query (5-minute stale time)
   const {
     data: weeklySchedule = null
@@ -79,13 +91,15 @@ export function useGymflow() {
     return list;
   }, [session]);
 
+  const sessionTemplateId = session?.templateId?._id || session?.templateId || undefined;
+
   // 4. Comparisons Query
   const {
     data: comparisons = {}
   } = useQuery(
     {
       queryKey: queryKeys.gymflow.comparisons(spaceId, selectedDate),
-      queryFn: () => gymflowApi.getComparisons(selectedDate, exercisesForComparisons),
+      queryFn: () => gymflowApi.getComparisons(selectedDate, exercisesForComparisons, sessionTemplateId),
       enabled: Boolean(selectedDate && exercisesForComparisons.length > 0),
       staleTime: 60 * 1000
     },
@@ -280,6 +294,32 @@ export function useGymflow() {
     }
   };
 
+  const pauseExercise = async (templateId, exerciseId, payload) => {
+    try {
+      const res = await gymflowApi.pauseExercise(templateId, exerciseId, payload);
+      queryClient.invalidateQueries({ queryKey: queryKeys.gymflow.templates(spaceId) });
+      showToast('Exercise paused', 'success');
+      return res;
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to pause exercise';
+      showToast(msg, 'error');
+      throw err;
+    }
+  };
+
+  const resumeExercise = async (templateId, exerciseId, payload) => {
+    try {
+      const res = await gymflowApi.resumeExercise(templateId, exerciseId, payload);
+      queryClient.invalidateQueries({ queryKey: queryKeys.gymflow.templates(spaceId) });
+      showToast('Exercise resumed', 'success');
+      return res;
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to resume exercise';
+      showToast(msg, 'error');
+      throw err;
+    }
+  };
+
   const error = sessionQueryError?.response?.data?.message || sessionQueryError?.message || null;
 
   return {
@@ -288,6 +328,7 @@ export function useGymflow() {
     session,
     dayAssignment,
     templates,
+    parentWorkouts,
     weeklySchedule,
     comparisons,
     analytics,
@@ -306,6 +347,8 @@ export function useGymflow() {
     removeRestDay,
     saveTemplate,
     deleteTemplate,
+    pauseExercise,
+    resumeExercise,
     updateWeeklyScheduleDays,
     fetchAnalytics,
     spaceId,

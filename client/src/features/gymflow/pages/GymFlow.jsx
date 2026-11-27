@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useGymflow } from '../hooks/useGymflow.js';
 import { PageContainer } from '../../../components/common/PageContainer.jsx';
 import { WindowCard } from '../../../components/common/WindowCard.jsx';
@@ -34,6 +34,7 @@ export function GymFlow() {
     session,
     dayAssignment,
     templates,
+    parentWorkouts,
     weeklySchedule,
     comparisons,
     analytics,
@@ -58,6 +59,14 @@ export function GymFlow() {
 
   const [activeTab, setActiveTab] = useState('workout'); // 'workout', 'templates', 'schedule', 'analytics'
   const [selectedTemplateToStart, setSelectedTemplateToStart] = useState('');
+
+  // Auto-populate assigned workout template when available and no workout is in progress
+  useEffect(() => {
+    if (!session && dayAssignment?.templateId) {
+      const assignedId = dayAssignment.templateId._id || dayAssignment.templateId;
+      setSelectedTemplateToStart(String(assignedId));
+    }
+  }, [dayAssignment, session]);
 
   // Modals
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
@@ -255,6 +264,61 @@ export function GymFlow() {
                         }))}
                         ariaLabel="Select workout template"
                       />
+
+                      {/* Preloaded Template Routine Preview */}
+                      {(() => {
+                        const preloaded = templates.find((t) => (t._id || t.id) === selectedTemplateToStart);
+                        if (!preloaded) return null;
+                        const totalExercises = (preloaded.bodyParts || []).reduce(
+                          (acc, bp) => acc + (bp.exercises?.length || 0),
+                          0
+                        );
+                        return (
+                          <div
+                            style={{
+                              backgroundColor: '#F5F7FB',
+                              border: '2px solid #252943',
+                              borderRadius: '6px',
+                              padding: '12px 14px',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '8px'
+                            }}
+                          >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ fontSize: '13px', fontWeight: 800, color: '#252943' }}>
+                                Preloaded Routine: {preloaded.name}
+                              </span>
+                              {preloaded.parentWorkoutName && (
+                                <span className="neo-tag neo-tag--lime" style={{ fontSize: '10px' }}>
+                                  Parent: {preloaded.parentWorkoutName}
+                                </span>
+                              )}
+                            </div>
+                            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                              {(preloaded.bodyParts || []).map((bp) => (
+                                <span
+                                  key={bp.name}
+                                  style={{
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    padding: '2px 8px',
+                                    backgroundColor: '#FFFFFF',
+                                    border: '1.5px solid #252943',
+                                    borderRadius: '4px',
+                                    color: '#252943'
+                                  }}
+                                >
+                                  {bp.name} ({bp.exercises?.length || 0} ex)
+                                </span>
+                              ))}
+                            </div>
+                            <span style={{ fontSize: '12px', color: 'rgba(37, 41, 67, 0.7)', fontWeight: 600 }}>
+                              {totalExercises} planned exercises ready to log
+                            </span>
+                          </div>
+                        );
+                      })()}
 
                       <button
                         type="button"
@@ -540,6 +604,7 @@ export function GymFlow() {
           key={isTemplateModalOpen ? (editingTemplate?._id || editingTemplate?.id || 'new-template') : 'closed'}
           isOpen={isTemplateModalOpen}
           template={editingTemplate}
+          parentWorkouts={parentWorkouts}
           onClose={() => {
             setIsTemplateModalOpen(false);
             setEditingTemplate(null);

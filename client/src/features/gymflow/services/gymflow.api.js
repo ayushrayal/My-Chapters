@@ -7,6 +7,11 @@ export const gymflowApi = {
     return res.data?.data?.templates || [];
   },
 
+  async getParentWorkouts() {
+    const res = await api.get('/gymflow/templates/parents');
+    return res.data?.data?.parents || [];
+  },
+
   async getTemplateById(id) {
     const res = await api.get(`/gymflow/templates/${id}`);
     return res.data?.data?.template;
@@ -24,6 +29,16 @@ export const gymflowApi = {
 
   async deleteTemplate(id) {
     const res = await api.delete(`/gymflow/templates/${id}`);
+    return res.data?.data?.template;
+  },
+
+  async pauseExercise(templateId, exerciseId, payload) {
+    const res = await api.post(`/gymflow/templates/${templateId}/exercises/${exerciseId}/pause`, payload);
+    return res.data?.data?.template;
+  },
+
+  async resumeExercise(templateId, exerciseId, payload) {
+    const res = await api.post(`/gymflow/templates/${templateId}/exercises/${exerciseId}/resume`, payload);
     return res.data?.data?.template;
   },
 
@@ -81,8 +96,8 @@ export const gymflowApi = {
     return res.data?.data?.session;
   },
 
-  async getComparisons(date, exercises) {
-    const res = await api.post(`/gymflow/workout/${date}/comparisons`, { exercises });
+  async getComparisons(date, exercises, templateId) {
+    const res = await api.post(`/gymflow/workout/${date}/comparisons`, { exercises, templateId });
     return res.data?.data?.comparisons || {};
   },
 

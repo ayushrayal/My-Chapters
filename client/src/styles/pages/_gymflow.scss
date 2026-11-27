@@ -1740,10 +1740,10 @@
 
   // LEFT COLUMN: Tall/Square Day Tile (THU, MON, etc.)
   &__tile {
-    width: 48px;
-    height: 48px;
-    min-width: 48px;
-    min-height: 48px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
     background-color: $color-canvas;
     border: $border-navy;
     border-radius: $radius-8;
@@ -1765,7 +1765,7 @@
     flex-direction: column;
     align-items: flex-start;
     justify-content: center;
-    gap: 6px;
+    gap: 8px;
     flex: 1;
     min-width: 0;
   }
@@ -2047,6 +2047,7 @@
       width: 100%;
     }
 
+    .filter-bar__controls,
     .filter-bar__desktop-row {
       width: 100%;
       min-width: 0;
@@ -2644,13 +2645,15 @@
 
   &__name {
     font-family: $font-family-heading;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 800;
     color: $color-deep-navy;
     margin: 0;
     line-height: 1.25;
-    overflow-wrap: break-word;
-    word-break: normal;
+    overflow-wrap: normal;
+    word-break: keep-all;
+    hyphens: none;
+    letter-spacing: -0.01em;
   }
 
   &__sessions {
