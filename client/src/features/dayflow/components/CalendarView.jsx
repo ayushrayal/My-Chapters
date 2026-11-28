@@ -4,6 +4,10 @@ import {
   ChevronRightIcon,
   MoonIcon
 } from '../../../components/common/Icons.jsx';
+import {
+  getLocalDateString,
+  parseLocalDate
+} from '../../../utils/date-utils.js';
 
 /**
  * CalendarView
@@ -19,7 +23,7 @@ export function CalendarView({
   fetchOverview
 }) {
   const [currentYearMonth, setCurrentYearMonth] = useState(() => {
-    const d = new Date(selectedDate || Date.now());
+    const d = selectedDate ? parseLocalDate(selectedDate) : new Date();
     return { year: d.getFullYear(), month: d.getMonth() };
   });
   const [overviewMap, setOverviewMap] = useState({});
@@ -28,11 +32,7 @@ export function CalendarView({
   const { year, month } = currentYearMonth;
 
   // Format today's date string YYYY-MM-DD
-  const todayStr = (() => {
-    const d = new Date();
-    const pad = (n) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-  })();
+  const todayStr = getLocalDateString();
 
   useEffect(() => {
     let isCancelled = false;

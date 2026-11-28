@@ -345,7 +345,16 @@ export class DayflowScheduleService {
         throw AppError.badRequest(`Cannot apply template to a finished day (${d})`);
       }
 
-      if (existing && !overwrite) {
+      const hasActualContent = Boolean(
+        existing && (
+          existing.isRestDay ||
+          (existing.blocks && existing.blocks.length > 0) ||
+          (existing.tasks && existing.tasks.length > 0) ||
+          existing.templateId
+        )
+      );
+
+      if (hasActualContent && !overwrite) {
         throw AppError.conflict(
           `A schedule already exists for ${d}. Please confirm overwrite to replace it.`
         );

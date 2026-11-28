@@ -3,6 +3,10 @@ import {
   CloseIcon,
   PlusIcon
 } from '../../../components/common/Icons.jsx';
+import {
+  getLocalDateString,
+  getDateRangeArray
+} from '../../../utils/date-utils.js';
 
 export function ApplyTemplateModal({
   isOpen,
@@ -17,29 +21,28 @@ export function ApplyTemplateModal({
   // Map of blockId -> Array of task items: [{ id: string, title: string }]
   const [blockTasks, setBlockTasks] = useState({});
   const [error, setError] = useState('');
+  const [showOverwriteConfirm, setShowOverwriteConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    // Default to tomorrow or currentDate
-    if (currentDate) {
-      const d = new Date(currentDate);
-      d.setDate(d.getDate() + 1);
-      const tomorrow = d.toISOString().split('T')[0];
-      setTargetDate(tomorrow);
-      setEndDate(tomorrow);
-    }
+    // Default to the user's currently selected date (or local today)
+    const initialDate = currentDate || getLocalDateString();
+    setTargetDate(initialDate);
+    setEndDate(initialDate);
+    setApplyRange(false);
+    setShowOverwriteConfirm(false);
+    setError('');
 
     if (template && template.blocks) {
       const initialMap = {};
       template.blocks.forEach((b) => {
-        const bId = b._id || b.id;
+        const bId = (b._id || b.id)?.toString();
         initialMap[bId] = b.tasksRequired
           ? [{ id: Math.random().toString(), title: '' }]
           : [];
       });
       setBlockTasks(initialMap);
     }
-    setError('');
   }, [template, currentDate, isOpen]);
 
   if (!isOpen || !template) return null;
@@ -70,8 +73,19 @@ export function ApplyTemplateModal({
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleTargetDateChange = (newDate) => {
+    setTargetDate(newDate);
+    setShowOverwriteConfirm(false);
+    setError('');
+    if (!endDate || endDate < newDate) {
+      setEndDate(newDate);
+    }
+  };
+
+  const handleSubmit = async (e, forceOverwrite = false) => {
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    }
     setError('');
 
     if (!targetDate) {
@@ -86,7 +100,7 @@ export function ApplyTemplateModal({
 
     // Verify all mandatory blocks have at least one non-empty task
     for (const b of mandatoryBlocks) {
-      const bId = b._id || b.id;
+      const bId = (b._id || b.id)?.toString();
       const tasksForBlock = (blockTasks[bId] || []).filter((t) => t.title && t.title.trim().length > 0);
       if (tasksForBlock.length === 0) {
         setError(`Block "${b.name}" requires at least one task before the template can be applied.`);
@@ -114,17 +128,28 @@ export function ApplyTemplateModal({
         throw new Error('Apply action handler is not available.');
       }
 
+      const targetDates = applyRange && endDate && endDate >= targetDate
+        ? getDateRangeArray(targetDate, endDate)
+        : [targetDate];
+
       await onApply({
         templateId: template._id || template.id,
         targetDate,
+        targetDates,
         applyRange,
         endDate: applyRange ? endDate : undefined,
+        overwrite: forceOverwrite,
         tasks: tasksToSeed
       });
 
+      setShowOverwriteConfirm(false);
       onClose();
     } catch (err) {
+      const status = err.response?.status || err.status || err.statusCode;
       const msg = err.response?.data?.message || err.message || 'Failed to apply template.';
+      if (status === 409 || /already exists/i.test(msg) || /confirm overwrite/i.test(msg)) {
+        setShowOverwriteConfirm(true);
+      }
       setError(msg);
     } finally {
       setIsSubmitting(false);
@@ -148,13 +173,52 @@ export function ApplyTemplateModal({
           </button>
         </div>
 
-        {error && (
+        {error && !showOverwriteConfirm && (
           <div className="dayflow-banner dayflow-banner--error" role="alert">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="dayflow-modal-form">
+        {showOverwriteConfirm && (
+          <div
+            className="dayflow-banner dayflow-banner--warning"
+            role="alert"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px',
+              backgroundColor: '#FEF3C7',
+              borderColor: '#252943'
+            }}
+          >
+            <p style={{ margin: 0, fontWeight: 800, color: '#252943' }}>
+              ⚠️ A schedule already exists for {targetDate}.
+            </p>
+            <p style={{ margin: 0, fontSize: '13px', color: '#252943' }}>
+              Confirming overwrite will replace this day's routine and tasks with the template.
+            </p>
+            <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="btn btn--primary btn--sm"
+                onClick={() => handleSubmit(null, true)}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Replacing...' : 'Confirm Overwrite & Apply'}
+              </button>
+              <button
+                type="button"
+                className="btn btn--secondary btn--sm"
+                onClick={() => setShowOverwriteConfirm(false)}
+                disabled={isSubmitting}
+              >
+                Keep Existing (Cancel)
+              </button>
+            </div>
+          </div>
+        )}
+
+        <form onSubmit={(e) => handleSubmit(e, false)} className="dayflow-modal-form">
           <div className="dayflow-form-group">
             <label className="dayflow-form-label" htmlFor="apply-target-date">
               Select Target Date *
@@ -164,7 +228,7 @@ export function ApplyTemplateModal({
               type="date"
               className="dayflow-input"
               value={targetDate}
-              onChange={(e) => setTargetDate(e.target.value)}
+              onChange={(e) => handleTargetDateChange(e.target.value)}
               required
             />
           </div>
@@ -208,7 +272,7 @@ export function ApplyTemplateModal({
 
             <div className="apply-template-blocks-list" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {blocks.map((b) => {
-                const bId = b._id || b.id;
+                const bId = (b._id || b.id)?.toString();
                 const items = blockTasks[bId] || [];
                 const isMandatory = b.tasksRequired;
 
@@ -270,10 +334,6 @@ export function ApplyTemplateModal({
                 );
               })}
             </div>
-          </div>
-
-          <div className="dayflow-modal-card__warning-note">
-            ℹ️ If the selected date already has an active schedule or was marked as a Rest Day, it will be overwritten.
           </div>
 
           <div className="dayflow-modal-card__actions">

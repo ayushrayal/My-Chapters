@@ -5,11 +5,14 @@ import { queryKeys } from '../../../lib/queryKeys.js';
 import { AuthContext } from '../../auth/context/AuthContext.jsx';
 import { parseApiError } from '../../../utils/error-handler.js';
 import { useToast } from '../../../context/ToastContext.jsx';
+import {
+  getLocalDateString,
+  addDaysToDateString,
+  parseLocalDate
+} from '../../../utils/date-utils.js';
 
 function getTodayString() {
-  const d = new Date();
-  const pad = (n) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  return getLocalDateString();
 }
 
 function getMonthKey(dateStr) {
@@ -232,18 +235,12 @@ export function useDayflow(initialDate = null) {
   }, []);
 
   const goToPreviousDay = useCallback(() => {
-    const d = new Date(selectedDate);
-    d.setDate(d.getDate() - 1);
-    const pad = (n) => String(n).padStart(2, '0');
-    setSelectedDate(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`);
-  }, [selectedDate]);
+    setSelectedDate((prev) => addDaysToDateString(prev, -1));
+  }, []);
 
   const goToNextDay = useCallback(() => {
-    const d = new Date(selectedDate);
-    d.setDate(d.getDate() + 1);
-    const pad = (n) => String(n).padStart(2, '0');
-    setSelectedDate(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`);
-  }, [selectedDate]);
+    setSelectedDate((prev) => addDaysToDateString(prev, 1));
+  }, []);
 
   // Explicit refresh of current day (re-validates schedule and month overview)
   const refreshDay = useCallback(async () => {
@@ -292,28 +289,45 @@ export function useDayflow(initialDate = null) {
   const applyTemplateToDate = async ({ templateId, targetDate, targetDates, overwrite = false, tasks = [] }) => {
     setError(null);
     try {
+      const datesToApply = targetDates && targetDates.length > 0 ? targetDates : [targetDate || selectedDate];
+      const primaryTargetDate = targetDate || datesToApply[0] || selectedDate;
+
       const result = await dayflowApi.applyTemplate({
         templateId,
-        targetDate: targetDate || selectedDate,
-        targetDates,
+        targetDate: primaryTargetDate,
+        targetDates: datesToApply.length > 1 ? datesToApply : undefined,
         overwrite,
         tasks
       });
 
       const appliedSchedule = Array.isArray(result) ? result[0] : result;
-      if (appliedSchedule && appliedSchedule.date === selectedDate) {
-        setSchedule(appliedSchedule);
-        queryClient.setQueryData(queryKeys.dayflow.schedule(spaceId, selectedDate), appliedSchedule);
-      } else if (targetDate) {
-        setSelectedDate(targetDate);
+      const appliedDate = appliedSchedule?.date || primaryTargetDate;
+
+      // 1. Invalidate schedule queries for all target dates
+      datesToApply.forEach((d) => {
+        queryClient.invalidateQueries({ queryKey: queryKeys.dayflow.schedule(spaceId, d) });
+      });
+
+      // 2. Invalidate calendar overview and analytics
+      queryClient.invalidateQueries({ queryKey: queryKeys.dayflow.overview(spaceId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dayflow.analytics(spaceId) });
+
+      // 3. Immediately commit applied schedule to state and query cache
+      if (appliedSchedule) {
+        if (appliedDate === selectedDate) {
+          setSchedule(appliedSchedule);
+          queryClient.setQueryData(queryKeys.dayflow.schedule(spaceId, selectedDate), appliedSchedule);
+        } else {
+          // If targeted another date, navigate to it and display the new schedule immediately
+          setSelectedDate(appliedDate);
+          setSchedule(appliedSchedule);
+          queryClient.setQueryData(queryKeys.dayflow.schedule(spaceId, appliedDate), appliedSchedule);
+        }
       }
 
       toast?.success?.('Template applied to schedule.');
-      loadCalendarOverview(selectedDate, true);
-      if (activeTab === 'analytics' || analytics) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.dayflow.analytics(spaceId) });
-        loadAnalytics(selectedDate);
-      }
+      loadCalendarOverview(appliedDate, true);
+      setError(null);
       return result;
     } catch (err) {
       const parsed = parseApiError(err);

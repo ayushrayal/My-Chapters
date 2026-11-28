@@ -120,7 +120,11 @@ export function DailyTimeline({
       <div className="timeline-stream" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {filteredBlocks.map((block) => {
           const bId = block._id || block.id;
-          const blockTasks = tasks.filter((t) => t.blockId === bId);
+          const bIdStr = (block.id || block._id)?.toString();
+          const blockTasks = tasks.filter((t) => {
+            const tBlockId = (t.blockId?._id || t.blockId?.id || t.blockId)?.toString();
+            return tBlockId === bIdStr;
+          });
           const hasMandatoryRequirement = block.tasksRequired;
           const isEmpty = blockTasks.length === 0;
           const isCurrent = block.status === 'CURRENT';

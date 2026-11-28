@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { CalendarIcon } from '../../../components/common/Icons.jsx';
+import { getLocalDateString } from '../../../utils/date-utils.js';
 
 /**
  * MobileWeekStrip: Neo-Brutalist 7 bordered day tiles
@@ -53,7 +54,7 @@ export function MobileWeekStrip({
     }
   };
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getLocalDateString();
 
   return (
     <div className="mobile-week-strip-container">
