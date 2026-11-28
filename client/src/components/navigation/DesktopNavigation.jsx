@@ -58,6 +58,14 @@ export function DesktopNavigation({
             Someday
           </NavLink>
           <NavLink
+            to="/goodbits"
+            className={({ isActive }) =>
+              `desktop-nav-links__link ${isActive ? 'desktop-nav-links__link--active' : ''}`
+            }
+          >
+            Good Bits
+          </NavLink>
+          <NavLink
             to="/profile"
             className={({ isActive }) =>
               `desktop-nav-links__link ${isActive ? 'desktop-nav-links__link--active' : ''}`

@@ -40,6 +40,23 @@ describe('AppRoutes & Route Protection', () => {
     expect(await screen.findByRole('heading', { level: 2, name: /welcome back/i })).toBeDefined();
   });
 
+  it('redirects unauthenticated users trying to access /goodbits to /signin', async () => {
+    vi.spyOn(authHook, 'useAuth').mockReturnValue({
+      user: null,
+      space: null,
+      isAuthenticated: false,
+      isLoading: false
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/goodbits']}>
+        <AppRoutes />
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByRole('heading', { level: 2, name: /welcome back/i })).toBeDefined();
+  });
+
   it('redirects unauthenticated users trying to access /someday to /signin', async () => {
     vi.spyOn(authHook, 'useAuth').mockReturnValue({
       user: null,

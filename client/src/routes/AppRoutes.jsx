@@ -12,6 +12,7 @@ const Dashboard = lazy(() => import('../features/dashboard/pages/Dashboard.jsx')
 const Someday = lazy(() => import('../features/someday/pages/Someday.jsx').then((m) => ({ default: m.Someday })));
 const Dayflow = lazy(() => import('../features/dayflow/pages/Dayflow.jsx').then((m) => ({ default: m.Dayflow })));
 const GymFlow = lazy(() => import('../features/gymflow/pages/GymFlow.jsx').then((m) => ({ default: m.GymFlow })));
+const GoodBits = lazy(() => import('../features/goodbits/pages/GoodBits.jsx').then((m) => ({ default: m.GoodBits })));
 const Profile = lazy(() => import('../features/profile/pages/Profile.jsx').then((m) => ({ default: m.Profile })));
 
 function PageFallback() {
@@ -63,6 +64,7 @@ export function AppRoutes() {
           <Route path="/dayflow" element={<Dayflow />} />
           <Route path="/gymflow" element={<GymFlow />} />
           <Route path="/someday" element={<Someday />} />
+          <Route path="/goodbits" element={<GoodBits />} />
           <Route path="/profile" element={<Profile />} />
         </Route>
 

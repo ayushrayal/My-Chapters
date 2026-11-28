@@ -1,0 +1,641 @@
+@use '../abstracts/variables' as *;
+@use '../abstracts/mixins' as *;
+
+.goodbits-page {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 12px 60px;
+  box-sizing: border-box;
+
+  @include respond-to('tablet') {
+    padding: 24px 20px 60px;
+  }
+
+  @include respond-to('desktop') {
+    padding: 32px 24px 60px;
+  }
+}
+
+/* Page Header */
+.goodbits-page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+
+  @include respond-to('tablet') {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__left {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__title {
+    font-family: $font-family-heading;
+    font-size: 26px;
+    font-weight: 800;
+    color: $color-deep-navy;
+    margin: 0;
+    line-height: 1.2;
+
+    @include respond-to('tablet') {
+      font-size: 32px;
+    }
+  }
+
+  &__subtitle {
+    font-size: 14px;
+    font-weight: 500;
+    color: #475569;
+    margin: 0;
+    line-height: 1.4;
+
+    @include respond-to('tablet') {
+      font-size: 15px;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__btn {
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+  }
+}
+
+/* 2-Column Responsive Layout */
+.goodbits-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  box-sizing: border-box;
+
+  @include respond-to('desktop') {
+    display: grid;
+    grid-template-columns: 460px 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+}
+
+/* Calendar Card */
+.goodbits-cal-card {
+  background-color: $color-white;
+  border: $border-navy;
+  border-radius: $radius-card;
+  box-shadow: $shadow-sm;
+  padding: 16px;
+  box-sizing: border-box;
+  width: 100%;
+
+  @include respond-to('tablet') {
+    padding: 20px;
+  }
+}
+
+.goodbits-cal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 12px;
+
+  &__title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__title {
+    font-family: $font-family-heading;
+    font-size: 18px;
+    font-weight: 800;
+    color: $color-deep-navy;
+    margin: 0;
+
+    @include respond-to('tablet') {
+      font-size: 20px;
+    }
+  }
+
+  &__today-btn {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 10px;
+    height: 28px;
+    border-radius: $radius-6;
+  }
+
+  &__nav-btns {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+.goodbits-cal-nav-btn {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: $color-white;
+  border: $border-navy;
+  border-radius: $radius-6;
+  box-shadow: $shadow-xs;
+  color: $color-deep-navy;
+  cursor: pointer;
+  transition: transform $transition-fast, box-shadow $transition-fast, background-color $transition-fast;
+
+  &:hover {
+    background-color: $color-accent-lime;
+    transform: translate(-1px, -1px);
+    box-shadow: $shadow-sm;
+  }
+
+  &:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 $color-deep-navy;
+  }
+}
+
+.goodbits-cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.goodbits-cal-weekday {
+  font-size: 11px;
+  font-weight: 800;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 0;
+}
+
+.goodbits-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.goodbits-cal-day {
+  position: relative;
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: $color-canvas;
+  border: 1.5px solid #DEE0ED;
+  border-radius: $radius-6;
+  font-family: $font-family-heading;
+  font-size: 13px;
+  font-weight: 700;
+  color: $color-deep-navy;
+  cursor: pointer;
+  padding: 2px;
+  transition: transform $transition-fast, background-color $transition-fast, border-color $transition-fast;
+
+  &:hover:not(:disabled) {
+    background-color: $color-white;
+    border-color: $color-deep-navy;
+    transform: translate(-1px, -1px);
+    box-shadow: 2px 2px 0 $color-deep-navy;
+  }
+
+  &--padding {
+    background: transparent;
+    border-color: transparent;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  &--today {
+    background-color: #F0F4FF;
+    border: 2px solid $color-primary-blue;
+    color: $color-primary-blue;
+    font-weight: 800;
+  }
+
+  &--has-entries {
+    background-color: $color-white;
+    border: 1.5px solid $color-deep-navy;
+  }
+
+  &--selected {
+    background-color: $color-primary-blue !important;
+    border: 2px solid $color-deep-navy !important;
+    color: $color-white !important;
+    box-shadow: $shadow-xs !important;
+    transform: translate(-1px, -1px);
+
+    .goodbits-cal-day__number {
+      color: $color-white !important;
+    }
+
+    .goodbits-cal-day__dot {
+      background-color: $color-accent-lime !important;
+    }
+
+    .goodbits-cal-day__badge {
+      background-color: $color-accent-lime !important;
+      color: $color-deep-navy !important;
+    }
+  }
+
+  &--future {
+    opacity: 0.35;
+    cursor: not-allowed;
+    background-color: #F8FAFC;
+    border-color: #E2E8F0;
+  }
+
+  &__number {
+    line-height: 1;
+  }
+
+  &__dot {
+    position: absolute;
+    bottom: 4px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: $color-primary-blue;
+  }
+
+  &__badge {
+    position: absolute;
+    bottom: 3px;
+    font-size: 9px;
+    font-weight: 800;
+    line-height: 1;
+    background-color: $color-deep-navy;
+    color: $color-white;
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+}
+
+/* Date Details Column */
+.goodbits-details-card {
+  background-color: $color-white;
+  border: $border-navy;
+  border-radius: $radius-card;
+  box-shadow: $shadow-sm;
+  padding: 18px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  @include respond-to('tablet') {
+    padding: 24px;
+  }
+}
+
+.goodbits-details-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 2px dashed #DEE0ED;
+
+  @include respond-to('tablet') {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__left {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  &__title {
+    font-family: $font-family-heading;
+    font-size: 19px;
+    font-weight: 800;
+    color: $color-deep-navy;
+    margin: 0;
+
+    @include respond-to('tablet') {
+      font-size: 22px;
+    }
+  }
+
+  &__sub {
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748B;
+    margin: 0;
+  }
+}
+
+.goodbits-add-btn {
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  align-self: flex-start;
+
+  @include respond-to('tablet') {
+    align-self: center;
+  }
+}
+
+.goodbits-details-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 48px 0;
+  font-weight: 600;
+  color: #64748B;
+}
+
+/* Empty State */
+.goodbits-empty-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 40px 20px;
+  background-color: $color-canvas;
+  border: 2px dashed $color-deep-navy;
+  border-radius: $radius-card;
+  gap: 10px;
+
+  &__icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: $color-accent-lime;
+    border: 2px solid $color-deep-navy;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $color-deep-navy;
+    box-shadow: $shadow-xs;
+    margin-bottom: 6px;
+  }
+
+  &__title {
+    font-family: $font-family-heading;
+    font-size: 17px;
+    font-weight: 800;
+    color: $color-deep-navy;
+    margin: 0;
+  }
+
+  &__desc {
+    font-size: 13.5px;
+    font-weight: 500;
+    color: #475569;
+    max-width: 420px;
+    line-height: 1.45;
+    margin: 0;
+  }
+
+  &__btn {
+    margin-top: 8px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+/* Entries List */
+.goodbits-entries-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.goodbits-entry-card {
+  background-color: $color-white;
+  border: $border-navy;
+  border-radius: $radius-6;
+  box-shadow: $shadow-xs;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: transform $transition-fast, box-shadow $transition-fast;
+
+  &:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: $shadow-sm;
+  }
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  &__title-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  &__title {
+    font-family: $font-family-heading;
+    font-size: 16px;
+    font-weight: 800;
+    color: $color-deep-navy;
+    margin: 0;
+    line-height: 1.3;
+    word-break: break-word;
+  }
+
+  &__untitled {
+    font-size: 13px;
+    font-weight: 700;
+    color: $color-primary-blue;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  &__time {
+    font-size: 12px;
+    font-weight: 500;
+    color: #64748B;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  &__body {
+    padding-top: 2px;
+  }
+
+  &__text {
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: $color-deep-navy;
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+}
+
+.goodbits-entry-action-btn {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: 4px;
+}
+
+/* Modals & Forms */
+.goodbits-modal {
+  max-width: 560px;
+  width: 92%;
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  &__textarea {
+    min-height: 140px;
+    resize: vertical;
+    line-height: 1.5;
+  }
+}
+
+.goodbits-char-counter {
+  text-align: right;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748B;
+  margin-top: 4px;
+}
+
+.goodbits-form-error {
+  background-color: #FEE2E2;
+  border: 1.5px solid $color-error-red;
+  color: #991B1B;
+  padding: 10px 14px;
+  border-radius: $radius-6;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Memory Reminder Modal */
+.goodbits-reminder-modal {
+  max-width: 620px;
+  width: 92%;
+}
+
+.goodbits-reminder-header {
+  background-color: #EEF2FF;
+  border-bottom: 2px solid $color-deep-navy;
+
+  &__title-wrap {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  &__icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 6px;
+    background-color: $color-accent-lime;
+    border: 1.5px solid $color-deep-navy;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $color-deep-navy;
+    box-shadow: $shadow-xs;
+    flex-shrink: 0;
+  }
+}
+
+.goodbits-reminder-body {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.goodbits-reminder-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.goodbits-reminder-card {
+  background-color: $color-white;
+  border: $border-navy;
+  border-radius: $radius-6;
+  box-shadow: $shadow-xs;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  &__badge-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__title {
+    font-family: $font-family-heading;
+    font-size: 16px;
+    font-weight: 800;
+    color: $color-deep-navy;
+    margin: 0;
+  }
+
+  &__text {
+    font-size: 14px;
+    line-height: 1.5;
+    color: $color-deep-navy;
+    margin: 0;
+    white-space: pre-wrap;
+  }
+}
+
+.goodbits-reminder-footer {
+  padding: 14px 20px;
+}

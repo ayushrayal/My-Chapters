@@ -38,5 +38,12 @@ export const queryKeys = {
   dashboard: {
     all: (spaceId) => ['dashboard', spaceId || 'anonymous'],
     overview: (spaceId, params) => ['dashboard', spaceId || 'anonymous', 'overview', params || {}]
+  },
+
+  goodbits: {
+    all: (spaceId) => ['goodbits', spaceId || 'anonymous'],
+    month: (spaceId, monthKey) => ['goodbits', spaceId || 'anonymous', 'month', monthKey],
+    date: (spaceId, date) => ['goodbits', spaceId || 'anonymous', 'date', date],
+    memories: (spaceId, date) => ['goodbits', spaceId || 'anonymous', 'memories', date]
   }
 };

@@ -18,17 +18,20 @@ describe('BottomNavigation Component', () => {
     const dayflowLink = screen.getByRole('link', { name: /dayflow/i });
     const gymflowLink = screen.getByRole('link', { name: /gymflow/i });
     const somedayLink = screen.getByRole('link', { name: /someday/i });
+    const goodbitsLink = screen.getByRole('link', { name: /good bits/i });
     const profileLink = screen.getByRole('link', { name: /profile/i });
 
     expect(homeLink).toBeDefined();
     expect(dayflowLink).toBeDefined();
     expect(gymflowLink).toBeDefined();
     expect(somedayLink).toBeDefined();
+    expect(goodbitsLink).toBeDefined();
     expect(profileLink).toBeDefined();
     expect(homeLink.getAttribute('href')).toBe('/dashboard');
     expect(dayflowLink.getAttribute('href')).toBe('/dayflow');
     expect(gymflowLink.getAttribute('href')).toBe('/gymflow');
     expect(somedayLink.getAttribute('href')).toBe('/someday');
+    expect(goodbitsLink.getAttribute('href')).toBe('/goodbits');
     expect(profileLink.getAttribute('href')).toBe('/profile');
   });
 
